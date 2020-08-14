@@ -1,16 +1,18 @@
 <template lang="html">
   <div class="list">
-     <div class="note pb-4">
+     <!-- <div class="note pb-4">
          <textarea type="text" v-model="noteProp" class="form-control rounded" placeholder="Nhập nội dung ghi chú" />
-     </div>
-     <div class="order">
+     </div> -->
+     <div class="order mt-3 mb-4">
          <div v-for="(item, ind) in listOrder" class="order-detail mt-1" :key="ind">
-             <div class="order-title d-flex align-items-center border rounded" :class="{ confirmed: isActiveConfirm(item) }" @click="handleClickOrder(ind)">
+             <div class="order-title d-flex align-items-center border rounded"
+                :class="{ confirmed: isActiveConfirm(item), cancelled: isCancelled(item) }"
+                @click="handleClickOrder(ind)">
                  <img src="https://img.icons8.com/ios-filled/50/000000/expand-arrow.png"/>
                  <p class="text-dark m-0" >000{{ind + 1}}</p>
-                 <img class="edit ml-auto"
+                 <!-- <img class="edit ml-auto"
                     src="https://img.icons8.com/material/48/000000/edit--v1.png"
-                    @click.stop="handleClickEdit(item)"/>
+                    @click.stop="handleClickEdit(item)"/> -->
              </div>
              <div class="order-expand" >
                  <div class="status d-flex align-items-center">
@@ -33,12 +35,11 @@
                      <img src="https://img.icons8.com/android/24/000000/clock.png"/>
                      <p class="m-0">Cập nhật TT: {{computeTime(item.updatedAt)}}</p>
                  </div>
-                 <div class="process d-flex align-items-center">
-                     <img :class="{ active: isActiveNew(item) }"
-                        src="https://img.icons8.com/windows/26/000000/star.png"
-                        @click="handleUpdateOrder('unconfirmed', item, ind)"/>
-                     <p class="m-0" :class="{ 'text-primary': isActiveNew(item) }"
-                        @click="handleUpdateOrder('unconfirmed', item, ind)">Mới</p>
+                 <div class="process d-flex align-items-center"
+                    :class="{ 'pro-confirmed': isActiveConfirm(item), 'pro-cancelled': isCancelled(item)} ">
+                     <img class="active"
+                        src="https://img.icons8.com/windows/26/000000/star.png"/>
+                     <p class="m-0 text-primary">Mới</p>
                      <img src="https://img.icons8.com/ios-filled/24/000000/more-than.png"/>
                      <img :class="{ active: isActiveConfirm(item) }"
                         src="https://img.icons8.com/windows/32/000000/checked.png"
@@ -46,14 +47,17 @@
                      <p :class="{ 'text-primary': isActiveConfirm(item) }" class="m-0"
                         @click="handleUpdateOrder('confirmed', item, ind)">Xác nhận</p>
                      <img src="https://img.icons8.com/ios-filled/24/000000/more-than.png"/>
-                     <img :class="[ isActiveNew(item) ? '' : 'active' ]"
+                     <img :class="{ cancelled: isCancelled(item)}"
                         src="https://img.icons8.com/windows/32/000000/cancel.png"
                         @click="handleUpdateOrder('cancelled', item, ind)"/>
-                     <p :class="[ isActiveNew(item) ? '' : 'text-danger' ]" class="m-0"
+                     <p class="m-0" :class="{ 'text-danger': isCancelled(item)}"
                         @click="handleUpdateOrder('cancelled', item, ind)">Huỷ</p>
                  </div>
              </div>
          </div>
+     </div>
+     <div class="more">
+         <img src="https://img.icons8.com/ios-filled/50/000000/expand-arrow.png"/>
      </div>
   </div>
 </template>
@@ -100,7 +104,7 @@ export default {
     methods: {
         computeTime(timeStamp) {
             let date = new Date(timeStamp);
-            return `${date.getHours()}:${date.getMinutes()} ${date.getDate()}/${date.getMonth() + 1}`;
+            return `${date.getHours() < 10 ? `0${date.getHours()}` : date.getHours()}:${date.getMinutes() < 10 ? `0${date.getMinutes()}` : date.getMinutes()} ${date.getDate()}/${date.getMonth() + 1}`;
         },
         handleClickOrder(ind, expand) {
             let el = this.$el.getElementsByClassName('order-title');
@@ -124,14 +128,14 @@ export default {
         },
         handleClickEdit(item) {
             this.$emit('click-edit');
-            EventBus.$emit('call-order', item.id);
+            EventBus.$emit('get-order', item.id);
         },
         async readOrder() {
             try {
                 let path = `${this.basePath}order/order_read`;
                 let params = {
                     access_token: this.appToken,
-                    sort: 'createdAt'
+                    sort: 'createdAt DESC'
                 }
                 let listOrder = await Restful.get(path, params);
                 console.log('listorder', listOrder.data)
@@ -157,12 +161,6 @@ export default {
             await this.readOrder();
             this.handleClickOrder(ind, true);
         },
-        isActiveNew(item) {
-            if (item.status !== 'cancelled') {
-                return true
-            }
-            return false
-        },
         isActiveConfirm(item) {
             if (item.status === 'confirmed') {
                 return true
@@ -171,6 +169,9 @@ export default {
         },
         isUnconfirm(item) {
             return (item.status !== 'confirmed' && item.status !== 'cancelled')
+        },
+        isCancelled(item) {
+            return (item.status === 'cancelled');
         }
     },
     async created() {
@@ -178,9 +179,15 @@ export default {
             if (this.appToken) {
                 this.readOrder();
             }
+            EventBus.$on('call-order', () => {
+                this.readOrder();
+            })
         } catch (e) {
             console.log(e)
         }
+    },
+    beforeDestroy() {
+        EventBus.$off('call-order');
     },
     watch: {
         appToken() {
@@ -267,18 +274,24 @@ export default {
     }
     .order-title.expand,
     .order-title.confirmed {
-        background: #0d6efd;
-        border: 2px solid #0d6efd !important;
+        background: #2979ff69;
+        border: 2px solid #2979ff !important;
+    }
+    .order-title.cancelled {
+        background: #fc4e4e69;
+        border: 2px solid #fc4e4e !important;
     }
     .order-title.expand p,
-    .order-title.confirmed p {
+    .order-title.confirmed p,
+    .order-title.cancelled p {
          color: #f8f9fa !important;
      }
      .order-title.expand img:not(.edit) {
          transform: rotate(0);
      }
      .order-title.expand img,
-     .order-title.confirmed img {
+     .order-title.confirmed img,
+     .order-title.cancelled img {
          filter: invert(92%) sepia(40%) saturate(6%) hue-rotate(148deg) brightness(100%) contrast(98%);
      }
     .order-title.expand + .order-expand {
@@ -318,16 +331,33 @@ export default {
             height: 15px;
         }
         .process {
+            user-select: none;
             img,
             p {
                 cursor: pointer;
             }
+            img.active {
+                filter: invert(31%) sepia(33%) saturate(4996%) hue-rotate(207deg) brightness(98%) contrast(103%);
+            }
+            img.cancelled {
+                filter: invert(28%) sepia(66%) saturate(2417%) hue-rotate(334deg) brightness(90%) contrast(91%);
+            }
+            &.pro-confirmed *,
+            &.pro-cancelled * {
+                pointer-events: none;
+            }
+            &.pro-confirmed p:first-of-type,
+            &.pro-cancelled p:first-of-type {
+                color: #212529 !important;
+            }
+            &.pro-confirmed img:first-of-type,
+            &.pro-cancelled img:first-of-type {
+                filter: none;
+            }
         }
-        .process img.active {
-            filter: invert(31%) sepia(33%) saturate(4996%) hue-rotate(207deg) brightness(98%) contrast(103%);
-        }
-        .process img.active:last-of-type {
-            filter: invert(33%) sepia(98%) saturate(3453%) hue-rotate(336deg) brightness(90%) contrast(92%);
-        }
+    }
+    .more img {
+        width: 30px;
+        height: 20px;
     }
 </style>

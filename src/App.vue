@@ -551,7 +551,7 @@ export default {
 
 	/* Auth ---- */
 	.auth {
-		position: fixed;
+		position: absolute;
 		left: 50%;
 		transform: translateX(-50%);
 		padding: 10px;

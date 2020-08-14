@@ -576,7 +576,7 @@ export default {
 	    		// Ngăn spam "Tạo đơn hàng"
 		    	this.preventClick = true;
 
-	    		let path = this.basePath + 'order/order_create_3rd';
+	    		let path = `${this.basePath}order/order_create_3rd`;
 	    		let body = {
 		    		"access_token" : this.appToken,
 				    "product_info": this.cart,
@@ -599,7 +599,19 @@ export default {
 	    			delete body["customer_province_name"]
 	    		}
 
-	    		// Call Api tạo đơn hàng
+				// Tạo customer mới đối với Haravan
+				if (this.platformType === 'HARAVAN') {
+					this.createHaravanCustomer(body);
+					return
+				}
+				this.callOrder( path, body);
+			} catch(e) {
+				console.log(e);
+			}
+	    },
+		async callOrder(path, body) {
+			try {
+				// Call Api tạo đơn hàng
 	    		let postCreateOrder = await Restful.post( path, body);
 				if (postCreateOrder.data.data.snap_order) {
 					if (postCreateOrder.data.data.snap_order.errors) {
@@ -610,6 +622,7 @@ export default {
 						this.preventClick = false;
 						return;
 					}
+					EventBus.$emit('call-order');
 
 					// Đẩy tin nhắn về Msg
 					let content = this.covertMsgContent(postCreateOrder.data.data.order_id);
@@ -629,7 +642,6 @@ export default {
 					})
 					this.preventClick = false;
 				}
-
 	    	} catch(error) {
 	    		if (error.data.error_message.message) {
 	    			Toast2.fire({
@@ -655,7 +667,67 @@ export default {
 				})
 				this.preventClick = false;
 	    	}
-	    },
+		},
+		async createHaravanCustomer( body) {
+			try {
+				let path = `${this.basePath}other/haravan_create_customer`;
+				console.log('haraas')
+				let customer = {
+					"customer_name": this.name,
+					"customer_email": this.email,
+					"customer_address": this.address,
+					"customer_phone": this.phone,
+					"customer_province_name": this.city.name,
+					"customer_city_name": this.city.name,
+					"access_token": this.appToken
+				}
+				let createCustomer = await Restful.post( path, customer);
+				console.log('hrv acc success')
+				path = `${this.basePath}order/order_create_3rd`;
+				this.callOrder( path, body)
+			} catch (e) {
+				console.log('eeer', e.data.error_message)
+				if (e && e.data && e.data.error_message === 'Địa chỉ Email đã được sử dụng.') {
+					let path = `${this.basePath}order/order_create_3rd`;
+					let body = {
+			    		"access_token" : this.appToken,
+					    "product_info": this.cart,
+					    "customer_name": this.name,
+					    "customer_phone": this.phone,
+					    "customer_email": this.email,
+					    "customer_address": this.address,
+					    "customer_city_name": this.city.name,
+					    "customer_province_name": this.city.name,
+					    "customer_district_name": this.district.name,
+					    "customer_ward_name": this.ward.name,
+					    "customer_street_name": this.street,
+					    "note": this.note,
+						"status": "unconfirmed",
+					    "platform_type": this.platformType,
+					    "branchId": this.branch.id
+		    		}
+		    		if (!body.branchId) delete body.branchId;
+		    		if (!this.city.name.includes('Tỉnh')) {
+		    			delete body["customer_province_name"]
+		    		}
+					this.callOrder( path, body)
+					return;
+				}
+				if (e && e.data && e.data.error_message) {
+					Toast2.fire({
+						icon: 'error',
+						title: e.data.error_message
+					});
+					this.preventClick = false;
+					return;
+				}
+				Toast2.fire({
+					icon: 'error',
+					title: 'Xảy ra lỗi khi tạo Haravan customer'
+				})
+				this.preventClick = false;
+			}
+		},
 	    async handleDeleteAllCart() {
 	    	try {
 
@@ -701,11 +773,12 @@ export default {
 	    	this.isShowOrderInfo = false;
 	    },
 		async getListProduct(params) {
-			let path = this.basePath + 'product/product_read';
+			let path = `${this.basePath}product/product_read`;
 
 			// Load danh sách sản phẩm
 			let getListProduct = await Restful.get( path, params);
 			this.listProduct = getListProduct.data.data;
+			console.log('pro', this.listProduct)
 			this.platformType = getListProduct.data.data[0].platform_type;
 
 			// Lấy chi nhánh nếu là Kiotviet
@@ -728,6 +801,9 @@ export default {
 						if (image.id === variant.image_id) {
 							variant.image = image.src;
 						}
+					}
+					if (!variant.image) {
+						variant.image = product.image;
 					}
 					return ({
 						product_id: variant.id,
@@ -828,7 +904,7 @@ export default {
 		}
 	},
 	created() {
-		EventBus.$on('call-order', id => {
+		EventBus.$on('get-order', id => {
 			this.getOrderInfo(id);
 		})
 		if (this.appToken) {
@@ -1120,13 +1196,14 @@ export default {
 	.popup .product p:first-child {
 		margin: 0;
 		font-weight: bold;
+		opacity: .9;
 	}
 	.popup .product p:first-child + p {
 	 	opacity: .6;
 	}
 	.popup .product p:last-child {
 		font-size: 1.1rem;
-		font-weight: bold;
+		/* font-weight: bold; */
 		margin: 0;
 	}
 	.order-info {
