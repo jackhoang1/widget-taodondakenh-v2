@@ -31,6 +31,7 @@
 			</div>
 			<list-order v-show="isSelect === 'list'"
 				:appToken="appToken"
+				:phoneProp="phoneProp"
 				@click-edit="handleClickHeader('create')"/>
 			<create-order
 				v-show="isSelect === 'create'"
@@ -42,7 +43,8 @@
 
 <script>
 
-import Restful from "@/services/resful.js";
+import EventBus from './EventBus.js';
+import Restful from '@/services/resful.js';
 import CreateOrder from './components/CreateOrder';
 import ListOrder from './components/ListOrder';
 
@@ -117,7 +119,13 @@ export default {
 					password: this.pwdSignIn
 				}
 				let signIn = await Restful.post(path, body);
-				let { email, first_name, last_name, id, role } = signIn.data.data.user;
+				let user = {}
+				if (signIn.data && signIn.data.data && signIn.data.data.user) {
+					user = signIn.data.data.user;
+				} else {
+					throw 'Đăng nhập thất bại'
+				}
+				let { email, first_name, last_name, id, role } = user;
 				path = "https://ext.botup.io/v1/users/users/singinbotup";
 				body = {
 					username: id,
@@ -133,14 +141,23 @@ export default {
 
 				// Lấy danh sách Store
 				path = "https://ext.botup.io/v1/selling-page/store/store_read";
-				let params = {
-					owner_id: signInBotup.data.data.user.id
+				let params = {}
+				if (signInBotup.data && signInBotup.data.data && signInBotup.data.data.user && signInBotup.data.data.user.id) {
+					params = {
+						owner_id: signInBotup.data.data.user.id
+					}
+				} else {
+					throw 'Đăng nhập thất bại'
 				}
+
 				let readStore = await Restful.get(path, params)
 				console.log('store', readStore.data);
-				this.listStore = readStore.data.data;
-				this.showListStore = true;
-
+				if (readStore.data && readStore.data.data) {
+					this.listStore = readStore.data.data;
+					this.showListStore = true;
+				} else {
+					throw 'Lỗi khi lấy danh sách Store';
+				}
 			} catch(e) {
 				console.log('error', e);
 				if (e.data.message) {
@@ -148,12 +165,12 @@ export default {
 					  	icon: 'error',
 					  	title: e.data.message
 					})
-				} else {
-					Toast2.fire({
-					  	icon: 'error',
-					  	title: "Đã xảy ra lỗi"
-					})
+					return
 				}
+				Toast2.fire({
+					icon: 'error',
+					title: e
+				})
 			}
 		},
 		handleChooseStore(item) {
@@ -193,11 +210,19 @@ export default {
     	},
 		handleClickHeader(ele) {
 			this.isSelect = ele;
+			if (ele === 'list') {
+				EventBus.$emit('disable-update-order');
+			}
+		}
+	},
+	watch: {
+		phoneProp() {
+			console.log('change phone')
 		}
 	},
 	async created() {
 		try	{
-
+			console.log('creeeee apppp')
 			let body = {
 	        	access_token: this.accessToken,
 	        	secret_key: this.secretKey
@@ -208,16 +233,23 @@ export default {
 			if (getCustomerInfo.data.succes && getCustomerInfo.data.code == 200) {
 			  	this.isOAuth = true;
 			  	console.log('auth created', getCustomerInfo.data.data.conversation_contact)
-				this.appToken = getCustomerInfo.data.data.public_profile.token_partner;
-			  	this.nameProp = getCustomerInfo.data.data.public_profile.client_name;
-			  	if (getCustomerInfo.data.data.conversation_contact.client_phone) {
-			  		this.phoneProp = getCustomerInfo.data.data.conversation_contact.client_phone;
-			  		this.phoneProp = this.phoneProp.split('.').join('');
-			  	}
+				if (getCustomerInfo.data.data && getCustomerInfo.data.data) {
+					let cus = getCustomerInfo.data.data;
+					if (cus.public_profile) {
+						this.appToken = cus.public_profile.token_partner;
+						this.nameProp = cus.public_profile.client_name;
+						this.msgClientId = cus.public_profile.fb_client_id;
+					}
+					if (cus.conversation_contact && cus.conversation_contact.client_phone) {
+				  		this.phoneProp = cus.conversation_contact.client_phone;
+				  		this.phoneProp = this.phoneProp.split('.').join('').split(' ').join('');
+				  	}
+					if (cus.conversation_chatbot) {
+						this.msgToken = cus.conversation_chatbot.bbh_public_token;
+					}
+				  	console.log('info cus', getCustomerInfo)
+				}
 
-			  	this.msgClientId = getCustomerInfo.data.data.public_profile.fb_client_id;
-			  	this.msgToken = getCustomerInfo.data.data.conversation_chatbot.bbh_public_token;
-			  	console.log('info cus', getCustomerInfo)
 	    	}
 		} catch(error) {
 
@@ -330,6 +362,9 @@ export default {
 	}
 	.justify-content-between {
   		justify-content: space-between !important;
+	}
+	.justify-content-center {
+		justify-content: center !important;
 	}
 
 	/*Spacing*/

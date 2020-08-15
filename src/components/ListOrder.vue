@@ -3,17 +3,24 @@
      <!-- <div class="note pb-4">
          <textarea type="text" v-model="noteProp" class="form-control rounded" placeholder="Nhập nội dung ghi chú" />
      </div> -->
-     <div class="order mt-3 mb-4">
+     <div class="order mt-3 mb-5">
+
+         <!-- Danh sách đơn hàng -->
          <div v-for="(item, ind) in listOrder" class="order-detail mt-1" :key="ind">
+
+             <!-- Tiêu đề đơn hàng-->
              <div class="order-title d-flex align-items-center border rounded"
                 :class="{ confirmed: isActiveConfirm(item), cancelled: isCancelled(item) }"
                 @click="handleClickOrder(ind)">
                  <img src="https://img.icons8.com/ios-filled/50/000000/expand-arrow.png"/>
                  <p class="text-dark m-0" >000{{ind + 1}}</p>
-                 <!-- <img class="edit ml-auto"
+                 <img v-if="ableEdit(item)" class="edit ml-auto"
                     src="https://img.icons8.com/material/48/000000/edit--v1.png"
-                    @click.stop="handleClickEdit(item)"/> -->
+                    @click.stop="handleClickEdit(item)"/>
              </div>
+             <!-- End Tiêu đề đơn hàng-->
+
+             <!-- Đơn hàng mở rộng -->
              <div class="order-expand" >
                  <div class="status d-flex align-items-center">
                      <img v-if="isUnconfirm(item)" src="https://img.icons8.com/windows/26/000000/star.png"/>
@@ -35,6 +42,8 @@
                      <img src="https://img.icons8.com/android/24/000000/clock.png"/>
                      <p class="m-0">Cập nhật TT: {{computeTime(item.updatedAt)}}</p>
                  </div>
+
+                 <!-- Tiến trình đơn hàng -->
                  <div class="process d-flex align-items-center"
                     :class="{ 'pro-confirmed': isActiveConfirm(item), 'pro-cancelled': isCancelled(item)} ">
                      <img class="active"
@@ -53,10 +62,16 @@
                      <p class="m-0" :class="{ 'text-danger': isCancelled(item)}"
                         @click="handleUpdateOrder('cancelled', item, ind)">Huỷ</p>
                  </div>
+                 <!-- End Tiến trình đơn hàng -->
+
              </div>
+             <!-- End Đơn hàng mở rộng -->
+
          </div>
+         <!-- End Danh sách đơn hàng -->
+
      </div>
-     <div class="more">
+     <div class="more d-flex justify-content-center" @click="handleGetMoreOrder()">
          <img src="https://img.icons8.com/ios-filled/50/000000/expand-arrow.png"/>
      </div>
   </div>
@@ -93,20 +108,28 @@ const Toast2 = Swal.mixin({
 })
 
 export default {
-    props: ['appToken'],
+    props: ['appToken', 'phoneProp'],
     data() {
         return {
             noteProp: '',
             basePath: 'https://ext.botup.io/v1/selling-page/',
-            listOrder: []
+            listOrder: [],
+            skip: 0
         }
     },
     methods: {
+        ableEdit(item) {
+            if (item.platform_type === 'CUSTOM' && (item.status === 'unconfirmed' || item.status === '')) return true;
+        },
         computeTime(timeStamp) {
             let date = new Date(timeStamp);
-            return `${date.getHours() < 10 ? `0${date.getHours()}` : date.getHours()}:${date.getMinutes() < 10 ? `0${date.getMinutes()}` : date.getMinutes()} ${date.getDate()}/${date.getMonth() + 1}`;
+            let time = `${date.getHours() < 10 ? `0${date.getHours()}` : date.getHours()}:${date.getMinutes() < 10 ? `0${date.getMinutes()}` : date.getMinutes()}`
+            let day = `${date.getDate()}/${date.getMonth() + 1}`;
+            return  (time + ' ' + day);
         },
         handleClickOrder(ind, expand) {
+
+            // Thay đổi class của order-title
             let el = this.$el.getElementsByClassName('order-title');
             let classList = this.$el.getElementsByClassName('order-title')[ind].classList;
             if (expand) {
@@ -128,6 +151,7 @@ export default {
         },
         handleClickEdit(item) {
             this.$emit('click-edit');
+            // Emit event để CreateOrder.vue call order detail
             EventBus.$emit('get-order', item.id);
         },
         async readOrder() {
@@ -139,11 +163,23 @@ export default {
                 }
                 let listOrder = await Restful.get(path, params);
                 console.log('listorder', listOrder.data)
-                this.listOrder = listOrder.data.data;
+                if (listOrder.data && listOrder.data.data) {
+                    this.listOrder = listOrder.data.data;
+                } else {
+                    throw 'Lỗi lấy danh sách Đơn hàng'
+                }
             } catch(e) {
+                console.log(e)
+                if (e.data && e.data.error_message) {
+                    Toast2.fire({
+                        icon: 'error',
+                        title: e.data.error_message
+                    })
+                    return
+                }
                 Toast2.fire({
                     icon: 'error',
-                    title: 'Đã xảy ra lỗi'
+                    title: e
                 })
             }
         },
@@ -172,13 +208,63 @@ export default {
         },
         isCancelled(item) {
             return (item.status === 'cancelled');
+        },
+        async handleGetMoreOrder() {
+            try {
+                this.skip = this.skip + 20;
+                let path = `${this.basePath}order/order_read`;
+                let params = {
+                    access_token: this.appToken,
+                    sort: 'createdAt DESC',
+                    skip: this.skip
+                }
+                let listOrder = await Restful.get(path, params);
+                console.log('listorder', listOrder.data)
+                if (listOrder.data && listOrder.data.data) {
+                    if (!listOrder.data.data.length) {
+                        Toast2.fire({
+                            icon: 'success',
+                            title: 'Đã hiển thị tất cả đơn hàng'
+                        })
+                        return
+                    }
+                    this.listOrder = this.listOrder.concat(listOrder.data.data);
+                } else {
+                    throw 'Lỗi lấy danh sách Đơn hàng'
+                }
+            } catch (e) {
+                if (e.data && e.data.error_message) {
+                    Toast2.fire({
+                        icon: 'error',
+                        title: e.data.error_message
+                    })
+                    return
+                }
+                Toast2.fire({
+                    icon: 'error',
+                    title: e
+                })
+            }
+        },
+        checkPhone() {
+            let order = this.listOrder.slice(0, 19);
+            if (!this.phoneProp) return;
+            let check = order.find( item => {
+                return item.customer_phone === this.phoneProp;
+            })
+            console.log('ckeck ckeck', check)
+            if (!check) {
+                EventBus.$emit('create-empty-order');
+            }
         }
     },
     async created() {
         try {
-            if (this.appToken) {
-                this.readOrder();
+            if (!this.appToken) {
+                throw 'Error'
             }
+            await this.readOrder();
+            this.checkPhone();
             EventBus.$on('call-order', () => {
                 this.readOrder();
             })
@@ -192,6 +278,9 @@ export default {
     watch: {
         appToken() {
             this.readOrder();
+        },
+        phoneProp() {
+            this.checkPhone();
         }
     }
 }
@@ -274,12 +363,12 @@ export default {
     }
     .order-title.expand,
     .order-title.confirmed {
-        background: #2979ff69;
-        border: 2px solid #2979ff !important;
+        background: #3dff88;
+        border: 2px solid #3dff88 !important;
     }
     .order-title.cancelled {
-        background: #fc4e4e69;
-        border: 2px solid #fc4e4e !important;
+        background: #ff8a8a;
+        border: 2px solid #ff8a8a !important;
     }
     .order-title.expand p,
     .order-title.confirmed p,
@@ -356,8 +445,18 @@ export default {
             }
         }
     }
-    .more img {
-        width: 30px;
-        height: 20px;
+    .more {
+        position: fixed;
+        bottom: 0;
+        padding-bottom: 10px;
+        background: #fff;
+        left: 0;
+        right: 0;
+        cursor: pointer;
+        img {
+            width: 30px;
+            height: 20px;
+            opacity: .6;
+        }
     }
 </style>

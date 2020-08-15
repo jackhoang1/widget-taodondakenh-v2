@@ -155,7 +155,9 @@
 					</button>
 				</div>
 				<div v-show="isShowPopup" class="list-product">
-					<div v-if="!filterListProduct.length" class="product d-flex align-items-center border-bottom border-top py-2" v-for="(item, ind) in listProduct" :key="ind" @click="handleAddToCart(item)">
+					<div v-if="!filterListProduct.length"
+						class="product d-flex align-items-center border-bottom border-top py-2"
+						v-for="(item, ind) in listProduct" :key="ind" @click="handleAddToCart(item)">
 						<img class="border rounded mr-2" :src="item.image || 'https://img.icons8.com/officexs/80/000000/spinner-frame-6.png'" alt="product">
 						<div class="flex-grow-1">
 							<p class="m-0" :title="item.product_name">{{ item.product_name.substring(0, 60) + '...' }}</p>
@@ -163,7 +165,9 @@
 							<p class="text-right mt-1">{{ item.product_price | toCurrency }}</p>
 						</div>
 					</div>
-					<div v-if="filterListProduct.length" class="product d-flex align-items-center border-bottom border-top py-2" v-for="(item, ind) in listProduct" :key="ind" @click="handleAddToCart(item)">
+					<div v-if="filterListProduct.length"
+						class="product d-flex align-items-center border-bottom border-top py-2"
+						v-for="(item, ind) in filterListProduct" :key="ind" @click="handleAddToCart(item)">
 						<img class="border rounded mr-2" :src="item.image || 'https://img.icons8.com/officexs/80/000000/spinner-frame-6.png'" alt="product">
 						<div class="flex-grow-1">
 							<p class="m-0" :title="item.product_name">{{ item.product_name.substring(0, 60) + '...' }}</p>
@@ -276,14 +280,16 @@ export default {
 			note: '',
 			isShowNote: false,
 			cart: [],
+			orderId: '',
 			totalPrice: 0,
 			isShowOrder: false,
 			isShowOrderInfo: false,
-			orderInfo: {},
 			preventClick: false,
 			basePath: 'https://ext.botup.io/v1/selling-page/',
 			msgContent: 'Quý khách đã tạo thành công đơn hàng số {{order_id}} , đơn hàng quý khách đang được giao vận.',
-			isShowSettingMsg: false
+			isShowSettingMsg: false,
+			isUpdateOrder: false,
+			waitToCreateEmptyOrder: false
 		}
 	},
 	methods: {
@@ -294,9 +300,12 @@ export default {
 	    		let params = {
 	    			matinh: this.city.code
 	    		}
-	    		let getListDistrict = await Restful.get( path, params);
-	    		this.listDistrict = getListDistrict.data.data;
 
+				// Lấy danh sách quận/huyện
+	    		let getListDistrict = await Restful.get( path, params);
+				if (getListDistrict.data && getListDistrict.data.data) {
+					this.listDistrict = getListDistrict.data.data;
+				}
 	    	} catch(error) {
 	    		console.log('error', error);
 	    	}
@@ -344,18 +353,20 @@ export default {
 						search : searchValue
 					}
 					await this.getListProduct(params);
+					if (this.listProduct.length) return;
 
 					// Search với các searchValue viết hoa kí tự đầu
 					searchValue = searchValueData.charAt(0).toUpperCase() + searchValue.substring(1);
 					params.search = searchValue;
 					await this.getListProduct(params);
+					if (this.listProduct.length) return;
 
 					// Search với các searchValue viết thường
 					searchValue = searchValueData.toLowerCase().split(' ')[0];
 					params.search = searchValue;
 					await this.getListProduct(params);
 
-					if (this.listProduct.length === 0) {
+					if (!this.listProduct.length) {
 						Toast.fire({
 				  			icon: 'error',
 				  			title: 'Không tìm thấy sản phẩm'
@@ -367,9 +378,13 @@ export default {
 			}
     	},
 		searchByFilter() {
-			this.filterListProduct = this.listProduct.filter(item => {
-				return item.product_name.includes(this.searchValue);
+			let products = this.listProduct;
+			let search = this.searchValue.toLowerCase();
+			this.filterListProduct = products.filter(item => {
+				console.log('here', item.product_name.includes(search))
+				return item.product_name.toLowerCase().includes(search);
 			})
+			console.log('log', this.filterListProduct)
 		},
 	    handleClosePopup() {
 	    	// Close Popup tìm sản phẩm
@@ -396,7 +411,9 @@ export default {
 	    			sort: 'createdAt DESC'
 	    		}
 	    		let getCart = await Restful.get( path, params);
-	    		this.cart = getCart.data.data;
+				if (getCart.data && getCart.data.data) {
+					this.cart = getCart.data.data;
+				}
 
 	    		// Tính tổng giá trị giỏ hàng
     			let total = [];
@@ -440,10 +457,10 @@ export default {
 		    	console.log(postToCart.data)
 
 		    	// Lưu client_id và lưu vào localStorage
-		    	this.clientId = postToCart.data.data.client_id;
-	    		if(this.clientId) {
-	    			localStorage.setItem('client_id', this.clientId);
-	    		}
+				if (postToCart.data && postToCart.data.data && postToCart.data.data.client_id) {
+					this.clientId = postToCart.data.data.client_id;
+					this.clientId && localStorage.setItem('client_id', this.clientId);
+				}
 
 	    		Toast.fire({
 					icon: 'success',
@@ -573,6 +590,13 @@ export default {
 	    },
 	    async handleCallApiOrder() {
 	    	try {
+
+				// Check xem đnag tạo mới order hay update order
+				if (this.isEditOrder) {
+					this.updateOrder()
+					return
+				}
+
 	    		// Ngăn spam "Tạo đơn hàng"
 		    	this.preventClick = true;
 
@@ -613,21 +637,21 @@ export default {
 			try {
 				// Call Api tạo đơn hàng
 	    		let postCreateOrder = await Restful.post( path, body);
-				if (postCreateOrder.data.data.snap_order) {
+				if (postCreateOrder.data && postCreateOrder.data.data && postCreateOrder.data.data.snap_order) {
 					if (postCreateOrder.data.data.snap_order.errors) {
-						Toast2.fire({
-							icon: 'error',
-							title: postCreateOrder.data.data.snap_order.errors
-						});
-						this.preventClick = false;
-						return;
+						throw postCreateOrder.data.data.snap_order
+
 					}
 					EventBus.$emit('call-order');
 
 					// Đẩy tin nhắn về Msg
-					let content = this.covertMsgContent(postCreateOrder.data.data.order_id);
-					this.sendMessage(content);
-					this.orderInfo = postCreateOrder.data.data;
+					if (postCreateOrder.data.data.order_id) {
+						let content = this.covertMsgContent(postCreateOrder.data.data.order_id);
+						this.sendMessage(content);
+					} else {
+						let content = this.covertMsgContent('order_id');
+						this.sendMessage(content);
+					}
 					Toast2.fire({
 						icon: 'success',
 						title: 'Tạo đơn hàng thành công'
@@ -651,7 +675,6 @@ export default {
 					this.preventClick = false;
 					return;
 	    		}
-	    		console.log(error.error_message)
 	    		if (error.data.error_message) {
 	    			Toast2.fire({
 						icon: 'error',
@@ -660,6 +683,16 @@ export default {
 					this.preventClick = false;
 					return;
 	    		}
+
+				if (error.errors) {
+					Toast2.fire({
+						icon: 'error',
+						title: error.errors
+					});
+					this.preventClick = false;
+					return;
+				}
+
 	    		console.log('error', error);
 	    		Toast2.fire({
 					icon: 'error',
@@ -773,38 +806,50 @@ export default {
 	    	this.isShowOrderInfo = false;
 	    },
 		async getListProduct(params) {
-			let path = `${this.basePath}product/product_read`;
+			try {
+				let path = `${this.basePath}product/product_read`;
 
-			// Load danh sách sản phẩm
-			let getListProduct = await Restful.get( path, params);
-			this.listProduct = getListProduct.data.data;
-			console.log('pro', this.listProduct)
-			this.platformType = getListProduct.data.data[0].platform_type;
+				// Load danh sách sản phẩm
+				let getListProduct = await Restful.get( path, params);
+				if (getListProduct.data && getListProduct.data.data) {
+					this.listProduct = getListProduct.data.data;
+				}
+				if (getListProduct.data && getListProduct.data.data[0] && getListProduct.data.data[0].platform_type) {
+					this.platformType = getListProduct.data.data[0].platform_type;
+				}
+				console.log(this.platformType)
 
-			// Lấy chi nhánh nếu là Kiotviet
-			if (this.platformType === 'KIOTVIET') {
-				this.getBranchKiotviet();
+				// Lấy chi nhánh nếu là Kiotviet
+				if (this.platformType === 'KIOTVIET') {
+					!this.hasBranch && this.getBranchKiotviet();
+				}
+
+				// Convert data theo variant nếu là Haravan và Sapo
+				if (this.platformType === 'HARAVAN' || this.platformType === 'SAPO') {
+					this.convertProductData();
+				}
+			} catch(e) {
+				console.log('get product err', e)
 			}
-
-			// Convert data theo variant nếu là Haravan và Sapo
-			if (this.platformType === 'HARAVAN' || this.platformType === 'SAPO') {
-				this.convertProductData();
-			}
-			console.log('list product', this.listProduct, this.platformType)
 		},
 		convertProductData() {
 			let products = [].concat(this.listProduct);
 			this.listProduct = [];
-			for (let product of products) {
-				let mapVariant = product.variants.map(variant => {
-					for (let image of product.images) {
-						if (image.id === variant.image_id) {
-							variant.image = image.src;
+
+			let findImage = (product, imageId) => {
+				if (product.images) {
+					product.images.map(image => {
+						if (image.id === imageId) {
+							return image.src;
 						}
-					}
-					if (!variant.image) {
-						variant.image = product.image;
-					}
+					})
+				}
+				return product.image;
+			}
+
+			products.map((product, ind) => {
+				let mapVariant = product.variants.map(variant => {
+					variant.image = findImage(product, variant.image_id);
 					return ({
 						product_id: variant.id,
 						product_name: product.product_name,
@@ -814,8 +859,7 @@ export default {
 					})
 				})
 				this.listProduct = this.listProduct.concat(mapVariant);
-			}
-			console.log('convert', this.listProduct)
+			})
 		},
 	    async getInitialData() {
 
@@ -869,43 +913,204 @@ export default {
 				id
 			}
 			let order = await Restful.get( path, params);
-			let dataOrder = order.data.data;
-			this.name = dataOrder.customer_name;
-			this.phone = dataOrder.customer_phone;
-			this.email = dataOrder.customer_email;
-			this.street = dataOrder.customer_street_name;
-			this.note = dataOrder.note;
-			this.country = 'Việt Nam';
-			this.platformType = dataOrder.platform_type;
-			if (dataOrder.branchId) {
-				this.branchId = dataOrder.branchId;
-			}
-			for (let item of this.listCity) {
-				if (dataOrder.customer_city_name === item.name) {
-					this.city = item;
-				}
-			}
-			await this.handleChooseCity();
-			for (let item of this.listDistrict) {
-				if (dataOrder.customer_district_name === item.name) {
-					this.district = item;
-				}
-			}
-			await this.handleChooseDistrict();
-			for (let item of this.listWard) {
-				if (dataOrder.customer_ward_name === item.name) {
-					this.ward = item;
-				}
-			}
-			console.log('call order', order);
-		},
-		async convertCity() {
 
+			let dataOrder = {}
+			if (order.data && order.data.data) {
+				dataOrder = order.data.data;
+				this.name = dataOrder.customer_name;
+				this.phone = dataOrder.customer_phone;
+				this.email = dataOrder.customer_email;
+				this.street = dataOrder.customer_street_name;
+				this.note = dataOrder.note;
+				this.country = 'Việt Nam';
+				this.platformType = dataOrder.platform_type;
+				if (dataOrder.branchId) {
+					this.branchId = dataOrder.branchId;
+				}
+				this.listCity.map( item => {
+					if (dataOrder.customer_city_name === item.name) {
+						this.city = item;
+					}
+				})
+				if (!Object.keys(this.city).length) return;
+
+				await this.handleChooseCity();
+				this.listDistrict.map( item => {
+					if (dataOrder.customer_district_name === item.name) {
+						this.district = item;
+					}
+				})
+
+				await this.handleChooseDistrict();
+				this.listWard.map( item => {
+					if (dataOrder.customer_ward_name === item.name) {
+						this.ward = item;
+					}
+				})
+				console.log('call order', order);
+			}
+		},
+		async createEmptyOrder() {
+			try {
+				if (this.platformType !== 'CUSTOM') return;
+				let path = `${this.basePath}order/order_create_3rd`;
+	    		let body = {
+		    		"access_token" : this.appToken,
+				    "customer_name": this.name,
+				    "customer_phone": this.phone,
+				    "customer_address": 'Chưa xác định',
+					"status": "unconfirmed",
+				    "platform_type": this.platformType
+	    		}
+
+				let emptyOrder = await Restful.post( path, body);
+				if (emptyOrder.data && emptyOrder.data.data) {
+					console.log('create empty order ok')
+					this.orderId = emptyOrder.data.data;
+					EventBus.$emit('call-order');
+					Toast2.fire({
+						icon: 'success',
+						title: 'Tạo đơn hàng thành công'
+					});
+
+				} else {
+					Toast.fire({
+						icon: 'error',
+						title: 'Đã xảy ra lỗi'
+					})
+				}
+			} catch (error) {
+				if (error.data.error_message.message) {
+	    			Toast2.fire({
+						icon: 'error',
+						title: error.data.error_message.message
+					})
+					return;
+	    		}
+	    		if (error.data.error_message) {
+	    			Toast2.fire({
+						icon: 'error',
+						title: error.data.error_message
+					})
+					return;
+	    		}
+				if (error.errors) {
+					Toast2.fire({
+						icon: 'error',
+						title: error.errors
+					});
+					return;
+				}
+	    		Toast2.fire({
+					icon: 'error',
+					title: 'Đã xảy ra lỗi'
+				})
+			}
+		},
+		async updateOrder() {
+			try {
+				this.preventClick = true;
+
+				let path = `${this.basePath}order/order_update`;
+				let body = {
+		    		"access_token" : this.appToken,
+					"id": this.orderId,
+				    "product_info": this.cart,
+				    "customer_name": this.name,
+				    "customer_phone": this.phone,
+				    "customer_email": this.email,
+				    "customer_address": this.address,
+				    "customer_city_name": this.city.name,
+				    "customer_province_name": this.city.name,
+				    "customer_district_name": this.district.name,
+				    "customer_ward_name": this.ward.name,
+				    "customer_street_name": this.street,
+				    "note": this.note,
+					"status": "confirmed"
+	    		}
+	    		if (!this.city.name.includes('Tỉnh')) {
+	    			delete body["customer_province_name"]
+	    		}
+				let callUpdateOrder = await Restful.post( path, body);
+				if (callUpdateOrder.data && callUpdateOrder.data.data && callUpdateOrder.data.data.snap_order) {
+					this.isUpdateOrder = false;
+					EventBus.$emit('call-order');
+
+					if (callUpdateOrder.data.data.snap_order.errors) {
+						throw callUpdateOrder.data.data.snap_order
+					}
+
+					// Đẩy tin nhắn về Msg
+					if (callUpdateOrder.data.data.order_id) {
+						let content = this.covertMsgContent(callUpdateOrder.data.data.order_id);
+						this.sendMessage(content);
+					} else {
+						let content = this.covertMsgContent('order_id');
+						this.sendMessage(content);
+					}
+					Toast2.fire({
+						icon: 'success',
+						title: 'Tạo đơn hàng thành công'
+					});
+
+					// Xóa giỏ hàng sau khi tạo đơn
+					this.handleDeleteAllCart();
+				} else {
+					Toast.fire({
+						icon: 'error',
+						title: 'Đã xảy ra lỗi'
+					})
+					this.preventClick = false;
+				}
+
+			} catch (error) {
+				if (error.data.error_message.message) {
+	    			Toast2.fire({
+						icon: 'error',
+						title: error.data.error_message.message
+					})
+					this.preventClick = false;
+					return;
+	    		}
+	    		if (error.data.error_message) {
+	    			Toast2.fire({
+						icon: 'error',
+						title: error.data.error_message
+					})
+					this.preventClick = false;
+					return;
+	    		}
+
+				if (error.errors) {
+					Toast2.fire({
+						icon: 'error',
+						title: error.errors
+					});
+					this.preventClick = false;
+					return;
+				}
+
+	    		Toast2.fire({
+					icon: 'error',
+					title: 'Đã xảy ra lỗi'
+				})
+				this.preventClick = false;
+			}
 		}
 	},
 	created() {
 		EventBus.$on('get-order', id => {
 			this.getOrderInfo(id);
+		})
+		EventBus.$on('create-empty-order', () => {
+			if (!this.platformType) {
+				this.waitToCreateEmptyOrder = true;
+				return
+			};
+			this.createEmptyOrder();
+		})
+		EventBus.$on('disable-update-order', () => {
+			this.isUpdateOrder = false;
 		})
 		if (this.appToken) {
 			this.getInitialData();
@@ -914,13 +1119,20 @@ export default {
 		}
 	},
 	beforeDestroy() {
-		EventBus.$off('call-order');
+		EventBus.$off('get-order');
+		EventBus.$off('create-empty-order');
+		EventBus.$off('disable-update-order');
 	},
 	watch: {
 		appToken() {
 			this.getInitialData();
 			this.name = this.nameProp;
 			this.phone = this.phoneProp;
+		},
+		platformType() {
+			if (this.waitToCreateEmptyOrder) {
+				this.createEmptyOrder();
+			}
 		}
 	},
 	filters: {
