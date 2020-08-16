@@ -591,8 +591,8 @@ export default {
 	    async handleCallApiOrder() {
 	    	try {
 
-				// Check xem đnag tạo mới order hay update order
-				if (this.isEditOrder) {
+				// Check xem đang tạo mới order hay update order
+				if (this.isUpdateOrder) {
 					this.updateOrder()
 					return
 				}
@@ -637,10 +637,12 @@ export default {
 			try {
 				// Call Api tạo đơn hàng
 	    		let postCreateOrder = await Restful.post( path, body);
-				if (postCreateOrder.data && postCreateOrder.data.data && postCreateOrder.data.data.snap_order) {
-					if (postCreateOrder.data.data.snap_order.errors) {
-						throw postCreateOrder.data.data.snap_order
+				if (postCreateOrder.data && postCreateOrder.data.data && (postCreateOrder.data.data.snap_order || this.platformType === 'CUSTOM')) {
+					if (this.platformType !== 'CUSTOM') {
+						if (postCreateOrder.data.data.snap_order.errors) {
+							throw postCreateOrder.data.data.snap_order
 
+						}
 					}
 					EventBus.$emit('call-order');
 
@@ -907,6 +909,12 @@ export default {
 	    	this.isShowSettingMsg = !this.isShowSettingMsg;
 	    },
 		async getOrderInfo(id) {
+
+			// Reset clientId tránh loạn giỏ hàng
+			this.clientId = '';
+			localStorage.removeItem('client_id');
+			this.cart = [];
+
 			let path = `${this.basePath}order/order_read`;
 			let params = {
 				access_token: this.appToken,
@@ -916,6 +924,9 @@ export default {
 
 			let dataOrder = {}
 			if (order.data && order.data.data) {
+
+				this.isUpdateOrder = true;
+
 				dataOrder = order.data.data;
 				this.name = dataOrder.customer_name;
 				this.phone = dataOrder.customer_phone;
@@ -924,6 +935,8 @@ export default {
 				this.note = dataOrder.note;
 				this.country = 'Việt Nam';
 				this.platformType = dataOrder.platform_type;
+				this.orderId = dataOrder.id;
+
 				if (dataOrder.branchId) {
 					this.branchId = dataOrder.branchId;
 				}
@@ -932,7 +945,12 @@ export default {
 						this.city = item;
 					}
 				})
-				if (!Object.keys(this.city).length) return;
+				if (dataOrder.customer_city_name === '') {
+					this.city = {}
+					this.district = {}
+					this.ward = {}
+					return
+				}
 
 				await this.handleChooseCity();
 				this.listDistrict.map( item => {
@@ -952,6 +970,8 @@ export default {
 		},
 		async createEmptyOrder() {
 			try {
+
+				// Tạo order rỗng
 				if (this.platformType !== 'CUSTOM') return;
 				let path = `${this.basePath}order/order_create_3rd`;
 	    		let body = {
@@ -966,7 +986,7 @@ export default {
 				let emptyOrder = await Restful.post( path, body);
 				if (emptyOrder.data && emptyOrder.data.data) {
 					console.log('create empty order ok')
-					this.orderId = emptyOrder.data.data;
+					this.orderId = emptyOrder.data.data.id;
 					EventBus.$emit('call-order');
 					Toast2.fire({
 						icon: 'success',
@@ -1032,13 +1052,13 @@ export default {
 	    			delete body["customer_province_name"]
 	    		}
 				let callUpdateOrder = await Restful.post( path, body);
-				if (callUpdateOrder.data && callUpdateOrder.data.data && callUpdateOrder.data.data.snap_order) {
-					this.isUpdateOrder = false;
-					EventBus.$emit('call-order');
+				if (callUpdateOrder.data && callUpdateOrder.data.data) {
 
-					if (callUpdateOrder.data.data.snap_order.errors) {
-						throw callUpdateOrder.data.data.snap_order
-					}
+					this.isUpdateOrder = false;
+					console.log('before')
+					// Yêu cầu ListOrder.vue get list order
+					EventBus.$emit('call-order');
+					console.log('after')
 
 					// Đẩy tin nhắn về Msg
 					if (callUpdateOrder.data.data.order_id) {
@@ -1048,11 +1068,15 @@ export default {
 						let content = this.covertMsgContent('order_id');
 						this.sendMessage(content);
 					}
+
+					localStorage.removeItem('cus_phone')
+
 					Toast2.fire({
 						icon: 'success',
-						title: 'Tạo đơn hàng thành công'
+						title: 'Cập nhật đơn hàng thành công'
 					});
 
+					this.$emit('switch-header');
 					// Xóa giỏ hàng sau khi tạo đơn
 					this.handleDeleteAllCart();
 				} else {

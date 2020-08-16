@@ -36,7 +36,8 @@
 			<create-order
 				v-show="isSelect === 'create'"
 				:appToken="appToken" :msgClientId="msgClientId" :msgToken="msgToken"
-				:phoneProp="phoneProp" :nameProp="nameProp"/>
+				:phoneProp="phoneProp" :nameProp="nameProp"
+				@switch-header="handleClickHeader('list')"/>
 		</div>
 	</div>
 </template>

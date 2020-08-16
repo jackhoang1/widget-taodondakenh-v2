@@ -252,8 +252,13 @@ export default {
             let check = order.find( item => {
                 return item.customer_phone === this.phoneProp;
             })
-            console.log('ckeck ckeck', check)
             if (!check) {
+                if (localStorage.getItem('cus_phone') === this.phoneProp) {
+                    check = true;
+                }
+            }
+            if (!check) {
+                localStorage.setItem('cus_phone', this.phoneProp);
                 EventBus.$emit('create-empty-order');
             }
         }
