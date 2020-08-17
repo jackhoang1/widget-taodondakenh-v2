@@ -286,7 +286,7 @@ export default {
 			isShowOrderInfo: false,
 			preventClick: false,
 			basePath: 'https://ext.botup.io/v1/selling-page/',
-			msgContent: 'Quý khách đã tạo thành công đơn hàng số {{order_id}} , đơn hàng quý khách đang được giao vận.',
+			msgContent: 'Quý khách đã tạo thành công đơn hàng số {{order_id}} , đơn hàng của quý khách đang được giao vận.',
 			isShowSettingMsg: false,
 			isUpdateOrder: false,
 			waitToCreateEmptyOrder: false
@@ -380,11 +380,11 @@ export default {
 		searchByFilter() {
 			let products = this.listProduct;
 			let search = this.searchValue.toLowerCase();
+			console.log('search', search)
 			this.filterListProduct = products.filter(item => {
-				console.log('here', item.product_name.includes(search))
+				console.log('here', item.product_name.toLowerCase())
 				return item.product_name.toLowerCase().includes(search);
 			})
-			console.log('log', this.filterListProduct)
 		},
 	    handleClosePopup() {
 	    	// Close Popup tìm sản phẩm
@@ -792,13 +792,24 @@ export default {
 	    },
 	    async sendMessage(content) {
 	    	try {
-	    		let path = `https://api.botbanhang.vn/v1.3/public/json?access_token=${this.msgToken}&psid=${this.msgClientId}`;
+				let listProduct = this.cart.map(item => {
+					return `${item.product_quantity}  ${item.product_name} \n`;
+				})
+				let strProduct = listProduct.join(' ');
+
+	    		let path = `https://api.botbanhang.vn/v1.3/public/json`;
+				let params = {
+					"access_token": this.msgToken,
+					"psid": this.msgClientId
+				}
 	    		let body = {
-					 	"messages": [
-					   		{"text": content}
+					 	messages: [
+					   		{text: content},
+							{text: `Tên khách hàng: ${this.name} \nSố điện thoại: ${this.phone} \nEmail: ${this.email} \nĐịa chỉ: ${this.address}`},
+							{text: `Danh sách sản phẩm: \n${strProduct} \nTổng giá trị đơn hàng: \n${this.$options.filters.toCurrency(this.totalPrice)}`}
 					 	]
 					}
-	    		let message = await Restful.post(path, body);
+	    		let message = await Restful.post(path, body, params);
 	    		console.log('send', body);
 	    	} catch (e) {
 	    		console.log('error send mess', e)
