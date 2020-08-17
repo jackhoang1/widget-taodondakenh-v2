@@ -36,7 +36,7 @@
 			<create-order
 				v-show="isSelect === 'create'"
 				:appToken="appToken" :msgClientId="msgClientId" :msgToken="msgToken"
-				:phoneProp="phoneProp" :nameProp="nameProp"
+				:phoneProp="phoneProp" :nameProp="nameProp" :emailProp="emailProp"
 				@switch-header="handleClickHeader('list')"/>
 		</div>
 	</div>
@@ -95,6 +95,7 @@ export default {
 			listStore: [],
 			nameProp: '',
 			phoneProp: '',
+			emailProp: '',
 			msgToken: '',
 			msgClientId: '',
 			appToken: ''
@@ -245,6 +246,9 @@ export default {
 				  		this.phoneProp = cus.conversation_contact.client_phone;
 				  		this.phoneProp = this.phoneProp.split('.').join('').split(' ').join('');
 				  	}
+					if (cus.conversation_contact && cus.conversation_contact.client_email) {
+						this.emailProp = cus.conversation_contact.client_email;
+					}
 					if (cus.conversation_chatbot) {
 						this.msgToken = cus.conversation_chatbot.bbh_public_token;
 					}

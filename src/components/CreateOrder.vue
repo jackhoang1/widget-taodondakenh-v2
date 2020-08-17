@@ -246,7 +246,7 @@ const Toast2 = Swal.mixin({
 })
 
 export default {
-	props: ['appToken', 'msgClientId', 'msgToken', 'phoneProp', 'nameProp'],
+	props: ['appToken', 'msgClientId', 'msgToken', 'phoneProp', 'nameProp', 'emailProp'],
 	data() {
 		return {
 			// secretKey: '2dd3816056a04c70ad154d3943bb16bd',
@@ -1151,6 +1151,7 @@ export default {
 			this.getInitialData();
 			this.name = this.nameProp;
 			this.phone = this.phoneProp;
+			this.email = this.emailProp;
 		}
 	},
 	beforeDestroy() {
@@ -1163,6 +1164,7 @@ export default {
 			this.getInitialData();
 			this.name = this.nameProp;
 			this.phone = this.phoneProp;
+			this.email = this.emailProp;
 		},
 		platformType() {
 			if (this.waitToCreateEmptyOrder) {
