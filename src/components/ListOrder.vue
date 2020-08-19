@@ -326,7 +326,7 @@ export default {
     .order-title {
         user-select: none;
         background: #fff;
-        padding: 7px;
+        padding: 6px;
         cursor: pointer;
         border: 2px solid #dee2e6 !important;
         transition: all 0.3s ease-out, background 0.1s;
@@ -338,7 +338,7 @@ export default {
             transition: transform 0.4s ease-out;
         }
         p {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: bold;
         }
         .edit {
@@ -366,14 +366,17 @@ export default {
             overflow: hidden;
         }
     }
-    .order-title.expand,
+    .order-title.expand {
+        background: #a3a3a3;
+        border: 2px solid #a3a3a3 !important;
+    }
     .order-title.confirmed {
-        background: #3dff88;
-        border: 2px solid #3dff88 !important;
+        background: #025fe8;
+        border: 2px solid #025fe8 !important;
     }
     .order-title.cancelled {
-        background: #ff8a8a;
-        border: 2px solid #ff8a8a !important;
+        background: #dc3545;
+        border: 2px solid #dc3545 !important;
     }
     .order-title.expand p,
     .order-title.confirmed p,

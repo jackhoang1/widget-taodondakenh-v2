@@ -34,8 +34,8 @@
 				<div class="form-row">
 					<div class="col">
 						<select v-model='country' class="form-control rounded">
-							<option selected value="">Quốc Gia</option>
-							<option value="Việt Nam">Việt Nam</option>
+							<option value="">Quốc Gia</option>
+							<option selected value="Việt Nam">Việt Nam</option>
 						</select>
 					</div>
 					<div class="col">
@@ -260,7 +260,7 @@ export default {
 			name: '',
 			phone: '',
 			street: '',
-			country: '',
+			country: 'Việt Nam',
 			listCity: [],
 			city: {},
 			listDistrict: [],
@@ -1426,7 +1426,7 @@ export default {
 	}
 	.popup .list-product .product:hover {
 		background: #ddd;
-		transform: translateY(-7px) scale(1.05);
+		transform: translateY(-5px) scale(1.05);
 	}
 	.popup .list-product .product:last-child::after {
 		content: "";

@@ -683,7 +683,7 @@ export default {
 	}
 	.widget .header > div {
 		font-weight: bold;
-		font-size: 1.1rem;
+		font-size: 1.05rem;
 	}
 	.widget .header .select {
 		border-bottom: 2px solid #0d6efd;
