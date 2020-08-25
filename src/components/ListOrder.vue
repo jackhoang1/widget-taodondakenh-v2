@@ -4,9 +4,9 @@
          <textarea type="text" v-model="noteProp" class="form-control rounded" placeholder="Nhập nội dung ghi chú" />
      </div> -->
      <div class="order mt-3 mb-5">
-
+         <div class="order__text">Đơn hàng</div>
          <!-- Danh sách đơn hàng -->
-         <div v-for="(item, ind) in listOrder" class="order-detail mt-1" :key="ind">
+         <div v-for="(item, ind) in listOrder" class="order-detail" :key="ind">
 
              <!-- Tiêu đề đơn hàng-->
              <div class="order-title d-flex align-items-center border rounded"
@@ -292,6 +292,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+    $colorConfirm:#348458;
+    $colorCancel:#ed5a29;
+
     .list {
         padding: 10px;
     }
@@ -309,9 +312,9 @@ export default {
     .order {
         border-top: 2px solid #eee;
         position: relative;
-        padding-top: 20px;
-        &::before {
-            content: 'Đơn hàng';
+        padding-top: 1rem;
+        .order__text {
+            // content: 'Đơn hàng';
             text-align: center;
             width: 100px;
             position: absolute;
@@ -326,19 +329,19 @@ export default {
     .order-title {
         user-select: none;
         background: #fff;
-        padding: 6px;
+        padding: 2px;
         cursor: pointer;
         border: 2px solid #dee2e6 !important;
         transition: all 0.3s ease-out, background 0.1s;
         img {
-            width: 17px;
-            height: 17px;
+            width: 10px;
+            height: 10px;
             transform: rotate(-90deg);
             margin: 0 7px 0 15px;
             transition: transform 0.4s ease-out;
         }
         p {
-            font-size: 1.1rem;
+            font-size: 0.9rem;
             font-weight: bold;
         }
         .edit {
@@ -350,12 +353,19 @@ export default {
         }
         &:hover {
             background: #eeec;
+            transition: transform 0.15s, background 0.15s;
+		    -webkit-transform: scale(1.03);
+    	    transform: scale(1.03);
+    	    -webkit-box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
+    	    box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
         }
         &:hover .edit {
             opacity: 1;
         }
     }
     .order-detail {
+        margin-top: 0.5rem;
+        font-size:0.9rem;
         .order-expand {
             height: 0;
             transition: height 0.25s ease-out;
@@ -392,12 +402,12 @@ export default {
          filter: invert(92%) sepia(40%) saturate(6%) hue-rotate(148deg) brightness(100%) contrast(98%);
      }
     .order-title.expand + .order-expand {
-        height: 150px;
-        font-size: 1.1rem;
+        height: 125px;
+        font-size: 0.9rem;
         border: 2px solid #dee2e6;
         border-top: none;
         border-radius: 0 0 .35rem .35rem;
-        padding: 10px 10px 10px 22px;
+        padding: 5px 10px 5px 30px;
         > div {
             margin-bottom: 5px;
             display: flex !important;
