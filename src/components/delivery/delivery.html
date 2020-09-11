@@ -1,0 +1,102 @@
+<div class="main">
+    <div class="viettel-post">
+        <hr>
+        <p class="viettel__title">ORDER {{payload.delivery_platform_type}}</p>
+
+        <!-- address customer -->
+        <div class="viettel__sender">
+            <hr>
+            <div class="all__text--decoration mb-0">Kho hàng</div>
+            <div class="form-row">
+                <div class="col">
+                    <select class="form-control-sm rounded input-group input-group-sm" v-model="order_info.inventory"
+                        @change="getPricingServices">
+                        <option value>Kho hàng/Inventories</option>
+                        <option v-for="(inventory,index) in list_inventories" :key="index" :value="inventory">
+                            {{inventory.name}}
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="viettel__size">
+            <hr>
+            <p class="all__text--decoration mb-0">Kích thước</p>
+            <div class="form-row">
+                <div class="col">
+                    <input v-model="order_info.weight" type="number" class="form-control-sm"
+                        placeholder="Cân nặng (gram)" title="Cân nặng (gram)" @change="getPricingServices" />
+                </div>
+                <div class="col">
+                    <input v-model="order_info.length" type="number" class="form-control-sm"
+                        placeholder="Chiều dài (cm)" title="Chiều dài (cm)" @change="getPricingServices"/>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col">
+                    <input v-model="order_info.width" type="number" class="form-control-sm"
+                        placeholder="Chiều rộng (cm)" title="Chiều rộng (cm)" @change="getPricingServices"/>
+                </div>
+                <div class="col">
+                    <input v-model="order_info.height" type="number" class="form-control-sm"
+                        placeholder="Chiều cao (cm)" title="Chiều cao (cm)" @change="getPricingServices"/>
+                </div>
+            </div>
+        </div>
+        <div class="viettel__service">
+            <hr>
+            <p class="all__text--decoration mb-0">Dịch vụ</p>
+            <div class="form-row">
+                <div class="col">
+                    <select v-model="order_info.product_type" class="form-control-sm" @change="getPricingServices">
+                        <option value="">Phân loại Sản Phẩm</option>
+                        <option value="TH">Thư/ Envelope</option>
+                        <option value="HH">Hàng hóa/ Goods</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col">
+                    <select v-model="order_info.order_payment" class="form-control-sm">
+                        <option value="">Hình thức thanh toán</option>
+                        <option value="1">Chưa thanh toán/Do not collect money</option>
+                        <option value="2">Thu phí ship và giá sản phẩm/Collect ship fee and price of products</option>
+                        <option value="3">Thu giá sản phẩm/Collect price of products</option>
+                        <option value="4">Thu phí ship/Collect ship fee</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col">
+                    <select v-model="order_info.order_service" class="form-control-sm" @change="handleShippingFee">
+                        <option value>Danh sách dịch vụ Viettel-Post</option>
+                        <option v-for="(service,index) in pricing_services_list" :key="index" :value="service">
+                            {{service.TEN_DICHVU}}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="product">
+        <div class="option mb-3 d-flex justify-content-end">
+            <div class="d-flex align-items-center" @click="handleShowNote()">
+                <img class="mr-2" src="@/assets/note.png" alt="add note" />
+                <p class="text-primary m-0">Thêm ghi chú</p>
+            </div>
+        </div>
+        <div v-if="is_show_note">
+            <textarea v-model="order_info.required_note" rows="3" class="form-control-sm"></textarea>
+        </div>
+        <hr>
+        <p class="font-weight-bold text-right">Phí giao vận: {{order_info.shipping_fee|toCurrency}}</p>
+        <!-- <div class="order border-top mt-3 mb-4">
+            <button @click="handleShowOrderInfo" class="btn-pill w-100">Tạo đơn hàng</button>
+        </div> -->
+    </div>
+    <InfoOrder :is_show_order_info="is_show_order_info" :handleCloseOrderInfo="handleCloseOrderInfo"
+        :order_info="order_info" :createOrder="createOrder" :payload="payload" />
+    <!-- Order -->
+
+</div>

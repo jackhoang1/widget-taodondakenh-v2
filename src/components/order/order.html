@@ -1,0 +1,276 @@
+<div>
+    <!-- Widget -->
+    <div v-if="show_form=='order'"
+        :class="{ 'app': true, 'disable-scroll': is_show_popup, 'disable-scroll': is_show_order_info}">
+        <div class="main">
+            <!-- thông tin khách hàng -->
+            <div class="order__customer">
+                <p class="order__title">ORDER {{ platform_type }}</p>
+                <div class="order__msg--edit">
+                    <img @click="showSettingMsg" src="https://img.icons8.com/cotton/64/000000/chat-settings.png"
+                        title="Chỉnh sủa mẫu tin nhắn" />
+                    <div class="order__msg--edit-input" :class="{ show: is_show_setting_msg}">
+                        <textarea rows="3" v-if="is_show_setting_msg" v-model="msg_content"
+                            class="form-control mt-3 mb-3 rounded"></textarea>
+                        <button v-if="is_show_setting_msg" class="btn-pill w-100 mb-4"
+                            @click="showSettingMsg">Done</button>
+                    </div>
+                </div>
+                <!-- Forrm điền thông tin khách hàng -->
+                <div class="form-row">
+                    <div class="col">
+                        <input v-model="name" type="text" class="form-control-sm rounded" placeholder="Họ tên" />
+                    </div>
+                    <div class="col">
+                        <input v-model="phone" type="number" class="form-control-sm rounded"
+                            placeholder="Số điện thoại" />
+                    </div>
+                </div>
+                <input v-model="email" type="email" class="form-control-sm rounded" placeholder="Email" />
+                <div class="form-row">
+                    <div class="col">
+                        <select v-model="country" class="form-control-sm rounded">
+                            <option value>Quốc Gia</option>
+                            <option selected value="Việt Nam">Việt Nam</option>
+                        </select>
+                    </div>
+                    <!-- Search address -->
+                    <div class="col">
+                        <SearchAddress class="rounded" :list_data_input="list_city" :placeholder="'Tỉnh/TP'"
+                            @data_output="city=$event" :getData="getListDistrict" :clearInput="resetChangeCity"
+                            :prop_name="'name'" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col" style="margin-bottom:10px">
+                        <SearchAddress :list_data_input="list_district" :placeholder="'Quận/Huyện'"
+                            @data_output="district=$event" :getData="getListWard" :clearInput="resetChangeDistrict"
+                            :prop_name="'name'" :watch_data="city" />
+                    </div>
+
+                    <div class="col" style="margin-bottom:10px">
+                        <SearchAddress :list_data_input="list_ward" :placeholder="'Phường/Xã'"
+                            @data_output="ward=$event" :getData="false" :clearInput="false" :prop_name="'name'"
+                            :watch_data="district" />
+                    </div>
+                </div>
+                <input v-model="street" type="text" class="form-control-sm rounded" placeholder="Địa chỉ cụ thể" />
+                <div v-if="has_branch">
+                    <select v-model="branch" class="form-control-sm rounded">
+                        <option selected :value="{}">Chi Nhánh</option>
+                        <option v-for="(branch, ind) in list_branch" :value="branch" :key="ind">{{branch.branchName}}
+                        </option>
+                    </select>
+                </div>
+                <!--End Forrm điền thông tin khách hàng -->
+                <!-- Tuỳ chọn thanh toán hoặc ship code -->
+                <div class="order__option">
+                    <div class="order__option--main">
+                        <div>
+                            <p class="order__option--title">Tuỳ chọn</p>
+                            <input id="order__option--order-only" type="radio" value="0" v-model="order_option">
+                            <label for="order__option--order-only">Chỉ tạo đơn</label>
+                            <!-- <img src="@/assets/question.png" alt=""> -->
+                        </div>
+                        <div>
+                            <input id="order__option--order-payment" type="radio" value="1" v-model="order_option">
+                            <label for="order__option--order-payment">Ship COD</label>
+                            <img src="@/assets/question.png" alt="">
+                        </div>
+                        <div>
+                            <input id="order__option--order-shipcod" type="radio" value="2" v-model="order_option">
+                            <label for="order__option--order-shipcod">Thanh toán và giao vận</label>
+                            <img src="@/assets/question.png" alt="">
+                        </div>
+
+                    </div>
+                </div>
+                <!-- --------------- -->
+            </div>
+
+            <div class="order__product">
+                <!-- Tìm sản phẩm và Tạo ghi chú -->
+                <div class="option d-flex">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <img class="mr-2" src="@/assets/add.png" alt="add product" />
+                        <p class="text-primary m-0" @click="handleShowPopup()">Thêm sản phẩm</p>
+                    </div>
+                    <div class="d-flex align-items-center flex-grow-1" @click="handleShowNote()">
+                        <img class="mr-2" src="@/assets/note.png" alt="add note" />
+                        <p class="text-primary m-0">Thêm ghi chú</p>
+                    </div>
+                </div>
+                <div :class="['form-group', { 'show-note': is_show_note }]">
+                    <textarea rows="2" v-model="note" ref="note" class="form-control-sm rounded"
+                        :class="{'hide': !is_show_note}"></textarea>
+                    <button @click="handleShowNote()" class="btn-pill w-100 mb-4 "
+                        :class="{'hide': !is_show_note}">Done</button>
+                </div>
+                <!-- End Tìm sản phẩm và Tạo ghi chú -->
+
+                <!-- Giỏ hàng -->
+                <div class="list-product">
+                    <div class="product-detail d-flex align-items-center border-bottom" v-for="(item, ind) in cart"
+                        :key="ind">
+                        <img class="border rounded mr-1"
+                            :src="item.product_image || 'https://img.icons8.com/officexs/80/000000/spinner-frame-6.png'"
+                            alt="product" />
+                        <div class="product-detail-name align-self-start">
+                            <p class="name m-0" :title="item.product_name">{{ item.product_name }}</p>
+                            <p class="m-0" :title="item.other_info" v-if="platform_type!='MISA'">{{ item.other_info }}
+                            </p>
+                        </div>
+                        <div class="quantity d-flex align-items-center border rounded ml-1">
+                            <p class="flex-grow-1 text-center">{{ item.product_quantity }}</p>
+                            <div class="ml-auto mr-1 d-flex flex-column justify-content-between">
+                                <button @click="handleAddQuantity(item)" class="btn p-0">
+                                    <img src="https://img.icons8.com/ios-glyphs/24/000000/chevron-up.png" />
+                                </button>
+                                <button @click="handleSubQuantity(item)" class="btn p-0">
+                                    <img src="https://img.icons8.com/ios-glyphs/24/000000/chevron-up.png" />
+                                </button>
+                            </div>
+                        </div>
+                        <div class="ml-auto price">
+                            <p class="price text-right">{{ item.product_price | toCurrency }}</p>
+                        </div>
+                        <div class="edit ml-1 d-flex flex-column justify-content-between">
+                            <img @click="handleDeleteCart(item)" src="@/assets/del-icon.png" alt="delete" title="xoá" />
+                        </div>
+                    </div>
+                </div>
+                <!-- End Giỏ hàng -->
+                <!-- giao vận -->
+                <div v-if="order_option!=0">
+                    <div>
+                        <Delivery :store_token="store_token" :payload="payload" :prop_receiver_name="name"
+                            :prop_receiver_phone="phone" :prop_receiver_email="email" :prop_receiver_address="address"
+                            :prop_receiver_city="city_delivery" :prop_receiver_district="district_delivery"
+                            :prop_receiver_ward="ward_delivery" :prop_product_info="product_info"
+                            :total_price="total_price" @shipping_fee="shipping_fee=$event"
+                            :prop_res_order_info="res_order_info" />
+                    </div>
+
+                </div>
+                <!-- thanh toán -->
+                <div v-if="order_option==2">
+                    <div>
+                        <Alepay :store_token="store_token" :payload="payload" :prop_receiver_name="name"
+                            :prop_receiver_phone="phone" :prop_receiver_email="email" :prop_receiver_address="address"
+                            :prop_receiver_city="city" :prop_receiver_district="district" :prop_receiver_ward="ward"
+                            :prop_product_info="product_info" :total_price="total_price"
+                            @shipping_fee="shipping_fee=$event" :prop_res_order_info="res_order_info"
+                            :prop_total_payment="total_payment" :order_option="order_option" />
+                    </div>
+                </div>
+                <!-- Tổng tiền và tạo đơn hàng -->
+                <div class="order border-top">
+                    <div class="total-price d-flex justify-content-between my-3">
+                        <p>Tổng tiền</p>
+                        <p>{{ total_price | toCurrency }}</p>
+                    </div>
+                    <button @click="handleCreateOrder()" class="btn-pill mb-4 w-100">Tạo đơn hàng</button>
+                </div>
+                <!-- End Tổng tiền và tạo đơn hàng -->
+            </div>
+
+            <!-- Popup tìm sản phẩm-->
+            <div :class="{ 'popup': true, 'show-popup': is_show_popup}">
+                <div class="d-flex align-items-center" :class="{ 'hidden-search': !is_show_popup}">
+                    <div class="search rounded d-flex align-items-center flex-grow-1"
+                        :class="{ 'hidden-search': !is_show_popup}">
+                        <img class="mx-2" src="https://img.icons8.com/ios-glyphs/48/000000/search.png" alt="icon" />
+                        <input @keyup.enter="handleSearch()" v-model="search_value" class="flex-grow-1" type="text"
+                            placeholder="Tìm sản phẩm" />
+                    </div>
+                    <button @click="handleClosePopup()">
+                        <img src="https://img.icons8.com/ios/48/000000/multiply.png" />
+                    </button>
+                </div>
+                <div v-show="is_show_popup" class="list-product">
+                    <div v-if="!filter_list_product.length"
+                        class="product d-flex align-items-center border-bottom border-top py-2"
+                        v-for="(item, ind) in list_product" :key="ind" @click="handleAddToCart(item)">
+                        <img class="border rounded mr-2"
+                            :src="item.image || 'https://img.icons8.com/officexs/80/000000/spinner-frame-6.png'"
+                            alt="product" />
+                        <div class="flex-grow-1">
+                            <p class="m-0" :title="item.product_name">{{ item.product_name.substring(0, 60) + '...' }}
+                            </p>
+                            <p class="m-0">{{ item.product_option }}</p>
+                            <p class="text-right mt-1">{{ item.product_price | toCurrency }}</p>
+                        </div>
+                    </div>
+                    <div v-if="filter_list_product.length"
+                        class="product d-flex align-items-center border-bottom border-top py-2"
+                        v-for="(item, ind) in filter_list_product" :key="ind" @click="handleAddToCart(item)">
+                        <img class="border rounded mr-2"
+                            :src="item.image || 'https://img.icons8.com/officexs/80/000000/spinner-frame-6.png'"
+                            alt="product" />
+                        <div class="flex-grow-1">
+                            <p class="m-0" :title="item.product_name">{{ item.product_name.substring(0, 60) + '...' }}
+                            </p>
+                            <p class="m-0">{{ item.product_option }}</p>
+                            <p class="text-right mt-1">{{ item.product_price | toCurrency }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Popup tìm sản phẩm-->
+
+            <!-- Thông tin đơn hàng -->
+            <div :class="[ 'order-info', { 'show-order-info': is_show_order_info }]">
+                <div v-if="is_show_order_info">
+                    <p class="mt-2 mb-3">Thông tin đơn hàng</p>
+                    <p>Khách hàng: {{name}}</p>
+                    <p>Số điện thoại: {{phone}}</p>
+                    <p>Email: {{email}}</p>
+                    <p>Địa chỉ: {{address}}</p>
+                    <p v-if="note">Ghi chú: {{note}}</p>
+                    <br />
+                    <p>Danh sách sản phẩm:</p>
+                    <p v-for="(item, ind) in cart" :key="ind">{{`${item.product_quantity} ${item.product_name}`}}</p>
+                    <br />
+                    <p>Tổng giá trị đơn hàng:</p>
+                    <p>{{total_price | toCurrency}}</p>
+                    <button @click="handleCallApiOrder()"
+                        :class="['btn-pill', 'mt-3', 'mb-4', 'w-100', {'prevent-click': prevent_click}]">Xác
+                        nhận</button>
+                    <button class="close" @click="closeOrderInfo()">
+                        <img src="https://img.icons8.com/ios/48/000000/delete-sign.png" />
+                    </button>
+                </div>
+            </div>
+            <!-- End Thông tin đơn hàng -->
+        </div>
+    </div>
+    <!-- modal choose delivery payment -->
+    <div class="modal__option--delivery-payment" v-if="show_form=='modal'">
+        <div class="modal__content">
+            <p>Tạo đơn thành công. Bạn muốn?</p>
+            <div class="content__btn">
+                <button class="" @click="handleShowForm('delivery')" v-if="payload.delivery_token">Tạo đơn giao
+                    vận</button>
+            </div>
+            <div class="content__btn">
+                <button class="" @click="handleShowForm('payment')" v-if="payload.payment_token">Thanh toán
+                    Alepay</button>
+            </div>
+            <div class="content__btn">
+                <button class="" @click="handleShowForm('order')">Tạo đơn hàng mới</button>
+            </div>
+        </div>
+    </div>
+    <!-- form delivery -->
+    <div class="delivery" v-if="show_form=='delivery'">
+        <ViettelPost v-if="payload.delivery_platform_type=='VIETTEL_POST'" :payload="payload"
+            :res_order_info="res_order_info" :product_info="product_info" :handleShowForm="handleShowForm" />
+        <!-- <Ghn v-if="payload.delivery_platform_type=='GHN'" :payload="payload" :res_order_info="res_order_info"
+            :product_info="product_info" :handleShowForm="handleShowForm" /> -->
+    </div>
+    <!-- form payment -->
+    <div class="payment" v-if="show_form=='payment'">
+        <Alepay :payload="payload" :res_order_info="res_order_info" :product_info="product_info"
+            :platform_type="platform_type" :handleShowForm="handleShowForm" />
+    </div>
+</div>

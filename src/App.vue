@@ -2,17 +2,22 @@
   <div class>
     <!-- Xác thực App -->
     <div v-if="!isOAuth" class="auth">
-      <div v-if="!showListStore" class="sign d-flex flex-column align-items-center">
+      <div v-if="!show_list_store" class="sign d-flex flex-column align-items-center">
         <p class="text-dark mb-5">Đăng Nhập CMS</p>
-        <input v-model="emailSignIn" type="text" class="form-control mb-3" placeholder="Email" />
-        <input v-model="pwdSignIn" type="password" class="form-control mb-3" placeholder="Password" />
+        <input v-model="cms_account" type="text" class="form-control mb-3" placeholder="Email" />
+        <input
+          v-model="cms_password"
+          type="password"
+          class="form-control mb-3"
+          placeholder="Password"
+        />
         <button class="btn btn-primary text-light" v-on:click="runSignIn()">Sign In</button>
       </div>
-      <div :class="['select-store', 'mb-5', {'show-store': showListStore}]">
-        <div v-if="showListStore">
+      <div :class="['select-store', 'mb-5', {'show-store': show_list_store}]">
+        <div v-if="show_list_store">
           <p class="text-center mb-5">Danh sách Store</p>
           <div
-            v-for="(item, ind) in listStore"
+            v-for="(item, ind) in list_store"
             class="store"
             @click="handleChooseStore(item)"
             :key="ind"
@@ -37,21 +42,27 @@
         >Tạo đơn</div>
       </div>
       <list-order
-        v-show="isSelect === 'list'"
-        :appToken="appToken"
-        :phoneProp="phoneProp"
+        v-show="is_select === 'list'"
+        :store_token="store_token"
+        :phoneProp="payload.phone"
         @click-edit="handleClickHeader('create')"
       />
       <create-order
-        v-show="isSelect === 'create'"
-        :appToken="appToken"
-        :msgClientId="msgClientId"
-        :msgToken="msgToken"
-        :phoneProp="phoneProp"
-        :nameProp="nameProp"
-        :emailProp="emailProp"
+        v-show="is_select === 'create'"
+        :store_token="store_token"
+        :payload="payload"
+        :handleChangeAppToken="handleChangeAppToken"
         @switch-header="handleClickHeader('list')"
       />
+    </div>
+    <!-- warning -->
+    <div v-if="isOAuth&&is_warning" class="container">
+      <div class="auth__activate">
+        <div class="text-center">
+          <img src="@/assets/error.png" alt />
+        </div>
+        <p class="mb-0">Xin vui lòng kích hoạt lại ứng dụng</p>
+      </div>
     </div>
   </div>
 </template>
@@ -59,12 +70,17 @@
 <script>
 import EventBus from "./EventBus.js";
 import Restful from "@/services/resful.js";
-import CreateOrder from "./components/CreateOrder";
-import ListOrder from "./components/ListOrder";
+import CreateOrder from "@/components/order/Order.vue";
+import ListOrder from "@/components/order/ListOrder.vue";
 
 let urlString = location.href;
 let url = new URL(urlString);
-let accessToken = url.searchParams.get("access_token");
+let access_token = url.searchParams.get("access_token");
+
+const APICMS = "http://localhost:1337"; //dev
+// const APICMS = "http://188.166.250.86:1337"; //dev
+// const APICMS = "https://ext.botup.io"; //product
+
 const ApiBase = "https://app.devchatbox.tk"; //dev
 // const ApiBase = "https://chatbox-app.botbanhang.vn";	//product
 
@@ -97,26 +113,36 @@ export default {
   data() {
     return {
       isOAuth: false,
+      is_warning: false,
       // secretKey: '2dd3816056a04c70ad154d3943bb16bd', //product
-      secretKey: "d8b089bdafbe47809fe590c3f923e817", //dev
-      accessToken: accessToken,
-      isSelect: "list",
-      emailSignIn: "",
-      pwdSignIn: "",
+      secretKey: "91838b8fa0dd4bce983aedfe11570e21", //dev
+      access_token: access_token,
+      is_select: "list",
+
+      cms_account: "",
+      cms_password: "",
+
       overlaySign: true,
-      showListStore: false,
-      listStore: [],
-      nameProp: "",
-      phoneProp: "",
-      emailProp: "",
-      msgToken: "",
-      msgClientId: "",
-      appToken: "",
+      show_list_store: false,
+      list_store: [],
+
+      store_token: "",
+      payload: {
+        mid: "",
+        token_bbh: "",
+        delivery_token: "",
+        payment_token: "",
+        access_token_shipping: "",
+        delivery_platform_type: "",
+        name: "",
+        phone: "",
+        email: "",
+      },
     };
   },
   computed: {
     isSelectList() {
-      return this.isSelect === "list";
+      return this.is_select === "list";
     },
   },
   components: {
@@ -129,8 +155,8 @@ export default {
         // Call Api Đăng nhập CMS
         let path = "https://api.botup.io/v1/auth/sign-in";
         let body = {
-          email: this.emailSignIn,
-          password: this.pwdSignIn,
+          email: this.cms_account,
+          password: this.cms_password,
         };
         let signIn = await Restful.post(path, body);
         let user = {};
@@ -140,7 +166,7 @@ export default {
           throw "Đăng nhập thất bại";
         }
         let { email, first_name, last_name, id, role } = user;
-        path = "https://ext.botup.io/v1/users/users/singinbotup";
+        path = `${APICMS}/v1/users/users/singinbotup`;
         body = {
           username: id,
           email,
@@ -150,30 +176,30 @@ export default {
         };
 
         // Call Api Đăng nhập Botup
-        let signInBotup = await Restful.post(path, body);
-        console.log("singin botup", signInBotup.data);
+        let cms_signin = await Restful.post(path, body);
+        console.log("singin botup", cms_signin.data);
 
         // Lấy danh sách Store
-        path = "https://ext.botup.io/v1/selling-page/store/store_read";
+        path = `${APICMS}/v1/selling-page/store/store_read`;
         let params = {};
         if (
-          signInBotup.data &&
-          signInBotup.data.data &&
-          signInBotup.data.data.user &&
-          signInBotup.data.data.user.id
+          cms_signin.data &&
+          cms_signin.data.data &&
+          cms_signin.data.data.user &&
+          cms_signin.data.data.user.id
         ) {
           params = {
-            owner_id: signInBotup.data.data.user.id,
+            owner_id: cms_signin.data.data.user.id,
           };
         } else {
           throw "Đăng nhập thất bại";
         }
 
-        let readStore = await Restful.get(path, params);
-        console.log("store", readStore.data);
-        if (readStore.data && readStore.data.data) {
-          this.listStore = readStore.data.data;
-          this.showListStore = true;
+        let read_store = await Restful.get(path, params);
+        console.log("store", read_store.data);
+        if (read_store.data && read_store.data.data) {
+          this.list_store = read_store.data.data;
+          this.show_list_store = true;
         } else {
           throw "Lỗi khi lấy danh sách Store";
         }
@@ -193,17 +219,29 @@ export default {
       }
     },
     handleChooseStore(item) {
-      this.appToken = item.store_token;
+      console.log("999999999999999", item);
+      localStorage.removeItem("order_delivery_token");
+      localStorage.removeItem("order_payment_token");
+      this.store_token = item.access_token;
+      if (item.delivery_token) {
+        this.payload.delivery_token = item.delivery_token;
+        localStorage.setItem("order_delivery_token", item.delivery_token);
+      }
+      if (item.payment_token) {
+        this.payload.payment_token = item.payment_token;
+        localStorage.setItem("order_payment_token", item.payment_token);
+      }
+
       this.runOAuth();
     },
     async runOAuth() {
       try {
         // Call Api xác thực khi chọn Store và lưu lại Token
-        let token_partner = this.appToken;
+        let token_partner = this.store_token;
         console.log(token_partner);
         let body = {
           _type: "oauth-access-token",
-          access_token: this.accessToken,
+          access_token: this.access_token,
           token_partner,
         };
 
@@ -230,65 +268,90 @@ export default {
       }
     },
     handleClickHeader(ele) {
-      this.isSelect = ele;
+      this.is_select = ele;
       if (ele === "list") {
         EventBus.$emit("disable-update-order");
       }
     },
-  },
-  watch: {
-    phoneProp() {
-      console.log("change phone");
+    handlePaymentToken() {
+      let payment_token = localStorage.getItem("order_payment_token");
+      if (!payment_token) return;
+      this.payload.payment_token = payment_token;
+    },
+    async handleDeliveryToken() {
+      try {
+        let path = `${APICMS}/v1/selling-page/delivery/delivery_response_info`;
+        let headers = { Authorization: this.store_token };
+
+        let get_delivery_token = await Restful.post(path, {}, {}, headers);
+        if (
+          get_delivery_token &&
+          get_delivery_token.data &&
+          get_delivery_token.data.data &&
+          get_delivery_token.data.code == 200
+        ) {
+          this.payload.delivery_platform_type =
+            get_delivery_token.data.data
+          console.log(
+            "this.payload.delivery_platform_type",
+            this.payload.delivery_platform_type
+          );
+        }
+        console.log("payload", this.payload);
+      } catch (e) {
+        console.log(e);
+        this.swalToast("Đã xảy ra lỗi, vui lòng kích hoạt lại", "error");
+      }
+    },
+    handleChangeAppToken(token) {
+      this.store_token = token;
     },
   },
+
   async created() {
     try {
       console.log("creeeee apppp");
       let body = {
-        access_token: this.accessToken,
+        access_token: this.access_token,
         secret_key: this.secretKey,
       };
 
       // Check trạng thái Xác thực của Widget
-      let getCustomerInfo = await Restful.post(
+      let get_customer_info = await Restful.post(
         `${ApiBase}/v1/service/partner-authenticate`,
         body
       );
-      if (getCustomerInfo.data.succes && getCustomerInfo.data.code == 200) {
+      if (
+        get_customer_info &&
+        get_customer_info.data &&
+        get_customer_info.data.succes &&
+        get_customer_info.data.code == 200 &&
+        get_customer_info.data.data
+      ) {
         this.isOAuth = true;
-        console.log(
-          "auth created",
-          getCustomerInfo.data.data.conversation_contact
-        );
-        if (getCustomerInfo.data.data && getCustomerInfo.data.data) {
-          let cus = getCustomerInfo.data.data;
-          if (cus.public_profile) {
-            this.appToken = cus.public_profile.token_partner;
-            this.nameProp = cus.public_profile.client_name;
-            this.msgClientId = cus.public_profile.fb_client_id;
-          }
-          if (
-            cus.conversation_contact &&
-            cus.conversation_contact.client_phone
-          ) {
-            this.phoneProp = cus.conversation_contact.client_phone;
-            this.phoneProp = this.phoneProp
-              .split(".")
-              .join("")
-              .split(" ")
-              .join("");
-          }
-          if (
-            cus.conversation_contact &&
-            cus.conversation_contact.client_email
-          ) {
-            this.emailProp = cus.conversation_contact.client_email;
-          }
-          if (cus.conversation_chatbot) {
-            this.msgToken = cus.conversation_chatbot.bbh_public_token;
-          }
-          console.log("info cus", getCustomerInfo);
+        let cus = get_customer_info.data.data;
+        if (cus.public_profile) {
+          this.store_token = cus.public_profile.token_partner;
+          this.payload.name = cus.public_profile.client_name;
+          this.payload.mid = cus.public_profile.fb_client_id;
         }
+        if (cus.conversation_chatbot) {
+          this.payload.token_bbh = cus.conversation_chatbot.bbh_public_token;
+        }
+        if (cus.conversation_contact && cus.conversation_contact.client_email) {
+          this.payload.email = cus.conversation_contact.client_email;
+        }
+        if (cus.conversation_contact && cus.conversation_contact.client_phone) {
+          this.payload.phone = cus.conversation_contact.client_phone;
+          this.payload.phone = this.payload.phone
+            .split(".")
+            .join("")
+            .split(" ")
+            .join("");
+        }
+        this.handleDeliveryToken();
+        this.handlePaymentToken();
+        console.log("info cus", get_customer_info);
       }
     } catch (error) {
       // Chạy vào SignIn
@@ -300,19 +363,7 @@ export default {
 };
 </script>
 
-<style>
-/*Bootstrap*/
-:root {
-  --bs-font-sans-serif: system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
-    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-}
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
+<style lang="scss">
 body {
   margin: 0;
   font-family: var(--bs-font-sans-serif);
@@ -346,10 +397,13 @@ p {
 button {
   border-radius: 0;
 }
-button:focus {
-  outline: 1px dotted;
-  outline: 5px auto -webkit-focus-ring-color;
+hr {
+  opacity: 0.5;
 }
+// button:focus {
+//   outline: 1px dotted;
+//   outline: 5px auto -webkit-focus-ring-color;
+// }
 input,
 button,
 select,
@@ -358,6 +412,8 @@ textarea {
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
+  padding: 0 10px 0 10px;
+  border-radius: 1rem;
 }
 button,
 input {
@@ -383,266 +439,6 @@ img {
   vertical-align: middle;
 }
 
-/*Flex*/
-.d-flex {
-  display: flex !important;
-}
-.flex-column {
-  flex-direction: column !important;
-}
-.align-items-center {
-  align-items: center !important;
-}
-.align-self-start {
-  align-self: flex-start !important;
-}
-.flex-grow-1 {
-  flex-grow: 1 !important;
-}
-.justify-content-between {
-  justify-content: space-between !important;
-}
-.justify-content-center {
-  justify-content: center !important;
-}
-
-/*Spacing*/
-.m-0 {
-  margin: 0 !important;
-}
-.p-0 {
-  padding: 0 !important;
-}
-.mx-2 {
-  margin-right: 0.5rem !important;
-  margin-left: 0.5rem !important;
-}
-.ml-auto {
-  margin-left: auto !important;
-}
-.ml-1 {
-  margin-left: 0.25rem !important;
-}
-.ml-2 {
-  margin-left: 0.5rem !important;
-}
-.mr-1 {
-  margin-right: 0.25rem !important;
-}
-.mr-2 {
-  margin-right: 0.5rem !important;
-}
-.my-3 {
-  margin-top: 1rem !important;
-  margin-bottom: 1rem !important;
-}
-.mt-1 {
-  margin-top: 0.25rem !important;
-}
-.mt-2 {
-  margin-top: 0.5rem !important;
-}
-.mt-3 {
-  margin-top: 1rem !important;
-}
-.mb-2 {
-  margin-bottom: 0.5rem !important;
-}
-.mb-3 {
-  margin-bottom: 1rem !important;
-}
-.mb-4 {
-  margin-bottom: 1.5rem !important;
-}
-.mb-5 {
-  margin-bottom: 3rem !important;
-}
-.mt-3 {
-  margin-top: 1rem !important;
-}
-.py-2 {
-  padding-top: 0.5rem !important;
-  padding-bottom: 0.5rem !important;
-}
-.pb-4 {
-  padding-bottom: 1.5rem !important;
-}
-.pb-5 {
-  padding-bottom: 3rem !important;
-}
-.w-100 {
-  width: 100% !important;
-}
-
-/*Border*/
-.border {
-  border: 1px solid #dee2e6 !important;
-}
-.border-top {
-  border-top: 1px solid #dee2e6 !important;
-}
-.border-bottom {
-  border-bottom: 1px solid #dee2e6 !important;
-}
-.rounded {
-  border-radius: 0.35rem !important;
-}
-
-/*Form*/
-.form-row {
-  display: -ms-flexbox;
-  display: flex;
-  flex-wrap: wrap;
-  margin-right: -5px;
-  margin-left: -5px;
-}
-.form-row > .col,
-.form-row > [class*="col-"] {
-  padding-right: 5px;
-  padding-left: 5px;
-}
-.form-control {
-  display: block;
-  width: 100%;
-  min-height: calc(1.5em + 0.75rem + 2px);
-  padding: 0.375rem 0.75rem;
-  font-size: 1rem;
-  font-weight: 400;
-  line-height: 1.5;
-  color: #495057;
-  background-color: #fff;
-  background-clip: padding-box;
-  border: 1px solid #ced4da;
-  appearance: none;
-  border-radius: 0.25rem;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-.form-control-sm {
-  height: calc(1.5em + 0.5rem + 2px);
-  padding: 0.25rem 0.5rem;
-    color: #495057;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  border-radius: 0.2rem;
-   border: 1px solid #ced4da;
-  appearance: none;
-  background-color: #fff;
-  background-clip: padding-box;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-@media (prefers-reduced-motion: reduce) {
-  .form-control {
-    transition: none;
-  }
-}
-.form-control:focus,
-.form-control-sm:focus {
-  color: #495057 ;
-  background-color: #fff ;
-  border-color: #8bbafe ;
-  outline: 0;
-  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-}
-.form-control::placeholder,
-.form-control-sm::placeholder {
-  color: #6c757d;
-  opacity: 1;
-}
-.col {
-  flex: 1 0 0%;
-}
-
-/*Button*/
-.btn {
-  display: inline-block;
-  font-weight: 400;
-  line-height: 1.5;
-  color: #212529;
-  text-align: center;
-  text-decoration: none;
-  vertical-align: middle;
-  cursor: pointer;
-  user-select: none;
-  background-color: transparent;
-  border: 1px solid transparent;
-  padding: 0.375rem 0.75rem;
-  font-size: 1rem;
-  border-radius: 0.25rem;
-  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
-    border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-@media (prefers-reduced-motion: reduce) {
-  .btn {
-    transition: none;
-  }
-}
-.btn:hover {
-  color: #212529;
-}
-.btn:focus {
-  outline: 0;
-  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-}
-.btn-primary {
-  color: #fff;
-  background-color: #0d6efd;
-  border-color: #0d6efd;
-}
-.btn-primary:hover {
-  color: #fff;
-  background-color: #025ce2;
-  border-color: #0257d5;
-}
-.btn-primary:focus {
-  color: #fff;
-  background-color: #025ce2;
-  border-color: #0257d5;
-  box-shadow: 0 0 0 0.2rem rgba(49, 132, 253, 0.5);
-}
-.btn-primary:active {
-  color: #fff;
-  background-color: #0257d5;
-  border-color: #0252c9;
-}
-.btn-primary:active:focus {
-  box-shadow: 0 0 0 0.2rem rgba(49, 132, 253, 0.5);
-}
-.close {
-  float: right;
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1;
-  color: #000;
-  text-shadow: 0 1px 0 #fff;
-  opacity: 0.5;
-}
-button.close {
-  padding: 0;
-  background-color: transparent;
-  border: 0;
-  appearance: none;
-}
-
-/*Text*/
-.text-light {
-  color: #f8f9fa !important;
-}
-.text-center {
-  text-align: center !important;
-}
-.text-right {
-  text-align: right !important;
-}
-.text-dark {
-  color: #343a40 !important;
-}
-.text-primary {
-  color: #0d6efd !important;
-}
-.text-danger {
-  color: #dc3545 !important;
-}
-
 /* Auth ---- */
 .auth {
   position: absolute;
@@ -652,74 +448,76 @@ button.close {
   top: 12%;
   width: 100%;
   z-index: 999;
+  p {
+    font-size: 1.6rem;
+    font-weight: bold;
+  }
+  .sign {
+    width: 100%;
+    input {
+      width: 100%;
+      height: 35px;
+    }
+    button {
+      font-weight: bold;
+      box-shadow: 0 5px 15px 0 #007bff30;
+      transition: all 0.5s;
+      border-radius: 25px;
+      padding: 10px 40px;
+      margin-top: 20px;
+      &:hover {
+        background: #007bff;
+        box-shadow: 0 5px 20px 0 #007bff30;
+      }
+      &:focus {
+        box-shadow: 0 5px 20px 0 #007bff30 !important;
+        background: #007bff !important;
+      }
+    }
+  }
+  .select-store {
+    width: 100%;
+    opacity: 0;
+    height: 0;
+    transition: all 0.4s ease-out 0.2s;
+    .store {
+      cursor: pointer;
+      text-align: center;
+      padding: 15px 10px;
+      border: 2px solid #0001;
+      border-radius: 5px;
+      font-weight: bold;
+      border-bottom: none;
+      background: #fff;
+      transition: transform 0.2s ease-out, border-bottom 0s,
+        background 0.7s ease-out;
+      &:hover {
+        transform: translateY(-5px) scale(1.03);
+        border-bottom: 2px solid #0001;
+        background: #ddd;
+      }
+      &:active {
+        transform: translateY(-3px);
+      }
+    }
+    .store:last-child {
+      border-bottom: 2px solid #0001;
+    }
+  }
+  .show-store {
+    height: initial;
+    opacity: 1;
+  }
+  .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+  }
 }
-.auth p {
-  font-size: 1.6rem;
-  font-weight: bold;
-}
-.auth .sign {
-  width: 100%;
-}
-.auth .sign input {
-  width: 100%;
-  height: 35px;
-}
-.auth .sign button {
-  font-weight: bold;
-  box-shadow: 0 5px 15px 0 #007bff30;
-  transition: all 0.5s;
-  border-radius: 25px;
-  padding: 10px 40px;
-  margin-top: 20px;
-}
-.auth .sign button:hover {
-  background: #007bff;
-  box-shadow: 0 5px 20px 0 #007bff30;
-}
-.auth .sign button:focus {
-  box-shadow: 0 5px 20px 0 #007bff30 !important;
-  background: #007bff !important;
-}
-.select-store {
-  width: 100%;
-  opacity: 0;
-  height: 0;
-  transition: all 0.4s ease-out 0.2s;
-}
-.select-store .store {
-  cursor: pointer;
-  padding: 20px 10px;
-  border: 2px solid #0001;
-  border-radius: 5px;
-  font-weight: bold;
-  border-bottom: none;
-  background: #fff;
-  transition: transform 0.2s ease-out, border-bottom 0s,
-    background 0.7s ease-out;
-}
-.select-store .store:last-child {
-  border-bottom: 2px solid #0001;
-}
-.select-store .store:hover {
-  transform: translateY(-5px) scale(1.03);
-  border-bottom: 2px solid #0001;
-  background: #ddd;
-}
-.select-store .store:active {
-  transform: translateY(-3px);
-}
-.show-store {
-  height: initial;
-  opacity: 1;
-}
-.auth .overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #fff;
-}
+
 @media screen and (min-width: 400px) {
   .auth {
     width: 70%;
@@ -730,8 +528,7 @@ button.close {
 }
 
 /* --------------- */
-.widget {
-}
+
 .widget .header {
   cursor: pointer;
   user-select: none;
@@ -742,5 +539,43 @@ button.close {
 }
 .widget .header .select {
   border-bottom: 2px solid #0d6efd;
+}
+.auth__activate {
+  position: relative;
+  background: #f6f6f6;
+  border: 2px solid rgba(0, 0, 0, 0.125);
+  border-radius: 10px;
+  margin-top: 20%;
+  padding: 10% 10% 5% 10%;
+}
+.all__text--decoration {
+  text-align: center;
+  width: 100px;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -70%);
+  background: #fff;
+  font-size: 1rem;
+  color: #777777;
+}
+.btn-pill {
+  font-size: 0.9rem;
+  background: #0d6efd;
+  color: #ffffff;
+  height: 2rem;
+  outline: none;
+  border: none;
+  border-radius: 1rem;
+  -webkit-box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
+  box-shadow: 0 1px 3px rgba(126, 142, 177, 0.2);
+  &:hover {
+    background: #0167ff;
+    transition: transform 0.15s, background 0.15s;
+    -webkit-transform: scale(1.03);
+    transform: scale(1.03);
+    -webkit-box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
+    box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
+  }
 }
 </style>

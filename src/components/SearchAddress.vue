@@ -11,7 +11,7 @@
       @keydown.up="onArrowUp"
       @keydown.enter="onEnter"
       @click="handleClickInput"
-      @change="onChange();clearInput()"
+      @change="onChange()"
     />
     <img src="@/assets/arrow.png" alt id="input_img" @click="handleClickInput" />
     <ul id="autocomplete-results" v-show="isOpen" class="autocomplete-results">
@@ -20,6 +20,7 @@
         class="form-control-sm"
         ref="input_search"
         type="text"
+        autocomplete="off"
         v-model="search"
         @keydown.enter="onEnter"
         @input="onChange"
@@ -71,6 +72,9 @@ export default {
       this.$emit("data_output", this.data_output);
       if (this.changeInput) {
         this.changeInput();
+      }
+      if(this.clearInput){
+        this.clearInput()
       }
       // Is the data given by an outside ajax request?
       if (this.isAsync) {
@@ -162,9 +166,9 @@ export default {
       }
     },
     watch_data: function (val, oldValue) {
-      if (val && oldValue) {
+      // console.log("what data val", val);
+      // console.log("what data oldValue", oldValue);
         this.result = "";
-      }
     },
   },
   mounted() {

@@ -1,0 +1,213 @@
+<div class="main">
+    <div class="ghn">
+        <p class="ghn__title">ORDER GHN</p>
+        <!-- address customer -->
+        <div class="ghn__return">
+            <p class="all__text--decoration mb-0">Bên gửi</p>
+            <hr>
+            <div class="form-row">
+                <div class="col">
+                    <select v-model="order_info.store" class="form-control-sm">
+                        <option value>Chọn cửa hàng</option>
+                        <option v-for="(store,index) in store_list" :key="index" :value="store">{{store.name}}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col">
+                    <input v-model="order_info.return_phone" type="number" class="form-control-sm"
+                        placeholder="Số ĐT trả hàng" title="Số ĐT trả hàng" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col">
+                    <input v-model="order_info.return_address" type="text" class="form-control-sm"
+                        placeholder="Địa chỉ trả hàng" title="Địa chỉ trả hàng" />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="col">
+                    <select v-model="country" class="form-control-sm">
+                        <option value="">Việt Nam</option>
+                    </select>
+                </div>
+                <!-- input search place -->
+                <div class="col">
+                    <Autocomplete :list_data_input="list_city" :placeholder="'Tỉnh/TP'"
+                        @data_output="order_info.return_city=$event" :getData="getListReturnDistrict"
+                        :prop_name="'ProvinceName'" :clearInput="resetChangeCityReturn" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col">
+                    <Autocomplete :list_data_input="list_return_district" :placeholder="'Quận/Huyện'"
+                        @data_output="order_info.return_district=$event" :getData="getListReturnWard"
+                        :prop_name="'DistrictName'" :clearInput="resetChangeDistrictReturn"
+                        :watch_data="order_info.return_city" />
+                </div>
+                <div class="col">
+                    <Autocomplete :list_data_input="list_return_ward" :placeholder="'Phường/Xã'"
+                        @data_output="order_info.return_ward=$event" :getData="false" :prop_name="'WardName'"
+                        :watch_data="order_info.return_district" />
+                </div>
+            </div>
+        </div>
+        <div class="ghn__to">
+            <hr>
+            <p class="all__text--decoration mb-0">Bên nhận</p>
+            <div class="form-row">
+                <div class="col">
+                    <input v-model="order_info.to_name" type="text" class="form-control-sm" placeholder="Họ tên"
+                        title="Họ tên" />
+                </div>
+                <div class="col">
+                    <input v-model="order_info.to_phone" type="number" class="form-control-sm"
+                        placeholder="Số điện thoại" title="Số điện thoại" />
+                </div>
+            </div>
+            <input v-model="order_info.to_address" type="text" class="form-control-sm" placeholder="Địa chỉ nhận"
+                title="Địa chỉ nhận" />
+            <div class="form-row">
+                <div class="col">
+                    <select v-model="country" class="form-control-sm">
+                        <option value="">Việt Nam</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <Autocomplete :list_data_input="list_city" :placeholder="'Tỉnh/TP'"
+                        @data_output="order_info.to_city=$event" :getData="getListToDistrict"
+                        :prop_name="'ProvinceName'" :clearInput="resetChangeCityTo" />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="col">
+                    <Autocomplete :list_data_input="list_to_district" :placeholder="'Quận/Huyện'"
+                        @data_output="order_info.to_district=$event" :getData="getListToWard"
+                        :prop_name="'DistrictName'" :clearInput="resetChangeDistrictTo"
+                        :watch_data="order_info.to_city" />
+                </div>
+                <div class="col">
+                    <Autocomplete :list_data_input="list_to_ward" :placeholder="'Phường/Xã'"
+                        @data_output="order_info.to_ward=$event" :getData="false" :prop_name="'WardName'"
+                        :watch_data="order_info.to_district" />
+                </div>
+            </div>
+
+        </div>
+        <div class="ghn__cod">
+            <hr>
+            <p class="all__text--decoration">Tiền thu hộ COD</p>
+            <div class="form-row">
+                <div class="col">
+                    <input class="form-control-sm text-right" type="text" placeholder="Tiền thu hộ COD"
+                        title="Tiền thu hộ COD" v-model="order_info.cod_amount" />
+                </div>
+            </div>
+        </div>
+        <div class="ghn__product">
+            <hr>
+            <p class="all__text--decoration mb-0">Hàng hoá</p>
+            <div class="form-row">
+                <div class="col">
+                    <textarea v-model="order_info.content" type="text" class="form-control-sm  mb-2"
+                        placeholder="Hàng hoá"></textarea>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col">
+                    <input v-model="order_info.weight" type="number" class="form-control-sm"
+                        placeholder="Cân nặng (gram)" title="Cân nặng (gram)" />
+                </div>
+                <div class="col">
+                    <input v-model="order_info.length" type="number" class="form-control-sm"
+                        placeholder="Chiều dài (cm)" title="Chiều dài (cm)" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col">
+                    <input v-model="order_info.width" type="number" class="form-control-sm"
+                        placeholder="Chiều rộng (cm)" title="Chiều rộng (cm)" />
+                </div>
+                <div class="col">
+                    <input v-model="order_info.height" type="number" class="form-control-sm"
+                        placeholder="Chiều cao (cm)" title="Chiều cao (cm)" />
+                </div>
+            </div>
+        </div>
+        <div class="ghn__price">
+            <hr>
+            <p class="all__text--decoration">Giá trị đơn hàng</p>
+            <div class="form-row">
+                <div class="col">
+                    <input id="input" class="form-control-sm text-right" type="text" placeholder="Giá trị đơn hàng"
+                        title="Giá trị đơn hàng" v-model="order_info.order_value"
+                        @keyup="checkKeyBoard($event,$event.target.value)" />
+                </div>
+            </div>
+        </div>
+        <div class="ghn__other">
+            <hr>
+            <p class="all__text--decoration">Gói cước- Lưu ý</p>
+            <div class="form-row">
+                <div class="col">
+                    <select v-model="order_info.payment_type_id" class="form-control-sm">
+                        <option value="">Hình thức thanh toán</option>
+                        <option value="1">Người gửi trả tiền</option>
+                        <option value="2">Người nhận trả tiền</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col">
+                    <select v-model="order_info.service_type_id" class="form-control-sm">
+                        <option value>Loại gói cước giao</option>
+                        <option v-for="(pack,index) in pack_service_list" :key="index" :value="pack.service_type_id">
+                            {{pack.short_name}}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col">
+                    <select v-model="order_info.required_note" class="form-control-sm">
+                        <option value="">Mã ghi chú bắt buộc</option>
+                        <option value="KHONGCHOXEMHANG">Không cho xem hàng</option>
+                        <option value="CHOXEMHANGKHONGTHU">Cho xem hàng không thử</option>
+                        <option value="CHOTHUHANG">Cho thử hàng</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col">
+                    <input v-model="order_info.coupon" type="text" class="form-control-sm" placeholder="Mã khuyễn mãi"
+                        title="Mã khuyễn mãi" />
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <div class="product">
+        <div class="option d-flex justify-content-end">
+            <div class="d-flex align-items-center" @click="handleShowNote()">
+                <img class="mr-2" src="../../assets/note.png" alt="add note" />
+                <p class="text-primary m-0">Thêm ghi chú</p>
+            </div>
+        </div>
+        <div v-if="is_show_note">
+            <textarea v-model="order_info.note" class="form-control-sm my-3" placeholder="Ghi chú"></textarea>
+        </div>
+
+        <div class="order border-top mt-3 mb-4">
+            <button @click="getShippingFee()" :class="['btn','btn-sm', 'btn-primary', 'py-2', 'w-100']">Tạo đơn
+                hàng</button>
+        </div>
+    </div>
+    <InfoOrder :is_show_order_info="is_show_order_info" :handleCloseOrderInfo="handleCloseOrderInfo"
+        :order_info="order_info" :createOrder="createOrder" :payload="payload" />
+    <!-- Order -->
+
+</div>

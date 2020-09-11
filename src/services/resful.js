@@ -1,24 +1,24 @@
 import axios from "axios";
 
 export default {
-    post: ( path, body, params) => {
+    post: (path, body, params, headers) => {
         let data = {
             params: params || {},
-            headers: {
-                "Content-Type": "application/json",
-            }
+            headers
         }
+        if (!headers) delete data.headers
+        // console.log('header',data);
         return new Promise((resolve, reject) => {
             axios.post(
-                    path,
-                    body,
-                    // {
-                    //     headers: {
-                    //         "Content-Type": "application/json",
-                    //     }
-                    // }
-                    data
-                )
+                path,
+                body,
+                // {
+                //     headers: {
+                //         "Content-Type": "application/json",
+                //     }
+                // }
+                data
+            )
                 .then(response => {
                     resolve(response)
                 })
@@ -27,12 +27,17 @@ export default {
                 });
         })
     },
-    get: ( path, params) => {
-        params = {
-            params: params
-        }
+    get: (path, params, headers) => {
+        // params = {
+        //     params: params
+        // }
         return new Promise((resolve, reject) => {
-            axios.get(path, params)
+            axios({
+                method: 'get',
+                url: path,
+                params: params,
+                headers: headers
+            })
                 .then(response => {
                     resolve(response)
                 })
