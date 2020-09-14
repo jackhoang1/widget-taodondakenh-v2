@@ -77,12 +77,12 @@ let urlString = location.href;
 let url = new URL(urlString);
 let access_token = url.searchParams.get("access_token");
 
-const APICMS = "http://localhost:1337"; //dev
-// const APICMS = "http://188.166.250.86:1337"; //dev
+// const APICMS = "http://localhost:1337"; //dev
+const APICMS = "https://devbbh.tk"; //dev
 // const APICMS = "https://ext.botup.io"; //product
 
-const ApiBase = "https://app.devchatbox.tk"; //dev
-// const ApiBase = "https://chatbox-app.botbanhang.vn";	//product
+// const ApiBase = "https://app.devchatbox.tk"; //dev
+const ApiBase = "https://chatbox-app.botbanhang.vn";	//product
 
 const Toast = Swal.mixin({
   toast: true,
@@ -115,7 +115,8 @@ export default {
       isOAuth: false,
       is_warning: false,
       // secretKey: '2dd3816056a04c70ad154d3943bb16bd', //product
-      secretKey: "91838b8fa0dd4bce983aedfe11570e21", //dev
+      secretKey: '2218ef13a45c4fd9ade2d049db2ef6f1', //demo-product
+      // secretKey: "6e6d71d51a234aec9cde5f7748dd9e78", //dev
       access_token: access_token,
       is_select: "list",
 

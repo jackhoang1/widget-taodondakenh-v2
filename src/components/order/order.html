@@ -62,12 +62,13 @@
                         </option>
                     </select>
                 </div>
-                <!--End Forrm điền thông tin khách hàng -->
+                <!------------------------------------- -->
                 <!-- Tuỳ chọn thanh toán hoặc ship code -->
                 <div class="order__option">
                     <div class="order__option--main">
                         <div>
-                            <p class="order__option--title">Tuỳ chọn</p>
+                            <hr>
+                            <p class="order__option--title all__text--decoration">Tuỳ chọn</p>
                             <input id="order__option--order-only" type="radio" value="0" v-model="order_option">
                             <label for="order__option--order-only">Chỉ tạo đơn</label>
                             <!-- <img src="@/assets/question.png" alt=""> -->
@@ -140,34 +141,42 @@
                     </div>
                 </div>
                 <!-- End Giỏ hàng -->
+                <!-- tổng phí đơn hàng -->
+                <div v-if="order_option!=0">
+                    <div class="font-weight-bold text-right my-3">
+                        <p>Tổng giá sản phẩm: {{ total_price | toCurrency }}</p>
+                    </div>
+                </div>
+
                 <!-- giao vận -->
                 <div v-if="order_option!=0">
                     <div>
-                        <Delivery :store_token="store_token" :payload="payload" :prop_receiver_name="name"
+                        <Delivery ref="delivery" :store_token="store_token" :payload="payload" :prop_receiver_name="name"
                             :prop_receiver_phone="phone" :prop_receiver_email="email" :prop_receiver_address="address"
                             :prop_receiver_city="city_delivery" :prop_receiver_district="district_delivery"
                             :prop_receiver_ward="ward_delivery" :prop_product_info="product_info"
                             :total_price="total_price" @shipping_fee="shipping_fee=$event"
-                            :prop_res_order_info="res_order_info" />
+                            :prop_res_order_info="res_order_info" :propSendMessage="sendMessage" />
                     </div>
 
                 </div>
                 <!-- thanh toán -->
                 <div v-if="order_option==2">
                     <div>
-                        <Alepay :store_token="store_token" :payload="payload" :prop_receiver_name="name"
+                        <Alepay ref="payment" :store_token="store_token" :payload="payload" :prop_receiver_name="name"
                             :prop_receiver_phone="phone" :prop_receiver_email="email" :prop_receiver_address="address"
                             :prop_receiver_city="city" :prop_receiver_district="district" :prop_receiver_ward="ward"
                             :prop_product_info="product_info" :total_price="total_price"
                             @shipping_fee="shipping_fee=$event" :prop_res_order_info="res_order_info"
-                            :prop_total_payment="total_payment" :order_option="order_option" />
+                            :prop_total_payment="total_payment" :order_option="order_option"
+                            :propSendMessage="sendMessage" />
                     </div>
                 </div>
                 <!-- Tổng tiền và tạo đơn hàng -->
                 <div class="order border-top">
-                    <div class="total-price d-flex justify-content-between my-3">
+                    <div class="total-price d-flex justify-content-between my-2">
                         <p>Tổng tiền</p>
-                        <p>{{ total_price | toCurrency }}</p>
+                        <p>{{ total_payment | toCurrency }}</p>
                     </div>
                     <button @click="handleCreateOrder()" class="btn-pill mb-4 w-100">Tạo đơn hàng</button>
                 </div>
@@ -231,8 +240,11 @@
                     <p>Danh sách sản phẩm:</p>
                     <p v-for="(item, ind) in cart" :key="ind">{{`${item.product_quantity} ${item.product_name}`}}</p>
                     <br />
-                    <p>Tổng giá trị đơn hàng:</p>
-                    <p>{{total_price | toCurrency}}</p>
+                    <div v-if="order_option!=0">
+                        <p>Tổng giá sản phẩm: {{total_price | toCurrency}}</p>
+                        <p>Phí giao vận: {{shipping_fee | toCurrency}}</p>
+                    </div>
+                    <p class="font-weight-bold">Tổng giá trị đơn hàng: {{total_payment | toCurrency}}</p>
                     <button @click="handleCallApiOrder()"
                         :class="['btn-pill', 'mt-3', 'mb-4', 'w-100', {'prevent-click': prevent_click}]">Xác
                         nhận</button>

@@ -30,7 +30,18 @@
 .justify-content-center {
     justify-content: center !important;
 }
-
+.justify-content-start {
+    -ms-flex-pack: start !important;
+    justify-content: flex-start !important;
+}
+.justify-content-end {
+    -ms-flex-pack: end !important;
+    justify-content: flex-end !important;
+}
+/* font */
+.font-weight-bold {
+    font-weight: 700 !important;
+}
 /*Spacing*/
 .m-0 {
     margin: 0 !important;
@@ -60,6 +71,14 @@
 .my-3 {
     margin-top: 1rem !important;
     margin-bottom: 1rem !important;
+}
+.mb-2,
+.my-2 {
+    margin-bottom: 0.5rem !important;
+}
+.mt-2,
+.my-2 {
+    margin-top: 0.5rem !important;
 }
 .mt-1 {
     margin-top: 0.25rem !important;

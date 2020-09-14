@@ -4,6 +4,9 @@ html {
 body::-webkit-scrollbar {
     display: none;
 }
+* {
+    font-size: 0.9rem;
+}
 .disable-scroll {
     overflow: hidden;
     height: 100vh;

@@ -4,13 +4,13 @@ import Autocomplete from "@/components/SearchAddress.vue"
 import EventBus from "@/EventBus.js"
 
 // const APICMS = "https://ext.botup.io" //product
-const APICMS = "http://localhost:1337" //dev
-// const APICMS = "https://188.166.250.86:1337"; //dev
+// const APICMS = "http://localhost:1337" //dev
+const APICMS = "https://devbbh.tk"; //dev
 
 
 export default {
     components: { InfoOrder, Autocomplete },
-    props: ['store_token', 'payload', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_email', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_product_info', 'total_price', 'prop_res_order_info'],
+    props: ['store_token', 'payload', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_email', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_product_info', 'total_price', 'prop_res_order_info', 'order_option', 'propSendMessage'],
     data() {
         return {
             list_inventories: "",
@@ -43,7 +43,7 @@ export default {
                 receiver_name: this.prop_receiver_name,
                 receiver_phone: this.prop_receiver_phone,
                 receiver_email: this.prop_receiver_email,
-                receiver_street: this.prop_receiver_address,
+                receiver_address: this.prop_receiver_address,
                 receiver_ward: this.prop_receiver_ward,
                 receiver_district: this.prop_receiver_district,
                 receiver_city: this.prop_receiver_city,
@@ -69,8 +69,8 @@ export default {
             this.createOrder(order_id)
         });
 
-        EventBus.$on("info-delivery", (product_info,total_price) => {
-            this.handleEventBusInfo(product_info,total_price)
+        EventBus.$on("info-delivery", (product_info, total_price) => {
+            this.handleEventBusInfo(product_info, total_price)
         });
     },
     async mounted() {
@@ -190,7 +190,7 @@ export default {
             this.$emit('shipping_fee', this.order_info.shipping_fee)
             console.log('emit', this.order_info.shipping_fee);
         },
-        handleEventBusInfo(product_info,total_price) {
+        handleEventBusInfo(product_info, total_price) {
             let info_customer_delivery = {
                 'group_address_id': this.order_info.inventory.groupaddressId,
                 'sender_name': this.order_info.inventory.name,
@@ -224,10 +224,46 @@ export default {
             EventBus.$emit('info-delivery-a', info_customer_delivery)
             return info_customer_delivery
         },
-
+        validateCreateDelivery() {
+           
+            if (!this.order_info.inventory) {
+                this.swalToast("Bạn chưa chọn kho hàng", 'warning')
+                return false
+            }
+            if (!this.order_info.product_type) {
+                this.swalToast("Bạn chưa chọn phân loại sản phẩm", 'warning')
+                return false
+            }
+            if (!this.order_info.order_payment) {
+                this.swalToast("Bạn chưa chọn hình thức thanh toán đơn hàng", 'warning')
+                return false
+            }
+            if (!this.order_info.order_service) {
+                this.swalToast("Bạn chưa chọn dịch vụ giao vận", 'warning')
+                return false
+            }
+            if (!this.order_info.weight) {
+                this.swalToast("Bạn chưa nhập khối lượng", "warning")
+                return false
+            }
+            if (!this.order_info.length) {
+                this.swalToast("Bạn chưa nhập chiều dài", 'warning')
+                return false
+            }
+            if (!this.order_info.width) {
+                this.swalToast("Bạn chưa nhập chiều rộng", 'warning')
+                return false
+            }
+            if (!this.order_info.height) {
+                this.swalToast("Bạn chưa nhập chiều cao", "warning")
+                return false
+            }
+            return true
+        },
         async createOrder(order_id) {
             try {
                 console.log('prop res order info', this.prop_res_order_info);
+
                 if (this.handle_api) return
                 this.handle_api = true
                 let path = `${APICMS}/v1/selling-page/delivery/delivery_create`
@@ -274,10 +310,16 @@ export default {
                     create_order.data.data.snap_order.data &&
                     create_order.data.data.snap_order.message == 'success'
                 ) {
+                    if (this.order_option == 1) {
+                        this.propSendMessage(order_id)
+                    }
+                    else {
+                        this.propSendMessage(order_id)
+                    }
                     console.log("33333333333333333", create_order)
                     this.handleCloseOrderInfo()
                     // this.resetAddress()
-                    this.handleShowForm('order')
+                    // this.handleShowForm('order')
                     this.swalToast("Tạo đơn giao vận thành công", "success")
                     return
                 }
@@ -297,6 +339,32 @@ export default {
 
             }
         },
+        // async sendMessage(order_id) {
+        //     try {
+        //         let path = 'https://api.botbanhang.vn/v1.3/public/json'
+        //         let params = {
+        //             access_token: this.payload.token_bbh,
+        //             psid: this.payload.mid,
+        //         }
+        //         let body = {
+        //             messages: [
+        //                 {
+        //                     text: `Đơn hàng ${order_id} của bạn đang được giao vận.`
+        //                 }
+        //             ]
+        //         }
+        //         console.log('body message', body);
+
+        //         let message = await Restful.post(path, body, params)
+        //         setTimeout(() => {
+        //             this.swalToast('Gửi link thanh toán về Message thành công', 'success')
+        //             // this.handleShowForm('order')
+        //         }, 1000)
+        //     } catch (e) {
+        //         console.log(e);
+        //     }
+
+        // },
         checkValidatePricingServices() {
             if (!this.order_info.sender_city) {
                 this.swalToast("Bạn chưa chọn Tỉnh/TP bên gửi", 'warning')
@@ -475,6 +543,9 @@ export default {
             })
         },
     },
+    // beforeDestroy() {
+    //     this.order_info.shipping_fee = 0
+    // },
     watch: {
         prop_receiver_address: function (value) {
             console.log('watch run 0', value);
@@ -495,8 +566,21 @@ export default {
             this.order_info.receiver_ward = this.prop_receiver_ward
 
         },
+        prop_receiver_name: function () {
+            this.order_info.receiver_name = this.prop_receiver_name
+        },
+        prop_receiver_phone: function () {
+            this.order_info.receiver_phone = this.prop_receiver_phone
+        },
+        prop_receiver_email: function () {
+            this.order_info.receiver_email = this.prop_receiver_email
+        },
+        prop_receiver_address: function () {
+            this.order_info.receiver_address = this.prop_receiver_address
+        },
+
         prop_product_info: function () {
-            console.log('watch 1111111111111111111111111111111111111111111',this.prop_product_info);
+            console.log('watch 1111111111111111111111111111111111111111111', this.prop_product_info);
             this.product_info = this.prop_product_info
         },
         prop_res_order_info: function (value) {

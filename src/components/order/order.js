@@ -7,8 +7,8 @@ import Alepay from "@/components/payment/alepay/Alepay.vue"
 import Delivery from "@/components/delivery/Delivery.vue"
 
 // const APICMS = "https://ext.botup.io"  //product
-const APICMS = "http://localhost:1337" //dev
-// const APICMS = "http://188.166.250.86:1337"; //dev
+// const APICMS = "http://localhost:1337" //dev
+const APICMS = "https://devbbh.tk"; //dev
 
 
 const Toast = Swal.mixin({
@@ -49,6 +49,7 @@ export default {
         "payload",
         "handleChangeAppToken",
     ],
+    // mixins:[Delivery], 
     data() {
         return {
             res_order_info: "",
@@ -98,7 +99,8 @@ export default {
 
             is_show_order_info: false,
             prevent_click: false,
-            msg_content: 'Quý khách đã tạo thành công đơn hàng số {{order_id}} , đơn hàng của quý khách đang được giao vận.',
+            msg_content_reset: 'Quý khách đã tạo thành công đơn hàng số {{order_id}} ',
+            msg_content: 'Quý khách đã tạo thành công đơn hàng số {{order_id}} ',
             is_show_setting_msg: false,
             is_update_order: false,
             wait_create_empty_order: false,
@@ -365,7 +367,6 @@ export default {
                     await this.getListProduct(params)
 
                     if (this.list_product.length) return
-
                     // Search với các search_value viết hoa kí tự đầu
                     search_value = search_value_data.charAt(0).toUpperCase() + search_value.substring(1)
                     params.search = search_value
@@ -605,6 +606,7 @@ export default {
                 !this.city.name ||
                 !this.district.name ||
                 !this.ward.name ||
+                !this.street ||
                 !this.email ||
                 (this.order_option != 0 && !this.shipping_fee)
             ) {
@@ -614,7 +616,8 @@ export default {
                     title: "Vui lòng điền đầy đủ thông tin",
                 })
             }
-
+            if (!this.$refs.delivery.validateCreateDelivery()) return
+            if (!this.$refs.payment.validateCreatePayment()) return
             // Check trạng thái chọn chọn chi nhánh
             if (this.list_branch[0]) {
                 if (!Object.keys(this.branch)[0]) {
@@ -691,6 +694,9 @@ export default {
                 //kt tuỳ chọn nếu chọn gateway sẽ gửi info delivery >tạo payment> orthor info
                 if (this.order_option == 2) {
                     EventBus.$emit('info-delivery', this.product_info, this.total_price)
+                    body.other_info.msg_config = {}
+                    body.other_info.msg_config.mid = this.payload.mid
+                    body.other_info.msg_config.token_bbh = this.payload.token_bbh
                     body.other_info.info_delivery = this.info_delivery
                 }
                 if (!body.branchId) delete body.branchId
@@ -745,30 +751,36 @@ export default {
                     let product_info = create_order.data.data.order_info.product_info
                     this.res_order_info = create_order.data.data
                     // Đẩy tin nhắn về Msg
-                    if (order_id) {
-                        let content = this.covertMsgContent(order_id)
-                        this.sendMessage(content)
-                    }
+
+
                     // this.resetAddress()
 
                     // gọi hàm tạo giao vận từ components delivery
                     console.log('order_option', this.order_option);
+
                     if (this.order_option == 1) {
                         console.log('run option 1');
                         EventBus.$emit("create-delivery", order_id)
                     }
                     else if (this.order_option == 2) {
+                        console.log('000000000000000000000');
                         // gọi hàm tạo thanh toán từ components payment
                         EventBus.$emit("create-payment", order_id)
                         // EventBus.$emit("create-delivery", order_id)
                     }
-                    Toast2.fire({
-                        icon: "success",
-                        title: "Tạo đơn hàng thành công",
-                    })
+                    else {
+                        Toast2.fire({
+                            icon: "success",
+                            title: "Tạo đơn hàng thành công",
+                        })
+                        this.sendMessage(order_id)
+                        console.log('1');
+                    }
                     // show modal choose delivery or payment
                     // Xóa giỏ hàng sau khi tạo đơn
-                    this.handleDeleteAllCart()
+                    setTimeout(() => {
+                        this.handleDeleteAllCart()
+                    }, 1000)
                     setTimeout(() => {
                         EventBus.$emit("call-order")
                     }, 1000)
@@ -828,6 +840,7 @@ export default {
             try {
                 let path = `${APICMS}/v1/selling-page/other/haravan_create_customer`
                 console.log("haraas")
+                let headers = { Authorization: this.store_token }
                 let customer = {
                     customer_name: this.name,
                     customer_email: this.email,
@@ -835,10 +848,10 @@ export default {
                     customer_phone: this.phone,
                     customer_province_name: this.city.name,
                     customer_city_name: this.city.name,
-                    access_token: this.store_token,
+                    // access_token: this.store_token,
                 }
 
-                let createCustomer = await Restful.post(path, customer)
+                let createCustomer = await Restful.post(path, customer, {}, headers)
 
                 console.log("hrv acc success")
                 path = `${APICMS}/v1/selling-page/order/order_create_3rd`
@@ -846,13 +859,12 @@ export default {
             } catch (e) {
                 console.log("eeer", e.data.error_message)
                 if (
-                    e &&
                     e.data &&
                     e.data.error_message === 'Địa chỉ Email đã được sử dụng.'
                 ) {
                     let path = `${APICMS}/v1/selling-page/order/order_create_3rd`
                     let body = {
-                        access_token: this.store_token,
+                        // access_token: this.store_token,
                         product_info: this.cart,
                         customer_name: this.name,
                         customer_phone: this.phone,
@@ -875,7 +887,10 @@ export default {
                     this.callOrder(path, body)
                     return
                 }
-                if (e && e.data && e.data.error_message) {
+                if (
+                    e.data &&
+                    e.data.error_message
+                ) {
                     Toast2.fire({
                         icon: "error",
                         title: e.data.error_message,
@@ -920,37 +935,77 @@ export default {
             localStorage.setItem("msg_content", this.msg_content)
             return this.msg_content.replace(/{{order_id}}/g, order_id)
         },
-        async sendMessage(content) {
+        async sendMessage(order_id, url_payment) {
             try {
                 let list_product = this.cart.map((item) => {
                     return `${item.product_quantity}  ${item.product_name} \n`
                 });
                 let strProduct = list_product.join(" ")
-
+                let content = this.covertMsgContent(order_id);
                 let path = `https://api.botbanhang.vn/v1.3/public/json`
                 let params = {
                     access_token: this.payload.token_bbh,
                     psid: this.payload.mid,
                 }
-                let body = {
-                    messages: [
-                        { text: content },
-                        {
-                            text: `Tên khách hàng: ${this.name} \nSố điện thoại: ${this.phone} \nEmail: ${this.email} \nĐịa chỉ: ${this.address}`,
-                        },
-                        {
-                            text: `Danh sách sản phẩm: \n${strProduct} \nTổng giá trị đơn hàng: \n${this.$options.filters.toCurrency(
-                                this.total_price
-                            )}`,
-                        },
-                    ],
-                }
+                // let messages = []
+                let messages = [
+                    { text: content },
+                    {
+                        text: `Tên khách hàng: ${this.name} \nSố điện thoại: ${this.phone} \nEmail: ${this.email} \nĐịa chỉ: ${this.address}`,
+                    },
+                    {
+                        text: `Danh sách sản phẩm: \n${strProduct} \nGiá trị đơn hàng: \n${this.$options.filters.toCurrency(
+                            this.total_price
+                        )}`,
+                    },
+                ]
+                if (this.order_option == 1) {
+                    messages = messages.concat(
+                        [
+                            {
+                                text: `Đơn hàng của quá khách đang được giao vận.\nPhí ship ${this.$options.filters.toCurrency(
+                                    this.shipping_fee
+                                )}`
+                            }
 
-                let message = await Restful.post(path, body, params)
+                        ]
+                    )
+                }
+                // tuỳ chọn thêm khi gửi tin về message
+                // if (this.order_option == 1 || status == 'gateway') {
+                //     console.log('message option 1 || gateway');
+                //     messages.concat(
+                //         [
+                //             {
+                //                 text: `Đơn hàng quý khách đã được giao vận`
+                //             }
+                //         ]
+                //     )
+                // }
+                if (this.order_option == 2) {
+                    messages = messages.concat(
+                        [
+                            {
+                                text: `Phí ship ${this.$options.filters.toCurrency(
+                                    this.shipping_fee
+                                )} \n Tổng thanh toán ${this.$options.filters.toCurrency(
+                                    this.total_payment
+                                )}`
+                            },
+                            {
+                                text: `Sau khi thanh toán đơn hàng sẽ được giao vận ${url_payment}`
+                            }
+                        ]
+                    )
+                }
+                let body = { messages }
+                let sent_message = await Restful.post(path, body, params)
 
                 console.log("send", body)
             } catch (e) {
                 console.log("error send mess", e)
+                this.swalToast("Lỗi khi gửi tin về message", "error")
+
             }
         },
         closeOrderInfo() {
@@ -1082,14 +1137,14 @@ export default {
             try {
                 if (this.reset_token) return;
                 let path = `${APICMS}/v1/selling-page/other/kiotviet_update_token`
-                let body = {
-                    access_token: this.store_token,
-                }
+                // let body = {
+                //     access_token: this.store_token,
+                // }
+                let headers = { 'Authorization': this.store_token }
 
-                let reset_token_kiotviet = await Restful.post(path, body)
+                let reset_token_kiotviet = await Restful.post(path, {}, {}, headers)
 
                 if (
-                    reset_token_kiotviet &&
                     reset_token_kiotviet.data &&
                     reset_token_kiotviet.data.data
                 ) {
@@ -1108,14 +1163,14 @@ export default {
         async resetTokenMisa() {
             if (this.reset_token) return
             let path_api_reset = `${APICMS}/v1/selling-page/other/misa_update_token`
-            let body = {
-                access_token: this.store_token,
-            }
+            // let body = {
+            //     access_token: this.store_token,
+            // }
+            let headers = { 'Authorization': this.store_token }
 
-            let reset_token_misa = await Restful.post(path_api_reset, body)
+            let reset_token_misa = await Restful.post(path_api_reset, {}, {}, headers)
 
             if (
-                reset_token_misa &&
                 reset_token_misa.data &&
                 reset_token_misa.data.data
             ) {
@@ -1141,7 +1196,6 @@ export default {
 
                 console.log("get branch misa", get_branch)
                 if (
-                    get_branch &&
                     get_branch.data &&
                     get_branch.data.data
                 ) {
@@ -1153,7 +1207,6 @@ export default {
                     this.has_branch = true
                 }
                 if (
-                    get_branch &&
                     get_branch.data.code == 200 &&
                     !get_branch.data.data
                 ) {
@@ -1185,18 +1238,25 @@ export default {
         showSettingMsg() {
             this.is_show_setting_msg = !this.is_show_setting_msg;
         },
+        handleSaveMsg() {
+            localStorage.setItem('msg_content', this.msg_content)
+            this.showSettingMsg()
+        },
+        handleResetMsg() {
+            this.msg_content = this.msg_content_reset
+        },
         async getOrderInfo(id) {
             // Reset client_id tránh loạn giỏ hàng
             this.client_id = ''
             localStorage.removeItem("client_id")
             this.cart = []
             let path = `${APICMS}/v1/selling-page/order/order_read`
+            let headers = { Authorization: this.store_token }
             let params = {
-                access_token: this.store_token,
                 id,
             }
 
-            let order = await Restful.get(path, params)
+            let order = await Restful.get(path, params, headers)
 
             let dataOrder = {}
             if (
@@ -1251,8 +1311,9 @@ export default {
                 // Tạo order rỗng
                 if (this.platform_type !== "CUSTOM") return
                 let path = `${APICMS}/v1/selling-page/order/order_create_3rd`
+                let headers = { Authorization: this.store_token }
                 let body = {
-                    access_token: this.store_token,
+                    // access_token: this.store_token,
                     customer_name: this.name,
                     customer_phone: this.phone,
                     customer_address: "Chưa xác định",
@@ -1260,7 +1321,7 @@ export default {
                     platform_type: this.platform_type,
                 };
 
-                let emptyOrder = await Restful.post(path, body)
+                let emptyOrder = await Restful.post(path, body, {}, headers)
 
                 if (emptyOrder.data && emptyOrder.data.data) {
                     console.log("create empty order ok")
@@ -1308,8 +1369,9 @@ export default {
             try {
                 this.prevent_click = true
                 let path = `${APICMS}/v1/selling-page/order/order_update`
+                let headers = { Authorization: this.store_token }
                 let body = {
-                    access_token: this.store_token,
+                    // access_token: this.store_token,
                     id: this.order_id,
                     product_info: this.cart,
                     customer_name: this.name,
@@ -1328,9 +1390,10 @@ export default {
                     delete body["customer_province_name"]
                 }
 
-                let callUpdateOrder = await Restful.post(path, body)
+                let callUpdateOrder = await Restful.post(path, body, {}, headers)
 
-                if (callUpdateOrder.data &&
+                if (
+                    callUpdateOrder.data &&
                     callUpdateOrder.data.data
                 ) {
                     this.is_update_order = false
@@ -1454,6 +1517,9 @@ export default {
         },
         shipping_fee: function () {
             this.handleTotalPayment()
+        },
+        order_option: function (newValue) {
+            if (newValue == 0) this.shipping_fee = 0
         }
     },
     filters: {

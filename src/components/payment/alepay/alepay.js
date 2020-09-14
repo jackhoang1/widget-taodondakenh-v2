@@ -2,10 +2,11 @@ import Restful from '@/services/resful.js'
 import EventBus from "@/EventBus.js"
 
 // const APICMS = "https://ext.botup.io"  //product
-const APICMS = "http://localhost:1337" //dev
+// const APICMS = "http://localhost:1337" //dev
+const APICMS = "https://devbbh.tk" //dev
 
 export default {
-    props: ['store_token', 'payload', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_email', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_product_info', 'total_price', 'prop_res_order_info', 'prop_total_payment', 'order_option'],
+    props: ['store_token', 'payload', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_email', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_product_info', 'total_price', 'prop_res_order_info', 'prop_total_payment', 'order_option', 'propSendMessage'],
     data() {
         return {
             list_type: [
@@ -18,7 +19,7 @@ export default {
             checkout_type: "",
             country: 'Việt Nam',
             order_description: '',
-            checkout_url: "",
+            url_payment: "",
             message_bbh: "",
             handle_api: false,
             product_info: this.prop_product_info,
@@ -64,7 +65,6 @@ export default {
         },
         async createPayment(order_id) {
             try {
-                if (!this.handleValidate()) return
                 if (this.handle_api) return
                 this.handle_api = true
                 let path = `${APICMS}/v1/selling-page/payment/payment_create`
@@ -74,19 +74,20 @@ export default {
                 console.log('body create payment', body);
 
                 let create_payment = await Restful.post(path, body, params, headers)
+
+                this.handle_api = false
                 console.log('create payment', create_payment);
                 if (create_payment.data &&
                     create_payment.data.data &&
                     create_payment.data.data.snap_payment
                 ) {
-                    let checkout_url = create_payment.data.data.snap_payment.checkoutUrl
+                    let url_payment = create_payment.data.data.snap_payment.checkoutUrl
                     // let message_bbh = []
-                    if (checkout_url) {
-                        this.sendMessage(checkout_url)
+                    if (url_payment) {
+                        this.propSendMessage(order_id, url_payment)
                     }
                 }
-                this.handle_api = false
-                console.log('this.checkout_url', this.checkout_url);
+                console.log('this.url_payment', this.url_payment);
                 this.swalToast('Tạo Thanh toán thành công', 'success')
             } catch (e) {
                 console.log(e);
@@ -103,36 +104,7 @@ export default {
             }
 
         },
-        async sendMessage(checkout_url) {
-            try {
-                let path = 'https://api.botbanhang.vn/v1.3/public/json'
-                let params = {
-                    access_token: this.payload.token_bbh,
-                    psid: this.payload.mid,
-                }
-                let body = {
-                    messages: [
-                        {
-                            text: 'Bạn hãy Click vào link sau để thanh toán với Alepay:'
-                        },
-                        {
-                            text: checkout_url
-                        }
-                    ]
-                }
-                console.log('body message', body);
-
-                let message = await Restful.post(path, body, params)
-                setTimeout(() => {
-                    this.swalToast('Gửi link thanh toán về Message thành công', 'success')
-                    this.handleShowForm('order')
-                }, 1000)
-            } catch (e) {
-                console.log(e);
-            }
-
-        },
-        handleValidate() {
+        validateCreatePayment() {
             if (!this.checkout_type) {
                 this.swalToast('Bạn chưa chọn Phương thức thanh toán', 'warning')
                 return false
