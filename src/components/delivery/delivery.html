@@ -91,12 +91,6 @@
         </div>
         <hr>
         <p class="font-weight-bold text-right">Phí giao vận: {{order_info.shipping_fee|toCurrency}}</p>
-        <!-- <div class="order border-top mt-3 mb-4">
-            <button @click="handleShowOrderInfo" class="btn-pill w-100">Tạo đơn hàng</button>
-        </div> -->
     </div>
-    <InfoOrder :is_show_order_info="is_show_order_info" :handleCloseOrderInfo="handleCloseOrderInfo"
-        :order_info="order_info" :createOrder="createOrder" :payload="payload" />
-    <!-- Order -->
 
 </div>

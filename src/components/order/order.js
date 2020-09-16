@@ -46,8 +46,7 @@ export default {
     },
     props: [
         "store_token",
-        "payload",
-        "handleChangeAppToken",
+        "payload"
     ],
     // mixins:[Delivery], 
     data() {
@@ -58,7 +57,6 @@ export default {
                 list_product: ''
             },
             platform_type: "",
-            delivery_platform: "",
             name: "",
             phone: "",
             street: "",
@@ -114,10 +112,8 @@ export default {
             order_step: 0,
             is_cod: false,
             is_gateway: false,
-            type_location_order: 'order',
-            type_location_delivery: 'delivery',
             info_delivery: "",
-
+            handle_api: false,
             reset_token: false,
         };
     },
@@ -135,10 +131,10 @@ export default {
         EventBus.$on("disable-update-order", () => {
             this.is_update_order = false
         });
-        EventBus.$on('info-delivery-a', (e) => {
-            this.info_delivery = e
-            console.log(' this.info_delivery', this.info_delivery);
-        })
+        // EventBus.$on('info-delivery-a', (e) => {
+        //     this.info_delivery = e
+        //     console.log(' this.info_delivery', this.info_delivery);
+        // })
         if (this.store_token) {
             this.getInitialData()
             this.name = this.payload.name
@@ -173,7 +169,7 @@ export default {
         async getListCity() {
             try {
                 let path = `${APICMS}/v1/selling-page/locations/provinces`
-                let params = { 'type_location': this.type_location_order }
+                let params = { 'type_location': 'order' }
                 let headers = { 'Authorization': this.store_token }
 
                 let get_list_city = await Restful.get(path, params, headers)
@@ -209,7 +205,7 @@ export default {
             try {
                 let path = `${APICMS}/v1/selling-page/locations/districts`
                 let params = {
-                    'type_location': this.type_location_order,
+                    'type_location': 'order',
                     'province_id': this.city.id
                 }
                 let headers = { 'Authorization': this.store_token }
@@ -222,6 +218,7 @@ export default {
                     get_list_district.data.data
                 ) {
                     this.list_district = get_list_district.data.data
+                    this.getListDistrictDelivery()
                     console.log('list_district', this.list_district);
                 }
             } catch (e) {
@@ -230,6 +227,7 @@ export default {
         },
         async getListDistrictDelivery() {
             try {
+                if (this.city_delivery && !this.city_delivery.PROVINCE_ID) return
                 let path = `${APICMS}/v1/selling-page/locations/districts`
                 let params = {
                     'provinceId': this.city_delivery.PROVINCE_ID,
@@ -253,7 +251,7 @@ export default {
             try {
                 let path = `${APICMS}/v1/selling-page/locations/wards`
                 let params = {
-                    'type_location': this.type_location_order,
+                    'type_location': 'order',
                     'district_id': this.district.id
                 }
                 let headers = { 'Authorization': this.store_token }
@@ -261,7 +259,6 @@ export default {
                 let get_list_ward = await Restful.get(path, params, headers)
 
                 if (
-                    get_list_ward &&
                     get_list_ward.data &&
                     get_list_ward.data.data
                 ) {
@@ -273,6 +270,7 @@ export default {
                     })
 
                     this.list_ward = arr_ward
+                    this.getListWardDelivery()
                     console.log('list ward', this.list_ward);
                 }
             } catch (e) {
@@ -281,6 +279,7 @@ export default {
         },
         async getListWardDelivery() {
             try {
+                if (this.district_delivery && !this.district_delivery.DISTRICT_ID) return
                 let path = `${APICMS}/v1/selling-page/locations/wards`
                 let params = {
                     'districtId': this.district_delivery.DISTRICT_ID,
@@ -482,7 +481,7 @@ export default {
                 }
                 console.log("body handleAddToCart", body)
                 // Thêm sản phẩm vào giỏ hàng
-                let add_cart = await Restful.post(path, body, {}, headers)
+                let add_cart = await Restful.post(path, body, null, headers)
                 // Lưu client_id và lưu vào localStorage
                 if (
                     add_cart.data &&
@@ -514,7 +513,7 @@ export default {
                 }
                 let headers = { Authorization: this.store_token }
 
-                let postDeleteCart = await Restful.post(path, body, {}, headers)
+                let postDeleteCart = await Restful.post(path, body, null, headers)
 
                 Toast.fire({
                     icon: "success",
@@ -541,7 +540,7 @@ export default {
                 }
                 let headers = { Authorization: this.store_token }
 
-                let postAddQuantity = await Restful.post(path, body, {}, headers)
+                let postAddQuantity = await Restful.post(path, body, null, headers)
 
                 // Load lại giỏ hàng
                 this.getCart()
@@ -563,7 +562,7 @@ export default {
                 }
                 let headers = { Authorization: this.store_token }
 
-                let postAddQuantity = await Restful.post(path, body, {}, headers)
+                let postAddQuantity = await Restful.post(path, body, null, headers)
 
                 // Load lại giỏ hàng
                 this.getCart()
@@ -589,6 +588,14 @@ export default {
         handleTotalPayment() {
             this.total_payment = this.total_price + this.shipping_fee
         },
+        validateEmail(email) {
+            let reg = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
+            if (reg.test(email) == false) {
+                return false;
+            }
+            return true;
+
+        },
         handleCreateOrder() {
             if (this.cart.length === 0) {
                 Toast.fire({
@@ -597,7 +604,6 @@ export default {
                 })
                 return
             }
-
             // Validate form thông tin khách hàng
             if (
                 !this.name ||
@@ -607,7 +613,6 @@ export default {
                 !this.district.name ||
                 !this.ward.name ||
                 !this.street ||
-                !this.email ||
                 (this.order_option != 0 && !this.shipping_fee)
             ) {
                 console.log(this.order_option);
@@ -616,8 +621,14 @@ export default {
                     title: "Vui lòng điền đầy đủ thông tin",
                 })
             }
-            if (!this.$refs.delivery.validateCreateDelivery()) return
-            if (!this.$refs.payment.validateCreatePayment()) return
+            if (!this.validateEmail(this.email)) {
+                return Toast.fire({
+                    icon: "error",
+                    title: "Email không hợp lệ!",
+                })
+            }
+            if (this.$refs.delivery && !this.$refs.delivery.validateCreateDelivery()) return
+            if (this.$refs.payment && !this.$refs.payment.validateCreatePayment()) return
             // Check trạng thái chọn chọn chi nhánh
             if (this.list_branch[0]) {
                 if (!Object.keys(this.branch)[0]) {
@@ -650,11 +661,6 @@ export default {
                 }
                 // Ngăn spam "Tạo đơn hàng"
                 this.prevent_click = true
-
-                // EventBus.$on("info_delivery", (e) => {
-                //     this.info_delivery = e()
-                //     console.log('order----info delivery', this.info_delivery);
-                // });
                 if (this.order_option == 1) {
                     this.is_cod = true
                     this.is_gateway = false
@@ -693,7 +699,8 @@ export default {
                 this.handleProductSum(this.cart)
                 //kt tuỳ chọn nếu chọn gateway sẽ gửi info delivery >tạo payment> orthor info
                 if (this.order_option == 2) {
-                    EventBus.$emit('info-delivery', this.product_info, this.total_price)
+                    // lấy thông tin giao vận từ components delivery
+                    this.info_delivery = this.$refs.delivery.infoDelivery(this.product_info, this.total_price)
                     body.other_info.msg_config = {}
                     body.other_info.msg_config.mid = this.payload.mid
                     body.other_info.msg_config.token_bbh = this.payload.token_bbh
@@ -720,12 +727,12 @@ export default {
         async callOrder(path, body) {
             try {
                 // Call Api tạo đơn hàng
-                Swal.showLoading()
+                if (this.handle_api) return
+                this.handle_api = true
                 let headers = { Authorization: this.store_token }
 
-                let create_order = await Restful.post(path, body, {}, headers)
-
-                Swal.hideLoading()
+                let create_order = await Restful.post(path, body, null, headers)
+                this.handle_api = false
                 if (
                     create_order.data &&
                     create_order.data.data &&
@@ -786,7 +793,6 @@ export default {
                     }, 1000)
 
                 } else {
-                    Swal.hideLoading()
                     Toast.fire({
                         icon: "error",
                         title: "Lỗi khi tạo đơn, Vui lòng thử lại!",
@@ -794,7 +800,7 @@ export default {
                     this.prevent_click = false
                 }
             } catch (e) {
-                Swal.hideLoading()
+                this.handle_api = false
                 console.log("eeeeeeeeeeeeeeee", e);
                 this.prevent_click = false
                 // if (
@@ -851,7 +857,7 @@ export default {
                     // access_token: this.store_token,
                 }
 
-                let createCustomer = await Restful.post(path, customer, {}, headers)
+                let createCustomer = await Restful.post(path, customer, null, headers)
 
                 console.log("hrv acc success")
                 path = `${APICMS}/v1/selling-page/order/order_create_3rd`
@@ -916,7 +922,7 @@ export default {
                     Authorization: this.store_token
                 }
 
-                let postDeleteAllCart = await Restful.post(path, body, {}, headers)
+                let postDeleteAllCart = await Restful.post(path, body, null, headers)
 
                 this.note = ''
 
@@ -963,7 +969,7 @@ export default {
                     messages = messages.concat(
                         [
                             {
-                                text: `Đơn hàng của quá khách đang được giao vận.\nPhí ship ${this.$options.filters.toCurrency(
+                                text: `Đơn hàng của quý khách đang được giao vận.\nPhí ship ${this.$options.filters.toCurrency(
                                     this.shipping_fee
                                 )}`
                             }
@@ -1095,16 +1101,12 @@ export default {
         },
         async getBranchKiotviet() {
             try {
-                let store_token = localStorage.getItem('order_store_token')
-                if (!store_token) throw 'token is emply'
                 let path = `${APICMS}/v1/selling-page/other/kiotviet_get_branch`
-                let body = {
-                    access_token: store_token,
-                }
+                let headers = { Authorization: this.store_token }
                 // Lấy danh sách chi nhánh Kiotviet
-                let get_branch = await Restful.post(path, body)
+                let get_branch = await Restful.post(path, null, null, headers)
+
                 if (
-                    get_branch &&
                     get_branch.data &&
                     get_branch.data.data &&
                     get_branch.data.data.data
@@ -1115,7 +1117,6 @@ export default {
             } catch (e) {
                 if (this.resetTokenKiotviet()) return
                 if (
-                    e &&
                     e.data &&
                     e.data.error_message &&
                     e.data.error_message.message
@@ -1128,7 +1129,7 @@ export default {
                 }
                 Toast2.fire({
                     icon: "error",
-                    title: "Đã xảy ra lỗi",
+                    title: "Lỗi get branch kiotviet",
                 });
                 console.log("get branch err", e)
             }
@@ -1137,62 +1138,56 @@ export default {
             try {
                 if (this.reset_token) return;
                 let path = `${APICMS}/v1/selling-page/other/kiotviet_update_token`
-                // let body = {
-                //     access_token: this.store_token,
-                // }
                 let headers = { 'Authorization': this.store_token }
 
-                let reset_token_kiotviet = await Restful.post(path, {}, {}, headers)
+                let reset_token_kiotviet = await Restful.post(path, null, null, headers)
 
                 if (
                     reset_token_kiotviet.data &&
                     reset_token_kiotviet.data.data
                 ) {
                     this.reset_token = true
-                    let store_token = reset_token_kiotviet.data.data.store_token
-                    localStorage.setItem('order_store_token', store_token)
-                    this.handleChangeAppToken(store_token)
                     this.getBranchKiotviet()
                     return true
                 }
-                console.log("reset_token_kiotviet", reset_token_kiotviet)
+
             } catch (e) {
+                this.swalToast('Lỗi reset token kiotviet', 'error')
                 console.log(e)
             }
         },
         async resetTokenMisa() {
-            if (this.reset_token) return
-            let path_api_reset = `${APICMS}/v1/selling-page/other/misa_update_token`
-            // let body = {
-            //     access_token: this.store_token,
-            // }
-            let headers = { 'Authorization': this.store_token }
+            try {
+                if (this.reset_token) return
+                let path = `${APICMS}/v1/selling-page/other/misa_update_token`
+                // let body = {
+                //     access_token: this.store_token,
+                // }
+                let headers = { 'Authorization': this.store_token }
 
-            let reset_token_misa = await Restful.post(path_api_reset, {}, {}, headers)
+                let reset_token_misa = await Restful.post(path, null, null, headers)
 
-            if (
-                reset_token_misa.data &&
-                reset_token_misa.data.data
-            ) {
-                this.reset_token = true
-                let store_token = reset_token_misa.data.data.store_token
-                localStorage.setItem('order_store_token', store_token)
-                this.handleChangeAppToken(store_token)
-                this.getBranchMisa()
-                return true
+                if (
+                    reset_token_misa.data &&
+                    reset_token_misa.data.data
+                ) {
+                    this.reset_token = true
+                    console.log("reset_token_misa", reset_token_misa)
+                    this.getBranchMisa()
+                    return true
+                }
+            } catch (e) {
+                this.swalToast('Lỗi reset token misa', 'error')
+                console.log(e);
             }
-            console.log("reset_token_misa", reset_token_misa)
+
         },
         async getBranchMisa() {
             try {
-                let store_token = localStorage.getItem('order_store_token')
-                if (!store_token) throw 'token is emply'
                 let path = `${APICMS}/v1/selling-page/other/misa_get_branch`
-                let body = {
-                    access_token: store_token,
-                }
-                // Lấy danh sách chi nhánh MISA
-                let get_branch = await Restful.post(path, body)
+                let headers = { Authorization: this.store_token }
+
+                let get_branch = await Restful.post(path, null, null, headers)
 
                 console.log("get branch misa", get_branch)
                 if (
@@ -1207,6 +1202,7 @@ export default {
                     this.has_branch = true
                 }
                 if (
+                    get_branch.data &&
                     get_branch.data.code == 200 &&
                     !get_branch.data.data
                 ) {
@@ -1501,12 +1497,12 @@ export default {
         city: function () {
             console.log('11111');
             this.handleAsyncCityVTP()
-            this.getListDistrictDelivery()
+            // this.getListDistrictDelivery()
         },
         district: function () {
             console.log('22222');
             this.handleAsyncDistrictVTP()
-            this.getListWardDelivery()
+            // this.getListWardDelivery()
         },
         ward: function () {
             console.log('333333');

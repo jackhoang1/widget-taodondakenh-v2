@@ -105,14 +105,11 @@ export default {
                 let path = `${APICMS}/v1/selling-page/order/order_read`;
                 let params = { sort: "createdAt DESC" };
                 let headers = { Authorization: this.store_token };
-                console.log("111111111111111111111111111111");
 
                 let get_list_order = await Restful.get(path, params, headers);
 
-                console.log("get_list_order", get_list_order);
                 if (get_list_order.data && get_list_order.data.data) {
                     this.list_order = get_list_order.data.data;
-                    //   this.readPayment();
                 } else {
                     throw "Lỗi lấy danh sách Đơn hàng";
                 }
@@ -131,31 +128,26 @@ export default {
                 });
             }
         },
-        // async readPayment() {
-        //   try {
-        //     let path = `${APICMS}/v1/selling-page/payment/payment_read`;
-        //     let params = {};
-        //     let headers = { Authorization: this.store_token };
-
-        //     let read_payment = await Restful.get(path, params, headers);
-
-        //     if (read_payment.data && read_payment.data.data) {
-        //       this.list_payment = read_payment.data.data;
-        //       this.list_payment.forEach((payment) => {
-        //         this.list_order = this.list_order.map((order) => {
-        //           if (order.order_id == payment.order_id) {
-        //             return { ...order, payment: true, payment_info: payment };
-        //           }
-        //         });
-        //       });
-        //       console.log("list order", this.list_order);
-        //     } else throw "Lỗi khi lấy thông tin thanh toán";
-        //     console.log("read payment", read_payment);
-        //   } catch (e) {
-        //     console.log(e);
-        //   }
-        // },
-
+        handleAfterDelivery(order_id) {
+            let arr = this.list_order.map(order => {
+                if (order_id == order.order_id) {
+                    return { ...order, delivery_status: 'Đã tạo đơn giao vận.' }
+                }
+                return order
+            })
+            this.list_order = arr
+            console.log('index', order_id);
+        },
+        handleAfterPayment(order_id) {
+            let arr = this.list_order.map(order => {
+                if (order_id == order.order_id) {
+                    return { ...order, is_cod: true, payment_status: 'Thanh toán thành công.', delivery_status: 'Có thể lên đơn giao vận' }
+                }
+                return order
+            })
+            this.list_order = arr
+            console.log('index', order_id);
+        },
         async sendMessage(item) {
             try {
                 if (item.other_info && item.other_info.msg_config) {
@@ -178,7 +170,7 @@ export default {
 
                     let message = await Restful.post(path, body, params);
                     this.swalToast(
-                        "Gửi link thanh toán về Message thành công",
+                        "Tạo giao vận thành công",
                         "success"
                     );
                     return;
@@ -187,6 +179,55 @@ export default {
             } catch (e) {
                 console.log(e);
                 this.swalToast("Lỗi khi gửi tin nhắn về message!", "error");
+            }
+        },
+        async readPayment(item) {
+            try {
+                let path = `${APICMS}/v1/selling-page/payment/payment_read`;
+                let body = { order_id: item.order_id }
+                let headers = { Authorization: this.store_token };
+
+                let read_payment = await Restful.post(path, body, null, headers)
+
+                console.log('read payment', read_payment);
+                if (
+                    read_payment.data &&
+                    read_payment.data.data &&
+                    read_payment.data.data[0]
+                ) {
+                    let payment_id = read_payment.data.data[0].id
+                    let order_id = read_payment.data.data[0].order_id
+                    this.checkPayment(payment_id, order_id)
+                }
+            } catch (e) {
+                this.swalToast('Lỗi khi kiểm tra thanh toán')
+                console.log(e);
+            }
+        },
+        async checkPayment(payment_id, order_id) {
+            try {
+                let path = `${APICMS}/v1/selling-page/payment/payment_check`;
+                let body = { payment_id: payment_id }
+                let headers = { Authorization: this.store_token };
+
+                let check_payment = await Restful.post(path, body, null, headers)
+                console.log('check payment', check_payment);
+                if (
+                    check_payment.data &&
+                    check_payment.data.data
+                ) {
+                    if (check_payment.data.data.errorCode == 214) {
+                        this.swalToast(check_payment.data.data.errorDescription, 'warning')
+                    }
+                    if (check_payment.data.data.transaction_status) {
+                        this.handleAfterPayment(order_id)
+                        this.swalToast(check_payment.data.data.transaction_status, 'success')
+                    }
+                }
+
+            } catch (e) {
+                this.swalToast('Lỗi khi kiểm tra thanh toán')
+                console.log(e);
             }
         },
         async createDelivery(item) {
@@ -207,9 +248,19 @@ export default {
                         order_id: item.order_id,
                     };
                     console.log("body 1111111", body);
+
                     let create_delivery = await Restful.post(path, body, {}, headers);
 
-                    this.sendMessage(item);
+                    if (
+                        create_delivery.data &&
+                        create_delivery.data.data &&
+                        create_delivery.data.data.order_id
+                    ) {
+                        let order_id = create_delivery.data.data.order_id
+                        this.handleAfterDelivery(order_id)
+                        this.sendMessage(item);
+                    }
+
                 }
                 this.handle_api = false;
             } catch (e) {
@@ -244,7 +295,7 @@ export default {
             //   if (item.status == "unconfirmed") return "unconfirmed";
             //   // if(item.status=='confirmed') return 'confirmed'
             //   if (item.status == "cancelled") return "cancelled";
-            if (item.is_cod) return true;
+            if (item.is_cod && !item.is_gateway) return true;
         },
         changeClassNormal(item) {
             if (!item.is_cod && !item.is_gateway) return true;

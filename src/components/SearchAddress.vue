@@ -73,8 +73,8 @@ export default {
       if (this.changeInput) {
         this.changeInput();
       }
-      if(this.clearInput){
-        this.clearInput()
+      if (this.clearInput) {
+        this.clearInput();
       }
       // Is the data given by an outside ajax request?
       if (this.isAsync) {
@@ -91,7 +91,7 @@ export default {
       this.results = this.list_data_input.filter((item) => {
         return (
           this.handleSlug(item[this.prop_name]).indexOf(
-            this.search.toLowerCase()
+            this.handleSlug(this.search)||""
           ) > -1
         );
       });
@@ -168,7 +168,7 @@ export default {
     watch_data: function (val, oldValue) {
       // console.log("what data val", val);
       // console.log("what data oldValue", oldValue);
-        this.result = "";
+      this.result = "";
     },
   },
   mounted() {

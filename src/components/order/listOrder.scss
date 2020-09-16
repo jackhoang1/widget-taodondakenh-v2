@@ -42,7 +42,7 @@ $colorCancel: #ed5a29;
     cursor: pointer;
     border: 2px solid #dee2e6 !important;
     transition: all 0.3s ease-out, background 0.1s;
-    .order__title--icon-error {
+    .order__title--icon-status {
         width: 100vmin;
         img {
             float: right;
@@ -97,14 +97,23 @@ $colorCancel: #ed5a29;
 .order-title-gateway {
     background: #e2d99f;
     border: 2px solid #e2d99f !important;
+    &:hover {
+        background: #e2d99f;
+    }
 }
 .order-title-cod {
     background: #83d7bd;
     border: 2px solid #83d7bd !important;
+    &:hover {
+        background: #83d7bd;
+    }
 }
 .order-title-normal {
     background: hsl(0, 0%, 86%);
     border: 2px solid hsl(0, 0%, 86%) !important;
+    &:hover {
+        background: hsl(0, 0%, 86%);
+    }
 }
 .order-title-cancelled {
     background: #c26670;
@@ -159,11 +168,24 @@ $colorCancel: #ed5a29;
     }
 }
 .order-expand {
+    .order__detail--gateway {
+        .order__detail--gateway-delivery {
+            color: #025fe8;
+            &:hover {
+                cursor: pointer;
+                color: #025fe8;
+            }
+        }
+        img {
+            opacity: 1;
+        }
+    }
     img {
-        width: 20px;
-        height: 20px;
-        filter: invert(53%) sepia(0%) saturate(1296%) hue-rotate(230deg) brightness(88%) contrast(94%);
+        width: 15px;
+        height: 15px;
+        // filter: invert(53%) sepia(0%) saturate(1296%) hue-rotate(230deg) brightness(88%) contrast(94%);
         margin-right: 7px;
+        opacity: 0.8;
     }
     .status img:first-child,
     .process img:first-child {
@@ -217,10 +239,5 @@ $colorCancel: #ed5a29;
         width: 30px;
         height: 20px;
         opacity: 0.6;
-    }
-}
-.order__detail--gateway-delivery {
-    &:hover {
-        cursor: pointer;
     }
 }
