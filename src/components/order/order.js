@@ -1160,9 +1160,6 @@ export default {
             try {
                 if (this.reset_token) return
                 let path = `${APICMS}/v1/selling-page/other/misa_update_token`
-                // let body = {
-                //     access_token: this.store_token,
-                // }
                 let headers = { 'Authorization': this.store_token }
 
                 let reset_token_misa = await Restful.post(path, null, null, headers)
@@ -1225,7 +1222,7 @@ export default {
                 }
                 Toast2.fire({
                     icon: "error",
-                    title: "Đã xảy ra lỗi",
+                    title: "Đã xảy ra lỗi lấy chi nhanh Misa",
                 });
                 console.log("get branch err", e);
             }
@@ -1330,7 +1327,7 @@ export default {
                 } else {
                     Toast.fire({
                         icon: "error",
-                        title: "Đã xảy ra lỗi",
+                        title: "Đã xảy ra lỗi khi tạo đơn rỗng",
                     })
                 }
             } catch (error) {
@@ -1420,7 +1417,7 @@ export default {
                 } else {
                     Toast.fire({
                         icon: "error",
-                        title: "Đã xảy ra lỗi",
+                        title: "Đã xảy ra lỗi khi cập nhật đơn",
                     })
                     this.prevent_click = false
                 }
@@ -1450,7 +1447,7 @@ export default {
 
                 Toast2.fire({
                     icon: "error",
-                    title: "Đã xảy ra lỗi",
+                    title: "Đã xảy ra lỗi khi cập nhật đơn",
                 })
             }
         },

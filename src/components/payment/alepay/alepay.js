@@ -53,8 +53,8 @@ export default {
             body.other_info.checkoutType = this.checkout_type.value
             body['order_description'] = this.order_description
             body['total_item'] = this.product_info.total_item
-            body['return_url'] = 'https://xbusiness.vn/'
-            body['cancel_url'] = 'https://xbusiness.vn/'
+            body['return_url'] = `https://devbbh.tk/v1/selling-page/payment/check_payment_and_order/?access_token=${this.store_token}&order_id=${order_id}`
+            body['cancel_url'] = `https://devbbh.tk/v1/selling-page/payment/check_payment_and_order/?access_token=${this.store_token}&order_id=${order_id}`
             body['customer_name'] = this.prop_receiver_name
             body['customer_email'] = this.prop_receiver_email
             body['customer_phone'] = this.prop_receiver_phone
