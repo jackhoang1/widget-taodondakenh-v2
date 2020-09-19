@@ -80,8 +80,8 @@ let access_token = url.searchParams.get("access_token");
 const APICMS = "https://devbbh.tk"; //dev
 // const APICMS = "https://ext.botup.io"; //product
 
-// const ApiBase = "https://app.devchatbox.tk"; //dev
-const ApiBase = "https://chatbox-app.botbanhang.vn";	//product
+const ApiBase = "https://app.devchatbox.tk"; //dev
+// const ApiBase = "https://chatbox-app.botbanhang.vn";	//product
 
 const Toast = Swal.mixin({
   toast: true,
@@ -109,13 +109,17 @@ const Toast2 = Swal.mixin({
 });
 
 export default {
+  components: {
+    ListOrder,
+    CreateOrder,
+  },
   data() {
     return {
       isOAuth: false,
       is_warning: false,
       // secretKey: '2dd3816056a04c70ad154d3943bb16bd', //product
-      secretKey: '2218ef13a45c4fd9ade2d049db2ef6f1', //demo-product
-      // secretKey: "6e6d71d51a234aec9cde5f7748dd9e78", //dev
+      // secretKey: '2218ef13a45c4fd9ade2d049db2ef6f1', //demo-product
+      secretKey: "6e6d71d51a234aec9cde5f7748dd9e78", //dev
       access_token: access_token,
       is_select: "list",
 
@@ -140,14 +144,74 @@ export default {
       },
     };
   },
+  async created() {
+    try {
+      console.log("creeeee apppp");
+      let body = {
+        access_token: this.access_token,
+        secret_key: this.secretKey,
+      };
+
+      // Check trạng thái Xác thực của Widget
+      let get_customer_info = await Restful.post(
+        `${ApiBase}/v1/service/partner-authenticate`,
+        body
+      );
+      if (
+        get_customer_info &&
+        get_customer_info.data &&
+        get_customer_info.data.succes &&
+        get_customer_info.data.code == 200 &&
+        get_customer_info.data.data
+      ) {
+        this.isOAuth = true;
+        let customer = get_customer_info.data.data;
+        if (customer.public_profile) {
+          if (customer.public_profile.token_partner) {
+            this.store_token = customer.public_profile.token_partner;
+          }
+          if (customer.public_profile.client_name) {
+            this.payload.name = customer.public_profile.client_name;
+          }
+          if (customer.public_profile.fb_client_id) {
+            this.payload.mid = customer.public_profile.fb_client_id;
+          }
+        }
+        if (customer.conversation_chatbot) {
+          this.payload.token_bbh =
+            customer.conversation_chatbot.bbh_public_token;
+        }
+        if (
+          customer.conversation_contact &&
+          customer.conversation_contact.client_email
+        ) {
+          this.payload.email = customer.conversation_contact.client_email;
+        }
+        if (
+          customer.conversation_contact &&
+          customer.conversation_contact.client_phone
+        ) {
+          this.payload.phone = customer.conversation_contact.client_phone;
+          this.payload.phone = this.payload.phone
+            .split(".")
+            .join("")
+            .split(" ")
+            .join("");
+        }
+        this.handleDeliveryToken();
+        console.log("info cus", get_customer_info);
+      }
+    } catch (error) {
+      // Chạy vào SignIn
+      this.overlaySign = false;
+      this.isOAuth = false;
+      console.log("info err", error);
+    }
+  },
   computed: {
     isSelectList() {
       return this.is_select === "list";
     },
-  },
-  components: {
-    ListOrder,
-    CreateOrder,
   },
   methods: {
     async runSignIn() {
@@ -158,7 +222,9 @@ export default {
           email: this.cms_account,
           password: this.cms_password,
         };
+
         let signIn = await Restful.post(path, body);
+
         let user = {};
         if (signIn.data && signIn.data.data && signIn.data.data.user) {
           user = signIn.data.data.user;
@@ -196,6 +262,7 @@ export default {
         }
 
         let read_store = await Restful.get(path, params);
+
         console.log("store", read_store.data);
         if (read_store.data && read_store.data.data) {
           this.list_store = read_store.data.data;
@@ -219,46 +286,29 @@ export default {
       }
     },
     handleChooseStore(item) {
-      console.log("999999999999999", item);
-      localStorage.removeItem("order_delivery_token");
-      localStorage.removeItem("order_payment_token");
       this.store_token = item.access_token;
-      if (item.delivery_token) {
-        this.payload.delivery_token = item.delivery_token;
-        localStorage.setItem("order_delivery_token", item.delivery_token);
-      }
-      if (item.payment_token) {
-        this.payload.payment_token = item.payment_token;
-        localStorage.setItem("order_payment_token", item.payment_token);
-      }
-
       this.runOAuth();
     },
     async runOAuth() {
       try {
         // Call Api xác thực khi chọn Store và lưu lại Token
-        let token_partner = this.store_token;
-        console.log(token_partner);
         let body = {
           _type: "oauth-access-token",
           access_token: this.access_token,
-          token_partner,
+          token_partner: this.store_token,
         };
-
         // Xác thực Widget
-        let Oauth = await Restful.post(
+        let oauth = await Restful.post(
           `${ApiBase}/v1/app/app-installed/update`,
           body
         );
-        console.log("Oauth", Oauth);
-        if (Oauth) {
-          this.isCompleteAuth = true;
-          Toast2.fire({
-            icon: "success",
-            title: "Xác thực thành công",
-          });
+        Toast2.fire({
+          icon: "success",
+          title: "Xác thực thành công",
+        });
+        setTimeout(() => {
           window.close();
-        }
+        }, 1000);
       } catch (e) {
         console.log(e);
         Toast2.fire({
@@ -273,25 +323,19 @@ export default {
         EventBus.$emit("disable-update-order");
       }
     },
-    handlePaymentToken() {
-      let payment_token = localStorage.getItem("order_payment_token");
-      if (!payment_token) return;
-      this.payload.payment_token = payment_token;
-    },
     async handleDeliveryToken() {
       try {
         let path = `${APICMS}/v1/selling-page/delivery/delivery_response_info`;
         let headers = { Authorization: this.store_token };
 
-        let get_delivery_token = await Restful.post(path, {}, {}, headers);
+        let get_delivery_token = await Restful.post(path, null, null, headers);
         if (
           get_delivery_token &&
           get_delivery_token.data &&
           get_delivery_token.data.data &&
           get_delivery_token.data.code == 200
         ) {
-          this.payload.delivery_platform_type =
-            get_delivery_token.data.data
+          this.payload.delivery_platform_type = get_delivery_token.data.data;
           console.log(
             "this.payload.delivery_platform_type",
             this.payload.delivery_platform_type
@@ -300,67 +344,26 @@ export default {
         console.log("payload", this.payload);
       } catch (e) {
         console.log(e);
-        this.swalToast("Đã xảy ra lỗi, vui lòng kích hoạt lại", "error");
+        this.swalToast("Lỗi khi lấy delivery type, Vui lòng thử lại", "error");
       }
     },
-  },
-
-  async created() {
-    try {
-      console.log("creeeee apppp");
-      let body = {
-        access_token: this.access_token,
-        secret_key: this.secretKey,
-      };
-
-      // Check trạng thái Xác thực của Widget
-      let get_customer_info = await Restful.post(
-        `${ApiBase}/v1/service/partner-authenticate`,
-        body
-      );
-      if (
-        get_customer_info &&
-        get_customer_info.data &&
-        get_customer_info.data.succes &&
-        get_customer_info.data.code == 200 &&
-        get_customer_info.data.data
-      ) {
-        this.isOAuth = true;
-        let cus = get_customer_info.data.data;
-        if (cus.public_profile) {
-          this.store_token = cus.public_profile.token_partner;
-          this.payload.name = cus.public_profile.client_name;
-          this.payload.mid = cus.public_profile.fb_client_id;
-        }
-        if (cus.conversation_chatbot) {
-          this.payload.token_bbh = cus.conversation_chatbot.bbh_public_token;
-        }
-        if (cus.conversation_contact && cus.conversation_contact.client_email) {
-          this.payload.email = cus.conversation_contact.client_email;
-        }
-        if (cus.conversation_contact && cus.conversation_contact.client_phone) {
-          this.payload.phone = cus.conversation_contact.client_phone;
-          this.payload.phone = this.payload.phone
-            .split(".")
-            .join("")
-            .split(" ")
-            .join("");
-        }
-        this.handleDeliveryToken();
-        this.handlePaymentToken();
-        console.log("info cus", get_customer_info);
-      }
-    } catch (error) {
-      // Chạy vào SignIn
-      this.overlaySign = false;
-      this.isOAuth = false;
-      console.log("info err", error);
-    }
   },
 };
 </script>
 
 <style lang="scss">
+* {
+  font-size: 13px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  hr {
+    opacity: 0.5;
+  }
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
 body {
   margin: 0;
   font-family: var(--bs-font-sans-serif);
@@ -373,68 +376,26 @@ body {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
-html {
-  font-size: 13px;
-}
-body::-webkit-scrollbar {
-  display: none;
-}
-.disable-scroll {
-  overflow: hidden;
-  height: 100vh;
-}
-body > div {
-  margin: 0;
-  padding: 0;
-}
-p {
-  margin-top: 0;
-  margin-bottom: 1rem;
-}
-button {
-  border-radius: 0;
-}
-hr {
-  opacity: 0.5;
-}
-// button:focus {
-//   outline: 1px dotted;
-//   outline: 5px auto -webkit-focus-ring-color;
+
+// .disable-scroll {
+//   overflow: hidden;
+//   height: 100vh;
 // }
-input,
-button,
-select,
-textarea {
-  margin: 0;
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  padding: 0 10px 0 10px;
-  border-radius: 1rem;
+// p {
+//   margin-top: 0;
+//   margin-bottom: 1rem;
+// }
+// button {
+//   border-radius: 0;
+// }
+// hr {
+//   opacity: 0.5;
+// }
+button:focus {
+  outline: 1px dotted;
+  outline: 5px auto -webkit-focus-ring-color;
 }
-button,
-input {
-  overflow: visible;
-}
-button,
-select {
-  text-transform: none;
-}
-select {
-  word-wrap: normal;
-}
-button {
-  -webkit-appearance: button;
-}
-button:not(:disabled) {
-  cursor: pointer;
-}
-textarea {
-  resize: vertical;
-}
-img {
-  vertical-align: middle;
-}
+
 
 /* Auth ---- */
 .auth {

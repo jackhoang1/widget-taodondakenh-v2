@@ -1,7 +1,4 @@
 <div class="list">
-    <!-- <div class="note pb-4">
-        <textarea type="text" v-model="noteProp" class="form-control rounded" placeholder="Nhập nội dung ghi chú" />
-    </div> -->
     <div class="order mt-3 mb-5">
         <div class="order__text">Đơn hàng</div>
 
@@ -36,21 +33,16 @@
                 <img v-if="ableEdit(item)" class="edit ml-auto"
                     src="https://img.icons8.com/material/48/000000/edit--v1.png" @click.stop="handleClickEdit(item)" />
                 <div class="order__title--icon-status"
-                    v-if="(item.is_cod&&item.delivery_status=='Đã chọn giao vận. Chưa tạo đơn.')||(item.is_gateway&&item.payment_status=='Đã chọn cổng thanh toán. Chưa tạo đơn.')">
+                    v-if="(item.is_cod&&item.delivery_status=='Đã chọn giao vận. Chưa tạo đơn.')||(item.is_gateway&&item.payment_status=='Đã chọn cổng thanh toán. Chưa tạo đơn.')||(item.is_gateway&&item.is_cod&&item.delivery_status!='Đã tạo đơn giao vận.')">
                     <img class="" src="@/assets/error.png" title="Đơn lỗi" />
                 </div>
                 <div class="order__title--icon-status"
-                    v-if="item.is_gateway&&!item.is_cod&&item.payment_status=='Đã tạo đơn. Đang chờ thanh toán'">
+                    v-if="item.is_gateway&&!item.is_cod&&(item.payment_status=='Đã tạo đơn. Đang chờ thanh toán'||item.payment_status== 'Đang chờ thanh toán. Giao dịch thanh toán bị Review!')">
                     <img class="" src="@/assets/timer.png" title="Chưa thanh toán" />
+                    <img v-if="item.payment_status== 'Đang chờ thanh toán. Giao dịch thanh toán bị Review!'"
+                        src="@/assets/review.png" alt="" title="Đã xem giao dịch">
                 </div>
-                <!-- <div class="order__title--icon-status"
-                    v-if="item.is_gateway&&item.is_cod&&item.payment_status=='Thanh toán thành công.'&&item.delivery_status!='Đã tạo đơn giao vận.'">
-                    <img class="" src="@/assets/tick.png" title="Thành công" />
-                </div> -->
-
             </div>
-            <!-- End Tiêu đề đơn hàng-->
-
             <!-- Đơn hàng mở rộng -->
             <div class="order-expand">
                 <div class="status d-flex align-items-center">
@@ -73,17 +65,22 @@
                     <img src="https://img.icons8.com/android/24/000000/clock.png" />
                     <p class="m-0">Cập nhật TT: {{computeTime(item.updatedAt)}}</p>
                 </div>
-                <!-- trạng thái order > giao vận -->
-                <div>
+                <!-- trạng thái order ship cod -->
+                <div v-if="item.is_cod">
                     <div class="d-flex align-items-center"
-                        v-if="item.is_cod&&!item.is_gateway&&item.delivery_status=='Đã tạo đơn giao vận.'">
+                        v-if="!item.is_gateway&&item.delivery_status=='Đã tạo đơn giao vận.'">
                         <img src="@/assets/tick.png" title="Thành công" />
                         <div>Đã giao vận</div>
                     </div>
+                    <div class="d-flex" v-if="item.delivery_status=='Đã chọn giao vận. Chưa tạo đơn.'">
+                        <img src="@/assets/error.png" alt="">
+                        <div>Giao vận lỗi</div>
+                    </div>
                 </div>
-                <!-- trạng thái order > thanh toán > giao vận -->
+                <!-- trạng thái order gateway -->
                 <div class="order__detail--gateway d-flex align-items-center" v-if="item.is_gateway">
-                    <div class="d-flex" v-if="item.payment_status=='Đã tạo đơn. Đang chờ thanh toán'">
+                    <div class="d-flex"
+                        v-if="item.payment_status=='Đã tạo đơn. Đang chờ thanh toán'||item.payment_status== 'Đang chờ thanh toán. Giao dịch thanh toán bị Review!'">
                         <img src="@/assets/waiting.png" />
                         <div>Chờ thanh toán</div>
                     </div>
@@ -102,7 +99,6 @@
                             <div>Giao vận lỗi</div>
                         </div>
                     </div>
-                    <!-- <div v-if="item.payment_status=='Đã tạo đơn. Đang chờ thanh toán'" @click="createDelivery(item)">Giao vận</div> -->
                 </div>
                 <!-- Tiến trình đơn hàng -->
                 <div class="process d-flex align-items-center"
@@ -122,13 +118,13 @@
                     <p class="m-0" :class="{ 'text-danger': isCancelled(item)}"
                         @click="handleUpdateOrder('cancelled', item, ind)">Huỷ</p>
                 </div>
-                <!-- End Tiến trình đơn hàng -->
+                <!--  -->
 
             </div>
-            <!-- End Đơn hàng mở rộng -->
+            <!-- -->
 
         </div>
-        <!-- End Danh sách đơn hàng -->
+        <!--  -->
 
     </div>
     <div class="more d-flex justify-content-center" @click="handleGetMoreOrder()">

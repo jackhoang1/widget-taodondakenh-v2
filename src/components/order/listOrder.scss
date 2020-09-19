@@ -54,7 +54,7 @@ $colorCancel: #ed5a29;
         width: 10px;
         height: 10px;
         transform: rotate(-90deg);
-        margin: 0 7px 0 15px;
+        margin-right: 7px;
         transition: transform 0.4s ease-out;
     }
     p {
@@ -87,10 +87,10 @@ $colorCancel: #ed5a29;
         height: 0;
         transition: height 0.25s ease-out;
         background: #fff;
+        overflow: hidden;
         > div {
             display: none !important;
         }
-        overflow: hidden;
     }
 }
 

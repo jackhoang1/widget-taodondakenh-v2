@@ -286,6 +286,7 @@ export default {
             }
             return true
         },
+        // component order sẽ gọi hàm này
         async createOrder(order_id) {
             try {
                 console.log('prop res order info', this.prop_res_order_info);
@@ -566,9 +567,6 @@ export default {
             })
         },
     },
-    // beforeDestroy() {
-    //     this.order_info.shipping_fee = 0
-    // },
     watch: {
         prop_receiver_address: function (value) {
             console.log('watch run 0', value);
@@ -625,5 +623,8 @@ export default {
             });
             return formatter.format(value)
         },
+    },
+    destroyed() {
+        EventBus.$off("create-delivery");
     },
 };

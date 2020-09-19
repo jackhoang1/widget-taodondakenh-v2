@@ -2,6 +2,40 @@
     --bs-font-sans-serif: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
         "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
+input,
+button,
+select,
+textarea {
+  margin: 0;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  padding: 0 10px 0 10px;
+  border-radius: 1rem;
+}
+button,
+input {
+  overflow: visible;
+}
+button,
+select {
+  text-transform: none;
+}
+select {
+  word-wrap: normal;
+}
+button {
+  -webkit-appearance: button;
+}
+button:not(:disabled) {
+  cursor: pointer;
+}
+textarea {
+  resize: vertical;
+}
+img {
+  vertical-align: middle;
+}
 /*Flex*/
 *,
 *::before,

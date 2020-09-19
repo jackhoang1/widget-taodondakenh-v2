@@ -45,7 +45,7 @@ export default {
     async created() {
         try {
             if (!this.store_token) {
-                throw "Error";
+                throw "Error store_token";
             }
             await this.readOrder();
             this.checkPhone();
@@ -273,14 +273,11 @@ export default {
         },
         async updateOrder(status, item, ind) {
             let path = `${APICMS}/v1/selling-page/order/order_update`;
-            let headers = {
-                Authorization: this.store_token,
-            };
+            let headers = { Authorization: this.store_token }
             let body = {
                 id: item.id,
-                // access_token: this.store_token,
                 status: status,
-            };
+            }
             let updated = await Restful.post(path, body, {}, headers);
             await this.readOrder();
             this.handleClickOrder(ind, true);

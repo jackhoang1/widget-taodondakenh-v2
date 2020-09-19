@@ -151,12 +151,13 @@
                 <!-- giao vận -->
                 <div v-if="order_option!=0">
                     <div>
-                        <Delivery ref="delivery" :store_token="store_token" :payload="payload" :prop_receiver_name="name"
-                            :prop_receiver_phone="phone" :prop_receiver_email="email" :prop_receiver_address="address"
-                            :prop_receiver_city="city_delivery" :prop_receiver_district="district_delivery"
-                            :prop_receiver_ward="ward_delivery" :prop_product_info="product_info"
-                            :total_price="total_price" @shipping_fee="shipping_fee=$event"
-                            :prop_res_order_info="res_order_info" :propSendMessage="sendMessage" />
+                        <Delivery ref="delivery" :store_token="store_token" :payload="payload"
+                            :prop_receiver_name="name" :prop_receiver_phone="phone" :prop_receiver_email="email"
+                            :prop_receiver_address="address" :prop_receiver_city="city_delivery"
+                            :prop_receiver_district="district_delivery" :prop_receiver_ward="ward_delivery"
+                            :prop_product_info="product_info" :total_price="total_price"
+                            @shipping_fee="shipping_fee=$event" :prop_res_order_info="res_order_info"
+                            :propSendMessage="sendMessage" />
                     </div>
 
                 </div>
@@ -245,8 +246,8 @@
                         <p>Phí giao vận: {{shipping_fee | toCurrency}}</p>
                     </div>
                     <p class="font-weight-bold">Tổng giá trị đơn hàng: {{total_payment | toCurrency}}</p>
-                    <button @click="handleCallApiOrder()"
-                        :class="['btn-pill', 'mt-3', 'mb-4', 'w-100', {'prevent-click': prevent_click}]">Xác
+                    <button :class="['btn-pill', 'mt-3', 'mb-4', 'w-100', {'prevent-click': prevent_click}]"
+                        @click="handleCallApiOrder()" :disabled="handle_api">Xác
                         nhận</button>
                     <button class="close" @click="closeOrderInfo()">
                         <img src="https://img.icons8.com/ios/48/000000/delete-sign.png" />
@@ -273,16 +274,5 @@
             </div>
         </div>
     </div>
-    <!-- form delivery -->
-    <div class="delivery" v-if="show_form=='delivery'">
-        <ViettelPost v-if="payload.delivery_platform_type=='VIETTEL_POST'" :payload="payload"
-            :res_order_info="res_order_info" :product_info="product_info" :handleShowForm="handleShowForm" />
-        <!-- <Ghn v-if="payload.delivery_platform_type=='GHN'" :payload="payload" :res_order_info="res_order_info"
-            :product_info="product_info" :handleShowForm="handleShowForm" /> -->
-    </div>
-    <!-- form payment -->
-    <div class="payment" v-if="show_form=='payment'">
-        <Alepay :payload="payload" :res_order_info="res_order_info" :product_info="product_info"
-            :platform_type="platform_type" :handleShowForm="handleShowForm" />
-    </div>
+
 </div>

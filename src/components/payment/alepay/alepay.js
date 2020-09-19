@@ -31,8 +31,6 @@ export default {
         EventBus.$on('create-payment', (order_id) => {
             this.createPayment(order_id)
         })
-
-
     },
     mounted() {
         console.log('res_order_info', this.res_order_info);
@@ -172,5 +170,10 @@ export default {
             });
             return formatter.format(value)
         },
+    },
+    destroyed() {
+        EventBus.$off('create-payment', (order_id) => {
+            this.createPayment(order_id)
+        })
     },
 }

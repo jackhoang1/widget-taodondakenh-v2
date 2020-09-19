@@ -10,7 +10,6 @@ import Delivery from "@/components/delivery/Delivery.vue"
 // const APICMS = "http://localhost:1337" //dev
 const APICMS = "https://devbbh.tk"; //dev
 
-
 const Toast = Swal.mixin({
     toast: true,
     position: "top",
@@ -41,14 +40,12 @@ export default {
         SearchAddress,
         ViettelPost,
         Delivery,
-        // Ghn,
         Alepay
     },
     props: [
         "store_token",
         "payload"
     ],
-    // mixins:[Delivery], 
     data() {
         return {
             res_order_info: "",
@@ -803,6 +800,13 @@ export default {
                 this.handle_api = false
                 console.log("eeeeeeeeeeeeeeee", e);
                 this.prevent_click = false
+                if (
+                    e.data &&
+                    e.data.error_message &&
+                    e.data.error_message.errorCode
+                ) {
+                    return this.swalToast(e.data.error_message.message, 'error')
+                }
                 // if (
                 //     e &&
                 //     e.data &&
@@ -838,7 +842,7 @@ export default {
                 // }
                 Toast2.fire({
                     icon: "error",
-                    title: "Đã xảy ra lỗi",
+                    title: "Lỗi khi tạo đơn",
                 });
             }
         },
@@ -1528,5 +1532,20 @@ export default {
             })
             return formatter.format(value);
         },
+    },
+    destroyed() {
+        EventBus.$off("get-order", (id) => {
+            this.getOrderInfo(id)
+        });
+        EventBus.$off("create-empty-order", () => {
+            if (!this.platform_type) {
+                this.wait_create_empty_order = true
+                return
+            }
+            this.createEmptyOrder()
+        });
+        EventBus.$off("disable-update-order", () => {
+            this.is_update_order = false
+        });
     },
 };
