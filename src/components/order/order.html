@@ -143,7 +143,7 @@
                 <!-- End Giỏ hàng -->
                 <!-- tổng phí đơn hàng -->
                 <div v-if="order_option!=0">
-                    <div class="font-weight-bold text-right my-3">
+                    <div class="font-weight-bold text-right mt-3">
                         <p>Tổng giá sản phẩm: {{ total_price | toCurrency }}</p>
                     </div>
                 </div>
@@ -153,11 +153,9 @@
                     <div>
                         <Delivery ref="delivery" :store_token="store_token" :payload="payload"
                             :prop_receiver_name="name" :prop_receiver_phone="phone" :prop_receiver_email="email"
-                            :prop_receiver_address="address" :prop_receiver_city="city_delivery"
-                            :prop_receiver_district="district_delivery" :prop_receiver_ward="ward_delivery"
-                            :prop_product_info="product_info" :total_price="total_price"
-                            @shipping_fee="shipping_fee=$event" :prop_res_order_info="res_order_info"
-                            :propSendMessage="sendMessage" />
+                            :prop_receiver_address="address" :prop_receiver_city="city"
+                            :prop_receiver_district="district" :prop_receiver_ward="ward" :prop_receiver_street="street" :prop_total_price="total_price"
+                            @shipping_fee="shipping_fee=$event" :propSendMessage="sendMessage" />
                     </div>
 
                 </div>
@@ -168,18 +166,17 @@
                             :prop_receiver_phone="phone" :prop_receiver_email="email" :prop_receiver_address="address"
                             :prop_receiver_city="city" :prop_receiver_district="district" :prop_receiver_ward="ward"
                             :prop_product_info="product_info" :total_price="total_price"
-                            @shipping_fee="shipping_fee=$event" :prop_res_order_info="res_order_info"
-                            :prop_total_payment="total_payment" :order_option="order_option"
-                            :propSendMessage="sendMessage" />
+                            @shipping_fee="shipping_fee=$event" :prop_total_payment="total_payment"
+                            :order_option="order_option" :propSendMessage="sendMessage" />
                     </div>
                 </div>
                 <!-- Tổng tiền và tạo đơn hàng -->
                 <div class="order border-top">
                     <div class="total-price d-flex justify-content-between my-2">
                         <p>Tổng tiền</p>
-                        <p>{{ total_payment | toCurrency }}</p>
+                        <p>{{ total_payment||0 | toCurrency }}</p>
                     </div>
-                    <button @click="handleCreateOrder()" class="btn-pill mb-4 w-100">Tạo đơn hàng</button>
+                    <button @click="handleCreateOrder" class="btn-pill mb-4 w-100">Tạo đơn hàng</button>
                 </div>
                 <!-- End Tổng tiền và tạo đơn hàng -->
             </div>
@@ -208,7 +205,7 @@
                             <p class="m-0" :title="item.product_name">{{ item.product_name.substring(0, 60) + '...' }}
                             </p>
                             <p class="m-0">{{ item.product_option }}</p>
-                            <p class="text-right mt-1">{{ item.product_price | toCurrency }}</p>
+                            <p class="text-right mt-1">{{ item.product_price ||0 | toCurrency }}</p>
                         </div>
                     </div>
                     <div v-if="filter_list_product.length"
@@ -221,7 +218,7 @@
                             <p class="m-0" :title="item.product_name">{{ item.product_name.substring(0, 60) + '...' }}
                             </p>
                             <p class="m-0">{{ item.product_option }}</p>
-                            <p class="text-right mt-1">{{ item.product_price | toCurrency }}</p>
+                            <p class="text-right mt-1">{{ item.product_price||0 | toCurrency }}</p>
                         </div>
                     </div>
                 </div>

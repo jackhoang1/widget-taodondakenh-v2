@@ -1,7 +1,7 @@
 <template>
   <div class>
     <!-- Xác thực App -->
-    <div v-if="!isOAuth" class="auth">
+    <div v-if="!is_oauth" class="auth">
       <div v-if="!show_list_store" class="sign d-flex flex-column align-items-center">
         <p class="text-dark mb-5">Đăng Nhập CMS</p>
         <input v-model="cms_account" type="text" class="form-control mb-3" placeholder="Email" />
@@ -28,7 +28,7 @@
     </div>
     <!--End Xác thực App -->
 
-    <div v-if="isOAuth" class="widget">
+    <div v-if="is_oauth&&!is_warning" class="widget">
       <div class="d-flex header border-bottom">
         <div
           class="list-order flex-grow-1 text-center py-2"
@@ -55,7 +55,7 @@
       />
     </div>
     <!-- warning -->
-    <div v-if="isOAuth&&is_warning" class="container">
+    <div v-if="is_oauth&&is_warning" class="auth__warning">
       <div class="auth__activate">
         <div class="text-center">
           <img src="@/assets/error.png" alt />
@@ -81,7 +81,7 @@ const APICMS = "https://devbbh.tk"; //dev
 // const APICMS = "https://ext.botup.io"; //product
 
 const ApiBase = "https://app.devchatbox.tk"; //dev
-// const ApiBase = "https://chatbox-app.botbanhang.vn";	//product
+// const ApiBase = "https://chatbox-app.botbanhang.vn"; //product
 
 const Toast = Swal.mixin({
   toast: true,
@@ -115,11 +115,12 @@ export default {
   },
   data() {
     return {
-      isOAuth: false,
+      is_oauth: false,
       is_warning: false,
       // secretKey: '2dd3816056a04c70ad154d3943bb16bd', //product
-      // secretKey: '2218ef13a45c4fd9ade2d049db2ef6f1', //demo-product
-      secretKey: "6e6d71d51a234aec9cde5f7748dd9e78", //dev
+      // secretKey: "2218ef13a45c4fd9ade2d049db2ef6f1", //demo-product
+      // secretKey: "f5ca4cd874a6427e83ed0441e61355ab", //demo-product-local
+      secretKey: "6e6d71d51a234aec9cde5f7748dd9e78", //dev-local
       access_token: access_token,
       is_select: "list",
 
@@ -132,81 +133,22 @@ export default {
 
       store_token: "",
       payload: {
-        mid: "",
+        psid: "",
+        fb_page_id: "",
         token_bbh: "",
-        delivery_token: "",
-        payment_token: "",
-        access_token_shipping: "",
-        delivery_platform_type: "",
+        delivery_platform: "",
+        payment_platform: "",
+        platform_type: "",
         name: "",
         phone: "",
         email: "",
+        customer_id: "",
+        store_email: "",
       },
     };
   },
   async created() {
-    try {
-      console.log("creeeee apppp");
-      let body = {
-        access_token: this.access_token,
-        secret_key: this.secretKey,
-      };
-
-      // Check trạng thái Xác thực của Widget
-      let get_customer_info = await Restful.post(
-        `${ApiBase}/v1/service/partner-authenticate`,
-        body
-      );
-      if (
-        get_customer_info &&
-        get_customer_info.data &&
-        get_customer_info.data.succes &&
-        get_customer_info.data.code == 200 &&
-        get_customer_info.data.data
-      ) {
-        this.isOAuth = true;
-        let customer = get_customer_info.data.data;
-        if (customer.public_profile) {
-          if (customer.public_profile.token_partner) {
-            this.store_token = customer.public_profile.token_partner;
-          }
-          if (customer.public_profile.client_name) {
-            this.payload.name = customer.public_profile.client_name;
-          }
-          if (customer.public_profile.fb_client_id) {
-            this.payload.mid = customer.public_profile.fb_client_id;
-          }
-        }
-        if (customer.conversation_chatbot) {
-          this.payload.token_bbh =
-            customer.conversation_chatbot.bbh_public_token;
-        }
-        if (
-          customer.conversation_contact &&
-          customer.conversation_contact.client_email
-        ) {
-          this.payload.email = customer.conversation_contact.client_email;
-        }
-        if (
-          customer.conversation_contact &&
-          customer.conversation_contact.client_phone
-        ) {
-          this.payload.phone = customer.conversation_contact.client_phone;
-          this.payload.phone = this.payload.phone
-            .split(".")
-            .join("")
-            .split(" ")
-            .join("");
-        }
-        this.handleDeliveryToken();
-        console.log("info cus", get_customer_info);
-      }
-    } catch (error) {
-      // Chạy vào SignIn
-      this.overlaySign = false;
-      this.isOAuth = false;
-      console.log("info err", error);
-    }
+    await this.partnerAuth();
   },
   computed: {
     isSelectList() {
@@ -214,6 +156,70 @@ export default {
     },
   },
   methods: {
+    async partnerAuth() {
+      try {
+        console.log("creeeee apppp");
+        let body = {
+          access_token: this.access_token,
+          secret_key: this.secretKey,
+        };
+
+        let get_customer_info = await Restful.post(
+          `${ApiBase}/v1/service/partner-authenticate`,
+          body
+        );
+        if (
+          get_customer_info &&
+          get_customer_info.data &&
+          get_customer_info.data.data
+        ) {
+          this.is_oauth = true;
+          let customer = get_customer_info.data.data;
+          if (customer.public_profile) {
+            if (customer.public_profile.token_partner) {
+              this.store_token = customer.public_profile.token_partner;
+            }
+            if (customer.public_profile.client_name) {
+              this.payload.name = customer.public_profile.client_name;
+            }
+            if (customer.public_profile.fb_client_id) {
+              this.payload.psid = customer.public_profile.fb_client_id;
+            }
+            if (customer.public_profile.fb_page_id) {
+              this.payload.fb_page_id = customer.public_profile.fb_page_id;
+            }
+          }
+          if (customer.conversation_chatbot) {
+            this.payload.token_bbh =
+              customer.conversation_chatbot.bbh_public_token;
+          }
+          if (
+            customer.conversation_contact &&
+            customer.conversation_contact.client_email
+          ) {
+            this.payload.email = customer.conversation_contact.client_email;
+          }
+          if (
+            customer.conversation_contact &&
+            customer.conversation_contact.client_phone
+          ) {
+            this.payload.phone = customer.conversation_contact.client_phone
+              .split(".")
+              .join("")
+              .split(" ")
+              .join("");
+          }
+          await this.createCustomer();
+          this.handleLocalStorage();
+          console.log("info cus", get_customer_info);
+        }
+      } catch (error) {
+        // Chạy vào SignIn
+        this.overlaySign = false;
+        this.is_oauth = false;
+        console.log("info err", error);
+      }
+    },
     async runSignIn() {
       try {
         // Call Api Đăng nhập CMS
@@ -223,11 +229,11 @@ export default {
           password: this.cms_password,
         };
 
-        let signIn = await Restful.post(path, body);
+        let sign_in = await Restful.post(path, body);
 
         let user = {};
-        if (signIn.data && signIn.data.data && signIn.data.data.user) {
-          user = signIn.data.data.user;
+        if (sign_in.data && sign_in.data.data && sign_in.data.data.user) {
+          user = sign_in.data.data.user;
         } else {
           throw "Đăng nhập thất bại";
         }
@@ -285,9 +291,89 @@ export default {
         });
       }
     },
+    handleLocalStorage() {
+      let order_3d_platform = JSON.parse(
+        localStorage.getItem("order_3d_platform")
+      );
+      if (!order_3d_platform) return (this.is_warning = true);
+      if (
+        order_3d_platform.delivery_platform == "VIETTELPOST" ||
+        "GHN" ||
+        "GHTK"
+      ) {
+        this.payload.delivery_platform = order_3d_platform.delivery_platform;
+      }
+      if (order_3d_platform.payment_platform == "ALEPAY") {
+        this.payload.payment_platform = order_3d_platform.payment_platform;
+      }
+      if (
+        order_3d_platform.platform_type == "HARAVAN" ||
+        "MISA" ||
+        "NHANH.VN" ||
+        "KIOTVIET" ||
+        "SAPO" ||
+        "CUSTOM"
+      ) {
+        this.payload.delivery_platform = order_3d_platform.delivery_platform;
+      }
+      if (order_3d_platform.store_email) {
+        this.payload.store_email = order_3d_platform.store_email;
+      }
+    },
     handleChooseStore(item) {
       this.store_token = item.access_token;
+      localStorage.removeItem("order_3d_platform");
+      let order_3d_platform = {};
+      if (item.delivery_platform) {
+        this.payload.delivery_platform = item.delivery_platform;
+        order_3d_platform["delivery_platform"] = item.delivery_platform;
+      }
+      if (item.payment_platform) {
+        this.payload.payment_platform = item.payment_platform;
+        order_3d_platform["payment_platform"] = item.payment_platform;
+      }
+      if (item.platform_type) {
+        this.payload.platform_type = item.platform_type;
+        order_3d_platform["platform_type"] = item.platform_type;
+      }
+      if (item.store_email) {
+        this.payload.store_email = item.store_email;
+        order_3d_platform["store_email"] = item.store_email;
+      }
+      localStorage.setItem(
+        "order_3d_platform",
+        JSON.stringify(order_3d_platform)
+      );
       this.runOAuth();
+    },
+    async createCustomer() {
+      try {
+        let path = `${APICMS}/v1/selling-page/customer/customer_find_or_create`;
+        let headers = { Authorization: this.store_token };
+        let body = {
+          fb_page_id: this.payload.fb_page_id,
+          fb_client_id: this.payload.psid,
+          full_name: this.payload.name,
+          phone: this.payload.phone,
+          email: this.payload.email,
+        };
+
+        let create_customer = await Restful.post(path, body, null, headers);
+        if (
+          create_customer.data &&
+          create_customer.data.data &&
+          create_customer.data.data.id
+        ) {
+          this.payload.customer_id = create_customer.data.data.id;
+          console.log("this.payload.customer_id", this.payload.customer_id);
+        }
+      } catch (e) {
+        console.log(e);
+        Toast2.fire({
+          icon: "error",
+          title: "error api customer_find_or_create",
+        });
+      }
     },
     async runOAuth() {
       try {
@@ -323,30 +409,6 @@ export default {
         EventBus.$emit("disable-update-order");
       }
     },
-    async handleDeliveryToken() {
-      try {
-        let path = `${APICMS}/v1/selling-page/delivery/delivery_response_info`;
-        let headers = { Authorization: this.store_token };
-
-        let get_delivery_token = await Restful.post(path, null, null, headers);
-        if (
-          get_delivery_token &&
-          get_delivery_token.data &&
-          get_delivery_token.data.data &&
-          get_delivery_token.data.code == 200
-        ) {
-          this.payload.delivery_platform_type = get_delivery_token.data.data;
-          console.log(
-            "this.payload.delivery_platform_type",
-            this.payload.delivery_platform_type
-          );
-        }
-        console.log("payload", this.payload);
-      } catch (e) {
-        console.log(e);
-        this.swalToast("Lỗi khi lấy delivery type, Vui lòng thử lại", "error");
-      }
-    },
   },
 };
 </script>
@@ -359,6 +421,7 @@ export default {
   padding: 0;
   hr {
     opacity: 0.5;
+    margin: 1rem 0 1rem 0;
   }
   &::-webkit-scrollbar {
     display: none;
@@ -376,7 +439,6 @@ body {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
-
 // .disable-scroll {
 //   overflow: hidden;
 //   height: 100vh;
@@ -391,11 +453,10 @@ body {
 // hr {
 //   opacity: 0.5;
 // }
-button:focus {
-  outline: 1px dotted;
-  outline: 5px auto -webkit-focus-ring-color;
-}
-
+// button:focus {
+//   outline: 1px dotted;
+//   outline: 5px auto -webkit-focus-ring-color;
+// }
 
 /* Auth ---- */
 .auth {
@@ -498,13 +559,17 @@ button:focus {
 .widget .header .select {
   border-bottom: 2px solid #0d6efd;
 }
-.auth__activate {
-  position: relative;
-  background: #f6f6f6;
-  border: 2px solid rgba(0, 0, 0, 0.125);
-  border-radius: 10px;
-  margin-top: 20%;
-  padding: 10% 10% 5% 10%;
+
+.auth__warning {
+  padding: 0 20px 0 20px;
+  .auth__activate {
+    position: relative;
+    background: #f6f6f6;
+    border: 2px solid rgba(0, 0, 0, 0.125);
+    border-radius: 10px;
+    margin-top: 20%;
+    padding: 10% 10% 5% 10%;
+  }
 }
 .all__text--decoration {
   text-align: center;

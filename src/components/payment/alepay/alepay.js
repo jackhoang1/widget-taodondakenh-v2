@@ -6,7 +6,7 @@ import EventBus from "@/EventBus.js"
 const APICMS = "https://devbbh.tk" //dev
 
 export default {
-    props: ['store_token', 'payload', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_email', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_product_info', 'total_price', 'prop_res_order_info', 'prop_total_payment', 'order_option', 'propSendMessage'],
+    props: ['store_token', 'payload', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_email', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_product_info', 'total_price', 'prop_total_payment', 'order_option', 'propSendMessage'],
     data() {
         return {
             list_type: [
@@ -23,7 +23,6 @@ export default {
             message_bbh: "",
             handle_api: false,
             product_info: this.prop_product_info,
-            res_order_info: this.prop_res_order_info,
             info_delivery: "",
         }
     },
@@ -33,7 +32,6 @@ export default {
         })
     },
     mounted() {
-        console.log('res_order_info', this.res_order_info);
         console.log('payload', this.payload);
         console.log('product_info', this.product_info);
     },
@@ -43,7 +41,6 @@ export default {
         },
         handleBodyCreatePayment(order_id) {
             let body = {}
-            // body['payment_token'] = this.payload.payment_token
             body['order_id'] = order_id
             body['order_amount'] = this.prop_total_payment
             body['currency'] = 'VND'
@@ -98,7 +95,7 @@ export default {
                     this.swalToast(e.data.error_message.errorDescription, 'error')
                     return
                 }
-                this.swalToast('Đã xảy ra lỗi', 'error')
+                this.swalToast('Đã xảy ra lỗi khi tạo link thanh toán', 'error')
             }
 
         },
@@ -153,9 +150,6 @@ export default {
         // },
         prop_product_info: function () {
             this.product_info = this.prop_product_info
-        },
-        prop_res_order_info: function (value) {
-            this.res_order_info = this.prop_res_order_info
         }
     },
     filters: {
@@ -172,8 +166,6 @@ export default {
         },
     },
     destroyed() {
-        EventBus.$off('create-payment', (order_id) => {
-            this.createPayment(order_id)
-        })
+        EventBus.$off('create-payment')
     },
 }

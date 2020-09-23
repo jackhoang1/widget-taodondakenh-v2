@@ -15,252 +15,61 @@ body > div {
     margin: 0;
     padding: 0;
 }
-.activate {
-    background: #f6f6f6;
-    border: 2px solid rgba(0, 0, 0, 0.125);
-    border-radius: 10px;
-    margin-top: 15%;
-    padding: 10% 10% 5% 10%;
-}
-.activate > input {
-    margin-bottom: 50px;
-}
-.activate > div {
-    text-align: center;
-}
-.activate > p {
-    text-align: center;
-    font-weight: 700;
-}
-.auth {
-    padding: 10px 35px;
-    /* transform: translateX(-50%); */
-    box-shadow: 0 5px 15px 0 #dc354530;
-    /* transition: all 0.5s; */
-    border-radius: 25px;
-}
-.auth:hover {
-    background: #dc3545;
-    box-shadow: 0 5px 20px 0 #dc354530;
-}
-.auth:focus {
-    box-shadow: 0 5px 20px 0 #dc354530 !important;
-    background: #dc3545 !important;
-}
-.app {
-    overflow: hidden;
-    position: relative;
-}
-.viettel-post {
+
+.delivery__main {
     background: #fff;
     padding: 10px;
-    .viettel__title {
+    .delivery__title {
         font-size: 1rem;
         font-weight: bold;
         padding-bottom: 1rem;
         text-align: center;
     }
-    .viettel__sender,
-    .viettel__receiver {
+    .delivery__inventory {
         position: relative;
         padding-bottom: 10px;
     }
-    .viettel__product,
-    .viettel__price,
-    .viettel__size,
-    .viettel__service {
+    .delivery__product--size,
+    .delivery__service,
+    .delivery__ghn--cod {
         position: relative;
     }
 }
-.viettel-post input,
-.viettel-post select {
-    margin-bottom: 10px;
+.delivery__ghn--cod{
+    input{
+        text-align: right;
+    }
 }
-.product {
+.delivery__fee--total {
     padding: 0 10px;
 }
-.product .option img {
+.delivery__fee--total .option img {
     width: 20px;
     height: 20px;
     cursor: pointer;
 }
-.product .option p {
+.delivery__fee--total .option p {
     cursor: pointer;
 }
-.product .option + .form-group {
+.delivery__fee--total .option + .form-group {
     height: 0;
     opacity: 0;
     margin: 0;
     transition: all 0.3s ease;
 }
-.product .option + .form-group button {
+.delivery__fee--total .option + .form-group button {
     font-weight: bold;
 }
-.product .option + .show-note {
+.delivery__fee--total .option + .show-note {
     height: initial;
     opacity: 1;
 }
-.product .list-product .product-detail {
-    padding: 15px 0 15px;
-    position: relative;
-}
-.product .list-product .product-detail p {
-    margin: 0;
-}
-.product .list-product .product-detail div:first-of-type {
-    max-width: 30%;
-}
-.product .list-product .product-detail div .name {
-    /*white-space: nowrap;*/
-    max-width: 100%;
-    overflow: hidden;
-    max-height: 40px;
-    text-overflow: ellipsis;
-}
-.product .list-product .product-detail > img {
-    width: 40px;
-    height: 40px;
-    border-radius: 5px;
-}
 
-.product .list-product .product-detail .quantity {
-    width: 45px;
-    height: 30px;
-}
-.product .list-product .product-detail .quantity p {
-    font-weight: bold;
-}
-.product .list-product .product-detail .quantity button {
-    height: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.product .list-product .product-detail .quantity button:focus {
-    box-shadow: none;
-}
-.product .list-product .product-detail .quantity img {
-    width: 10px;
-    height: 10px;
-}
-.product .list-product .product-detail .quantity button + button img {
-    transform: rotate(180deg);
-}
-.product .list-product .product-detail .price {
-    /* font-weight: bold; */
-    font-size: 1.1rem;
-}
-.product .list-product .product-detail .edit img {
-    width: 15px;
-    height: 15px;
-    cursor: pointer;
-}
-.order .total-price p {
-    font-weight: bold;
-    font-size: 1.1rem;
-}
-.order button {
-    font-weight: bold;
-}
-.order .prevent-click {
-    pointer-events: none;
-}
-.popup {
-    position: fixed;
-    width: 100%;
-    height: 0;
-    top: 100%;
-    left: 0;
-    background: #fff;
-    transition: all 0.3s ease;
-}
-.show-popup {
-    height: 100vh;
-    top: 0;
-}
-.popup > div:first-child {
-    padding: 10px;
-}
-.popup .search {
-    background: #f6f6f6;
-}
-.popup .hidden-search {
-    display: none !important;
-}
-.popup .search img {
-    width: 17px;
-    height: 17px;
-    filter: invert(48%) sepia(0%) saturate(21%) hue-rotate(179deg) brightness(108%) contrast(100%);
-}
-.popup .search input {
-    padding: 0;
-    border: none;
-    background: transparent;
-    height: 30px;
-}
-.popup .search input:focus {
-    outline: none;
-}
-.popup div > button {
-    width: 30px;
-    height: 30px;
-    background: #0000;
-    border: none;
-    padding: 0;
-}
-.popup div > button:focus {
-    outline: none;
-}
-.popup div > button img {
-    width: 100%;
-    height: 100%;
-    filter: invert(30%) sepia(96%) saturate(2052%) hue-rotate(198deg) brightness(99%) contrast(108%);
-}
-.popup .list-product {
-    padding: 10px;
-    max-height: calc(100% - 50px);
-    overflow-y: scroll;
-    position: relative;
-}
-.popup .list-product::-webkit-scrollbar {
-    display: none;
-}
-.popup .list-product .product {
-    position: relative;
-    cursor: pointer;
-}
-.popup .list-product .product:last-child::after {
-    content: "";
-    width: 100%;
-    height: 15vh;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    transform: translateY(100%);
-    background: #fff;
-}
-
-.popup .product img {
-    width: 40px;
-    height: 40px;
-}
-.popup .product p:first-child {
-    margin: 0;
-}
-.popup .product p + p {
-    font-size: 1.1rem;
-    font-weight: bold;
-    margin: 0;
-}
-
-.config {
-    padding: 10px;
-}
-.config button {
-    font-weight: bold;
-}
-.main div:first-child > button {
-    font-weight: bold;
+.delivery {
+    input,
+    select {
+        margin-bottom: 10px;
+    }
 }
 
 textarea {

@@ -1,8 +1,6 @@
 import EventBus from "@/EventBus.js"
 import Restful from "@/services/resful.js"
 import SearchAddress from "@/components/SearchAddress.vue"
-import ViettelPost from "@/components/delivery/viettelPost/ViettelPost.vue"
-// import Ghn from "@/components/delivery/ghn/Ghn.vue"
 import Alepay from "@/components/payment/alepay/Alepay.vue"
 import Delivery from "@/components/delivery/Delivery.vue"
 
@@ -38,7 +36,6 @@ const Toast2 = Swal.mixin({
 export default {
     components: {
         SearchAddress,
-        ViettelPost,
         Delivery,
         Alepay
     },
@@ -59,24 +56,18 @@ export default {
             street: "",
             country: "Việt Nam",
             list_city: [],
-            city: {},
+            city: "",
             list_district: [],
-            district: {},
+            district: "",
             list_ward: [],
-            ward: {},
-            list_city_delivery: [],
-            city_delivery: {},
-            list_district_delivery: [],
-            district_delivery: {},
-            list_ward_delivery: [],
-            ward_delivery: {},
-            address_delivery: "",
+            ward: "",
 
             email: "",
             list_branch: [],
             branch: {},
             has_branch: false,
             address: "",
+            address_delivery: "",
             client_id: "",
             list_product: [],
             filter_list_product: [],
@@ -128,10 +119,6 @@ export default {
         EventBus.$on("disable-update-order", () => {
             this.is_update_order = false
         });
-        // EventBus.$on('info-delivery-a', (e) => {
-        //     this.info_delivery = e
-        //     console.log(' this.info_delivery', this.info_delivery);
-        // })
         if (this.store_token) {
             this.getInitialData()
             this.name = this.payload.name
@@ -150,187 +137,62 @@ export default {
         },
 
         resetAddress() {
-            this.city = {}
-            this.district = {}
-            this.ward = {}
+            this.city = ""
+            this.district = ""
+            this.ward = ""
             this.address = ''
             this.street = ''
         },
         resetChangeCity() {
-            this.district = {}
-            this.ward = {}
+            this.district = ""
+            this.ward = ""
         },
         resetChangeDistrict() {
-            this.ward = {}
+            this.ward = ""
         },
-        async getListCity() {
+        async getListProvince() {
             try {
-                let path = `${APICMS}/v1/selling-page/locations/provinces`
-                let params = { 'type_location': 'order' }
+                let path = `${APICMS}/v1/selling-page/locations/provinces_v2`
                 let headers = { 'Authorization': this.store_token }
 
-                let get_list_city = await Restful.get(path, params, headers)
-                console.log('list city', get_list_city);
-                if (
-                    get_list_city.data &&
-                    get_list_city.data.data
-                ) {
+                let get_list_city = await Restful.get(path, null, headers)
+
+                if (get_list_city.data && get_list_city.data.data) {
                     this.list_city = get_list_city.data.data
                 }
             } catch (e) {
                 console.log(e)
             }
         },
-        async getListCityDelivery() {
-            try {
-                let path = `${APICMS}/v1/selling-page/locations/provinces`
-                let headers = { 'Authorization': this.store_token }
-                let params = { 'type_location': 'delivery' }
-                let get_list_city = await Restful.get(path, params, headers)
-
-                if (
-                    get_list_city.data &&
-                    get_list_city.data.data
-                ) {
-                    this.list_city_delivery = get_list_city.data.data.provinces
-                }
-            } catch (error) {
-                console.log("error", error)
-            }
-        },
         async getListDistrict() {
             try {
-                let path = `${APICMS}/v1/selling-page/locations/districts`
-                let params = {
-                    'type_location': 'order',
-                    'province_id': this.city.id
-                }
+                let path = `${APICMS}/v1/selling-page/locations/districts_v2`
+                let params = { 'province_id': this.city.province_id }
                 let headers = { 'Authorization': this.store_token }
 
                 let get_list_district = await Restful.get(path, params, headers)
 
-                if (
-                    get_list_district &&
-                    get_list_district.data &&
-                    get_list_district.data.data
-                ) {
+                if (get_list_district.data && get_list_district.data.data) {
                     this.list_district = get_list_district.data.data
-                    this.getListDistrictDelivery()
-                    console.log('list_district', this.list_district);
                 }
             } catch (e) {
                 console.log("error", e)
-            }
-        },
-        async getListDistrictDelivery() {
-            try {
-                if (this.city_delivery && !this.city_delivery.PROVINCE_ID) return
-                let path = `${APICMS}/v1/selling-page/locations/districts`
-                let params = {
-                    'provinceId': this.city_delivery.PROVINCE_ID,
-                    'type_location': 'delivery'
-                }
-                let headers = { Authorization: this.store_token }
-
-                let get_district = await Restful.get(path, params, headers)
-                console.log('get_district', get_district);
-                if (
-                    get_district.data &&
-                    get_district.data.data
-                ) {
-                    this.list_district_delivery = get_district.data.data.districts
-                }
-            } catch (error) {
-                console.log("error", error)
             }
         },
         async getListWard() {
             try {
-                let path = `${APICMS}/v1/selling-page/locations/wards`
-                let params = {
-                    'type_location': 'order',
-                    'district_id': this.district.id
-                }
+                let path = `${APICMS}/v1/selling-page/locations/wards_v2`
+                let params = { 'district_id': this.district.district_id }
                 let headers = { 'Authorization': this.store_token }
 
                 let get_list_ward = await Restful.get(path, params, headers)
 
-                if (
-                    get_list_ward.data &&
-                    get_list_ward.data.data
-                ) {
-                    let arr_ward = get_list_ward.data.data.map(ward => {
-                        return {
-                            'name': ward.ward_name,
-                            'code': ward.ward_code
-                        }
-                    })
-
-                    this.list_ward = arr_ward
-                    this.getListWardDelivery()
-                    console.log('list ward', this.list_ward);
+                if (get_list_ward.data && get_list_ward.data.data) {
+                    this.list_ward = get_list_ward.data.data
                 }
             } catch (e) {
                 console.log("error", e)
             }
-        },
-        async getListWardDelivery() {
-            try {
-                if (this.district_delivery && !this.district_delivery.DISTRICT_ID) return
-                let path = `${APICMS}/v1/selling-page/locations/wards`
-                let params = {
-                    'districtId': this.district_delivery.DISTRICT_ID,
-                    'type_location': 'delivery'
-                }
-                let headers = { Authorization: this.store_token }
-
-                let get_ward = await Restful.get(path, params, headers)
-                console.log('get_ward', get_ward);
-                if (
-                    get_ward.data &&
-                    get_ward.data.data
-                ) {
-                    this.list_ward_delivery = get_ward.data.data.wards
-                }
-            } catch (error) {
-                console.log("error", error)
-            }
-        },
-        handleAsyncCityVTP() {
-            console.log('handleAsyncCityVTP run', this.list_city_delivery);
-            if (!this.city.name) return
-            let arr_city = this.list_city_delivery.filter(city => {
-                if (city.PROVINCE_NAME.toLowerCase().includes(this.city.name.toLowerCase())
-                )
-                    return city
-            })
-            this.city_delivery = arr_city[0]
-            console.log('city delivery', this.city_delivery);
-
-        },
-        handleAsyncDistrictVTP() {
-            if (!this.district.name) return
-            console.log('list district', this.list_district_delivery);
-            let arr_district = this.list_district_delivery.filter(district => {
-                if (district.DISTRICT_NAME.toLowerCase().includes(this.district.name.toLowerCase())
-                )
-                    return district
-            })
-            console.log('arr_district', arr_district);
-
-            this.district_delivery = arr_district[0]
-        },
-        handleAsyncWardVTP() {
-            if (!this.ward.name) return
-            console.log('list ward', this.list_ward_delivery);
-            let arr_ward = this.list_ward_delivery.filter(ward => {
-                if (ward.WARDS_NAME.toLowerCase().includes(this.ward.name.toLowerCase())
-                )
-                    return ward
-            })
-            console.log('arr_ward', arr_ward);
-            this.ward_delivery = arr_ward[0]
-
         },
         async handleShowPopup() {
             // Show Popup khi nhấn "Thêm sản phẩm"
@@ -424,27 +286,17 @@ export default {
                 let get_cart = await Restful.get(path, params, headers)
 
                 if (
-                    get_cart &&
                     get_cart.data &&
-                    get_cart.data.data
+                    get_cart.data.data &&
+                    get_cart.data.data.cart
                 ) {
                     console.log("get cart", get_cart)
-                    this.cart = get_cart.data.data
-                }
-
-                // Tính tổng giá trị giỏ hàng
-                let total = []
-                if (this.cart.length > 0) {
-                    this.cart.forEach((item) => {
-                        let total_array = item.product_price * item.product_quantity
-                        total.push(total_array)
-                    })
-                    this.total_price = total.reduce((a, b) => a + b)
-                } else {
-                    this.total_price = 0
+                    this.cart = get_cart.data.data.cart
+                    this.total_price = get_cart.data.data.total_price
                 }
             } catch (e) {
                 console.log("error", e)
+                this.swalToast('Lỗi khi lấy giỏ hàng', 'error')
             }
         },
         async handleAddToCart(item) {
@@ -523,7 +375,7 @@ export default {
                 console.log("error", error);
                 Toast.fire({
                     icon: "error",
-                    title: "Đã xảy ra lỗi",
+                    title: "Lỗi khi xoá giỏ hàng",
                 });
             }
         },
@@ -593,6 +445,11 @@ export default {
             return true;
 
         },
+        validateInfo() {
+            if (this.phone.length != 10) {
+                this.swalToast('Số điện thoại không hợp lệ!', 'warning')
+            }
+        },
         handleCreateOrder() {
             if (this.cart.length === 0) {
                 Toast.fire({
@@ -606,11 +463,11 @@ export default {
                 !this.name ||
                 !this.phone ||
                 !this.country ||
-                !this.city.name ||
-                !this.district.name ||
-                !this.ward.name ||
-                !this.street ||
-                (this.order_option != 0 && !this.shipping_fee)
+                !this.city ||
+                !this.district ||
+                !this.ward ||
+                !this.street //||
+                // (this.order_option != 0 && !this.shipping_fee)
             ) {
                 console.log(this.order_option);
                 return Toast.fire({
@@ -624,6 +481,7 @@ export default {
                     title: "Email không hợp lệ!",
                 })
             }
+            //check validate components delivery, payment
             if (this.$refs.delivery && !this.$refs.delivery.validateCreateDelivery()) return
             if (this.$refs.payment && !this.$refs.payment.validateCreatePayment()) return
             // Check trạng thái chọn chọn chi nhánh
@@ -645,7 +503,10 @@ export default {
                 })
                 return
             }
-            this.address = `${this.street}, ${this.ward.name}, ${this.district.name}, ${this.city.name}`;
+            this.address = `${this.street}, ${this.ward.name}, ${this.district.name}, ${this.city.name}`
+            // if(this.payload.delivery_platform=="GHN"){
+            //     this.address_delivery = 
+            // }
             // Hiện thông tin đơn hàng
             this.is_show_order_info = true
         },
@@ -670,51 +531,63 @@ export default {
                 }
                 let path = `${APICMS}/v1/selling-page/order/order_create_3rd`
                 let body = {
-                    is_cod: this.is_cod,
-                    is_gateway: this.is_gateway,
-                    product_info: this.cart,
-                    customer_name: this.name,
-                    customer_phone: this.phone,
-                    customer_email: this.email,
-                    customer_address: this.address,
-                    customer_city_name: this.city.name,
-                    customer_province_name: this.city.name,
-                    customer_district_name: this.district.name,
-                    customer_ward_name: this.ward.name,
-                    customer_street_name: this.street,
-                    customer_province_code: this.city.code,
-                    customer_district_code: this.district.code,
-                    customer_ward_code: this.ward.code,
-                    note: this.note,
-                    status: "confirmed",
-                    platform_type: this.platform_type,
-                    branchId: this.branch.id,
-                    other_info: {}
-
+                    'customer_id': this.payload.customer_id,
+                    'fb_page_id': this.payload.fb_page_id,
+                    'is_cod': this.is_cod,
+                    'is_gateway': this.is_gateway,
+                    'product_info': this.cart,
+                    'customer_name': this.name,
+                    'customer_phone': this.phone,
+                    'customer_email': this.email,
+                    'customer_address': this.address,
+                    'customer_city_name': this.city.name,
+                    'customer_province_name': this.city.name,
+                    'customer_district_name': this.district.name,
+                    'customer_ward_name': this.ward.name,
+                    'customer_street_name': this.street,
+                    'customer_province_code': this.city.code,
+                    'customer_district_code': this.district.code,
+                    'customer_ward_code': this.ward.code,
+                    'note': this.note,
+                    'status': "confirmed",
+                    'platform_type': this.platform_type,
+                    'branchId': this.branch.id,
+                    'other_info': {}
                 }
                 // tính tổng số sản phẩm và tên các sản phẩm
                 this.handleProductSum(this.cart)
-                //kt tuỳ chọn nếu chọn gateway sẽ gửi info delivery >tạo payment> orthor info
+                //check nếu gateway sẽ gửi info delivery >tạo payment> orther info
                 if (this.order_option == 2) {
                     // lấy thông tin giao vận từ components delivery
-                    this.info_delivery = this.$refs.delivery.infoDelivery(this.product_info, this.total_price)
+                    if (this.$refs.delivery) {
+                        this.info_delivery = this.$refs.delivery.infoDelivery(this.product_info)
+                    }
                     body.other_info.msg_config = {}
-                    body.other_info.msg_config.mid = this.payload.mid
+                    body.other_info.msg_config.psid = this.payload.psid
                     body.other_info.msg_config.token_bbh = this.payload.token_bbh
                     body.other_info.info_delivery = this.info_delivery
                 }
                 if (!body.branchId) delete body.branchId
-                if (!this.city.name.includes("Tỉnh")) {
-                    delete body["customer_province_name"]
-                }
+                // if (!this.city.name.includes("Tỉnh")) {
+                //     delete body["customer_province_name"]
+                // }
                 if (this.platform_type === "MISA") {
                     delete body["branchId"]
                     body["BranchId"] = this.branch.id
                 }
                 // Tạo customer mới đối với Haravan
                 if (this.platform_type === "HARAVAN") {
+                    console.log('111111111111111', this.city, this.district, this.ward);
+                    this.address = `${this.street}, ${this.ward.meta_data.haravan.name}, ${this.district.meta_data.haravan.name}, ${this.city.name}`;
                     delete body["customer_city_name"]
                     body["customer_province_name"] = this.city.name
+                    body["customer_province_code"] = this.city.meta_data.haravan.code
+                    body['customer_district_name'] = this.district.meta_data.haravan.name
+                    body['customer_district_code'] = this.district.meta_data.haravan.code
+                    body['customer_ward_name'] = this.ward.meta_data.haravan.name
+                    body['customer_ward_code'] = this.ward.meta_data.haravan.code
+                    body['customer_address'] = this.address
+
                 }
                 this.callOrder(path, body)
             } catch (e) {
@@ -750,27 +623,23 @@ export default {
                     //     throw create_order.data.data.snap_order
                     // }
                     console.log('this.res_order_info', this.res_order_info);
-
                     let order_id = create_order.data.data.order_info.order_id
                     let product_info = create_order.data.data.order_info.product_info
                     this.res_order_info = create_order.data.data
-                    // Đẩy tin nhắn về Msg
-
-
-                    // this.resetAddress()
-
+                  // this.resetAddress()
                     // gọi hàm tạo giao vận từ components delivery
-                    console.log('order_option', this.order_option);
+                    console.log('product_info', this.product_info);
 
                     if (this.order_option == 1) {
                         console.log('run option 1');
-                        EventBus.$emit("create-delivery", order_id)
+                        if (this.$refs.delivery) {
+                            this.$refs.delivery.createOrder(order_id, this.product_info)
+                        }
                     }
                     else if (this.order_option == 2) {
                         console.log('000000000000000000000');
                         // gọi hàm tạo thanh toán từ components payment
                         EventBus.$emit("create-payment", order_id)
-                        // EventBus.$emit("create-delivery", order_id)
                     }
                     else {
                         Toast2.fire({
@@ -858,7 +727,6 @@ export default {
                     customer_phone: this.phone,
                     customer_province_name: this.city.name,
                     customer_city_name: this.city.name,
-                    // access_token: this.store_token,
                 }
 
                 let createCustomer = await Restful.post(path, customer, null, headers)
@@ -874,7 +742,6 @@ export default {
                 ) {
                     let path = `${APICMS}/v1/selling-page/order/order_create_3rd`
                     let body = {
-                        // access_token: this.store_token,
                         product_info: this.cart,
                         customer_name: this.name,
                         customer_phone: this.phone,
@@ -955,9 +822,8 @@ export default {
                 let path = `https://api.botbanhang.vn/v1.3/public/json`
                 let params = {
                     access_token: this.payload.token_bbh,
-                    psid: this.payload.mid,
+                    psid: this.payload.psid,
                 }
-                // let messages = []
                 let messages = [
                     { text: content },
                     {
@@ -977,21 +843,9 @@ export default {
                                     this.shipping_fee
                                 )}`
                             }
-
                         ]
                     )
                 }
-                // tuỳ chọn thêm khi gửi tin về message
-                // if (this.order_option == 1 || status == 'gateway') {
-                //     console.log('message option 1 || gateway');
-                //     messages.concat(
-                //         [
-                //             {
-                //                 text: `Đơn hàng quý khách đã được giao vận`
-                //             }
-                //         ]
-                //     )
-                // }
                 if (this.order_option == 2) {
                     messages = messages.concat(
                         [
@@ -1015,7 +869,6 @@ export default {
             } catch (e) {
                 console.log("error send mess", e)
                 this.swalToast("Lỗi khi gửi tin về message", "error")
-
             }
         },
         closeOrderInfo() {
@@ -1047,10 +900,12 @@ export default {
 
                 // Lấy chi nhánh nếu là Kiotviet
                 if (this.platform_type === "KIOTVIET") {
-                    !this.has_branch && this.getBranchKiotviet()
+                    this.has_branch = true
+                    this.getBranchKiotviet()
                 }
                 if (this.platform_type === "MISA") {
-                    !this.has_branch && this.getBranchMisa()
+                    this.has_branch = true
+                    this.getBranchMisa()
                 }
                 // Convert data theo variant nếu là Haravan và Sapo
                 if (this.platform_type === "HARAVAN" || this.platform_type === "SAPO") {
@@ -1097,17 +952,14 @@ export default {
                 this.msg_content = localStorage.getItem("msg_content")
             }
             await this.getListProduct()
-            this.getListCity()
-            this.getListCityDelivery()
-
-            // Load giỏ hàng
+            this.getListProvince()
             this.getCart()
         },
         async getBranchKiotviet() {
             try {
                 let path = `${APICMS}/v1/selling-page/other/kiotviet_get_branch`
                 let headers = { Authorization: this.store_token }
-                // Lấy danh sách chi nhánh Kiotviet
+
                 let get_branch = await Restful.post(path, null, null, headers)
 
                 if (
@@ -1281,9 +1133,9 @@ export default {
                     }
                 })
                 if (dataOrder.customer_city_name === "") {
-                    this.city = {}
-                    this.district = {}
-                    this.ward = {}
+                    this.city = ""
+                    this.district = ""
+                    this.ward = ""
                     return
                 }
 
@@ -1368,7 +1220,6 @@ export default {
                 let path = `${APICMS}/v1/selling-page/order/order_update`
                 let headers = { Authorization: this.store_token }
                 let body = {
-                    // access_token: this.store_token,
                     id: this.order_id,
                     product_info: this.cart,
                     customer_name: this.name,
@@ -1495,20 +1346,6 @@ export default {
                 this.createEmptyOrder()
             }
         },
-        city: function () {
-            console.log('11111');
-            this.handleAsyncCityVTP()
-            // this.getListDistrictDelivery()
-        },
-        district: function () {
-            console.log('22222');
-            this.handleAsyncDistrictVTP()
-            // this.getListWardDelivery()
-        },
-        ward: function () {
-            console.log('333333');
-            this.handleAsyncWardVTP()
-        },
         total_price: function () {
             this.handleTotalPayment()
         },
@@ -1546,6 +1383,6 @@ export default {
         });
         EventBus.$off("disable-update-order", () => {
             this.is_update_order = false
-        });
+        })
     },
 };
