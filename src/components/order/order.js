@@ -103,6 +103,8 @@ export default {
             info_delivery: "",
             handle_api: false,
             reset_token: false,
+            validate_info: false,
+            is_loading: false,
         };
     },
     created() {
@@ -403,7 +405,7 @@ export default {
         },
         async handleSubQuantity(item) {
             try {
-                // Tăng số lượng sản phẩm trong giỏ hàng
+                // Giảm số lượng sản phẩm trong giỏ hàng
                 let path = `${APICMS}/v1/selling-page/cart/cart_sub_product`
                 let body = {
                     product_id: item.product_id,
@@ -445,11 +447,6 @@ export default {
             return true;
 
         },
-        validateInfo() {
-            if (this.phone.length != 10) {
-                this.swalToast('Số điện thoại không hợp lệ!', 'warning')
-            }
-        },
         handleCreateOrder() {
             if (this.cart.length === 0) {
                 Toast.fire({
@@ -466,8 +463,7 @@ export default {
                 !this.city ||
                 !this.district ||
                 !this.ward ||
-                !this.street //||
-                // (this.order_option != 0 && !this.shipping_fee)
+                !this.street
             ) {
                 console.log(this.order_option);
                 return Toast.fire({
@@ -496,22 +492,26 @@ export default {
             }
 
             // Check phone là kiểu Number
-            if (isNaN(Number(this.phone))) {
+            if (isNaN(Number(this.phone)) || this.phone.length != 10) {
                 Toast.fire({
                     icon: "error",
                     title: "Số điện thoại không hợp lệ",
                 })
                 return
             }
+            if (this.order_option != 0 && !this.shipping_fee) {
+                return Toast.fire({
+                    icon: "error",
+                    title: "Vui lòng điền đủ thông tin giao vận"
+                })
+            }
             this.address = `${this.street}, ${this.ward.name}, ${this.district.name}, ${this.city.name}`
-            // if(this.payload.delivery_platform=="GHN"){
-            //     this.address_delivery = 
-            // }
-            // Hiện thông tin đơn hàng
             this.is_show_order_info = true
+            return true
         },
         async handleCallApiOrder() {
             try {
+                if (!this.handleCreateOrder()) return
                 // Check xem đang tạo mới order hay update order
                 if (this.is_update_order) {
                     this.updateOrder()
@@ -529,30 +529,30 @@ export default {
                     this.is_cod = false
                     this.is_gateway = false
                 }
-                let path = `${APICMS}/v1/selling-page/order/order_create_3rd`
+                let path = `${APICMS}/v1/selling-page/order/order_create`
                 let body = {
-                    'customer_id': this.payload.customer_id,
-                    'fb_page_id': this.payload.fb_page_id,
-                    'is_cod': this.is_cod,
-                    'is_gateway': this.is_gateway,
-                    'product_info': this.cart,
-                    'customer_name': this.name,
-                    'customer_phone': this.phone,
-                    'customer_email': this.email,
-                    'customer_address': this.address,
-                    'customer_city_name': this.city.name,
-                    'customer_province_name': this.city.name,
-                    'customer_district_name': this.district.name,
-                    'customer_ward_name': this.ward.name,
-                    'customer_street_name': this.street,
-                    'customer_province_code': this.city.code,
-                    'customer_district_code': this.district.code,
-                    'customer_ward_code': this.ward.code,
-                    'note': this.note,
-                    'status': "confirmed",
-                    'platform_type': this.platform_type,
-                    'branchId': this.branch.id,
-                    'other_info': {}
+                    "customer_id": this.payload.customer_id,
+                    "fb_page_id": this.payload.fb_page_id,
+                    "is_cod": this.is_cod,
+                    "is_gateway": this.is_gateway,
+                    "product_info": this.cart,
+                    "customer_name": this.name,
+                    "customer_phone": this.phone,
+                    "customer_email": this.email,
+                    "customer_address": this.address,
+                    "customer_city_name": this.city.name,
+                    "customer_province_name": this.city.name,
+                    "customer_district_name": this.district.name,
+                    "customer_ward_name": this.ward.name,
+                    "customer_street_name": this.street,
+                    "customer_province_code": this.city.code,
+                    "customer_district_code": this.district.code,
+                    "customer_ward_code": this.ward.code,
+                    "note": this.note,
+                    "status": "new_confirmed",
+                    "platform_type": this.platform_type,
+                    "branchId": this.branch.id,
+                    "other_info": {}
                 }
                 // tính tổng số sản phẩm và tên các sản phẩm
                 this.handleProductSum(this.cart)
@@ -567,26 +567,22 @@ export default {
                     body.other_info.msg_config.token_bbh = this.payload.token_bbh
                     body.other_info.info_delivery = this.info_delivery
                 }
-                if (!body.branchId) delete body.branchId
-                // if (!this.city.name.includes("Tỉnh")) {
-                //     delete body["customer_province_name"]
-                // }
+                if (!body.branchId) delete body.branchId    //????
                 if (this.platform_type === "MISA") {
                     delete body["branchId"]
                     body["BranchId"] = this.branch.id
                 }
                 // Tạo customer mới đối với Haravan
                 if (this.platform_type === "HARAVAN") {
-                    console.log('111111111111111', this.city, this.district, this.ward);
                     this.address = `${this.street}, ${this.ward.meta_data.haravan.name}, ${this.district.meta_data.haravan.name}, ${this.city.name}`;
                     delete body["customer_city_name"]
                     body["customer_province_name"] = this.city.name
                     body["customer_province_code"] = this.city.meta_data.haravan.code
-                    body['customer_district_name'] = this.district.meta_data.haravan.name
-                    body['customer_district_code'] = this.district.meta_data.haravan.code
-                    body['customer_ward_name'] = this.ward.meta_data.haravan.name
-                    body['customer_ward_code'] = this.ward.meta_data.haravan.code
-                    body['customer_address'] = this.address
+                    body["customer_district_name"] = this.district.meta_data.haravan.name
+                    body["customer_district_code"] = this.district.meta_data.haravan.code
+                    body["customer_ward_name"] = this.ward.meta_data.haravan.name
+                    body["customer_ward_code"] = this.ward.meta_data.haravan.code
+                    body["customer_address"] = this.address
 
                 }
                 this.callOrder(path, body)
@@ -597,12 +593,11 @@ export default {
         async callOrder(path, body) {
             try {
                 // Call Api tạo đơn hàng
-                if (this.handle_api) return
-                this.handle_api = true
+                this.is_loading = true
                 let headers = { Authorization: this.store_token }
 
                 let create_order = await Restful.post(path, body, null, headers)
-                this.handle_api = false
+
                 if (
                     create_order.data &&
                     create_order.data.data &&
@@ -622,24 +617,16 @@ export default {
                     // ) {
                     //     throw create_order.data.data.snap_order
                     // }
-                    console.log('this.res_order_info', this.res_order_info);
                     let order_id = create_order.data.data.order_info.order_id
-                    let product_info = create_order.data.data.order_info.product_info
-                    this.res_order_info = create_order.data.data
-                  // this.resetAddress()
-                    // gọi hàm tạo giao vận từ components delivery
-                    console.log('product_info', this.product_info);
-
                     if (this.order_option == 1) {
-                        console.log('run option 1');
                         if (this.$refs.delivery) {
-                            this.$refs.delivery.createOrder(order_id, this.product_info)
+                            await this.$refs.delivery.createDelivery(order_id, this.product_info)
                         }
                     }
                     else if (this.order_option == 2) {
-                        console.log('000000000000000000000');
-                        // gọi hàm tạo thanh toán từ components payment
-                        EventBus.$emit("create-payment", order_id)
+                        if (this.$refs.payment) {
+                            await this.$refs.payment.createPayment(order_id)
+                        }
                     }
                     else {
                         Toast2.fire({
@@ -647,10 +634,7 @@ export default {
                             title: "Tạo đơn hàng thành công",
                         })
                         this.sendMessage(order_id)
-                        console.log('1');
                     }
-                    // show modal choose delivery or payment
-                    // Xóa giỏ hàng sau khi tạo đơn
                     setTimeout(() => {
                         this.handleDeleteAllCart()
                     }, 1000)
@@ -665,8 +649,9 @@ export default {
                     });
                     this.prevent_click = false
                 }
+                this.is_loading = false
             } catch (e) {
-                this.handle_api = false
+                this.is_loading = false
                 console.log("eeeeeeeeeeeeeeee", e);
                 this.prevent_click = false
                 if (
@@ -830,18 +815,14 @@ export default {
                         text: `Tên khách hàng: ${this.name} \nSố điện thoại: ${this.phone} \nEmail: ${this.email} \nĐịa chỉ: ${this.address}`,
                     },
                     {
-                        text: `Danh sách sản phẩm: \n${strProduct} \nGiá trị đơn hàng: \n${this.$options.filters.toCurrency(
-                            this.total_price
-                        )}`,
+                        text: `Danh sách sản phẩm: \n${strProduct} \nGiá trị đơn hàng: \n${this.$options.filters.toCurrency(this.total_price)}`,
                     },
                 ]
                 if (this.order_option == 1) {
                     messages = messages.concat(
                         [
                             {
-                                text: `Đơn hàng của quý khách đang được giao vận.\nPhí ship ${this.$options.filters.toCurrency(
-                                    this.shipping_fee
-                                )}`
+                                text: `Đơn hàng của quý khách đang được giao vận.\nPhí ship ${this.$options.filters.toCurrency(this.shipping_fee)}`
                             }
                         ]
                     )
@@ -850,11 +831,7 @@ export default {
                     messages = messages.concat(
                         [
                             {
-                                text: `Phí ship ${this.$options.filters.toCurrency(
-                                    this.shipping_fee
-                                )} \n Tổng thanh toán ${this.$options.filters.toCurrency(
-                                    this.total_payment
-                                )}`
+                                text: `Phí ship ${this.$options.filters.toCurrency(this.shipping_fee)} \n Tổng thanh toán ${this.$options.filters.toCurrency(this.total_payment)}`
                             },
                             {
                                 text: `Sau khi thanh toán đơn hàng sẽ được giao vận ${url_payment}`

@@ -9,7 +9,7 @@
             <div class="all__text--decoration mb-0">Kho hàng</div>
             <div class="form-row">
                 <div class="col">
-                    <select class="form-control-sm rounded input-group input-group-sm" v-model="order_info.inventory"
+                    <select class="form-control-sm input-group input-group-sm" v-model="order_info.inventory"
                         @change="handleShopChange">
                         <option value>Kho hàng/Inventories</option>
                         <option v-for="(inventory,index) in list_inventories" :key="index" :value="inventory">
@@ -30,7 +30,8 @@
                 <div class="col">
                     <input class="form-control-sm" type="text" placeholder="Email bên gửi..."
                         v-model="order_info.sender_email" @change="handleSaveInfo">
-                    <input id="checkbox__save--email" type="checkbox" v-model="option_save_info" @change="handleSaveInfo">
+                    <input id="checkbox__save--email" type="checkbox" v-model="option_save_info"
+                        @change="handleSaveInfo">
                     <label for="checkbox__save--email">Lưu email</label>
                 </div>
             </div>
@@ -160,9 +161,6 @@
                 <textarea v-model="order_info.note" rows="3" class="form-control-sm"></textarea>
             </div>
         </div>
-
-        <hr>
         <p class="font-weight-bold text-right">Phí giao vận: {{order_info.shipping_fee||0|toCurrency}}</p>
     </div>
-
 </div>

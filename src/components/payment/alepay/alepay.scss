@@ -2,7 +2,7 @@
     font-size: 0.9rem;
 }
 .form__alepay {
-    padding: 10px;
+    padding: 1rem;
     .alepay__title {
         font-size: 1rem;
         font-weight: bold;
@@ -14,17 +14,20 @@
     .alepay__description {
         position: relative;
     }
+    .alepay__description {
+        margin-bottom: 1rem;
+    }
     .content__btn {
         button {
             width: 100%;
-            margin: 20px 0 10px 0;
+            margin: 2rem 0 1rem 0;
         }
     }
     input {
-        margin-bottom: 10px;
+        margin-bottom: 1rem;
     }
     select {
-        margin-bottom: 10px;
+        margin-bottom: 1rem;
     }
 }
 .form-control-sm {

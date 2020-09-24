@@ -4,11 +4,9 @@
         <p class="alepay__title">THANH TOÁN {{payload.payment_platform}}</p>
     </div>
     <div class="alepay__checkout">
-        <hr>
-        <p class="all__text--decoration">Chọn nhanh</p>
         <div class="form-row">
             <div class="col">
-                <select class="form-control-sm rounded" v-model="checkout_type">
+                <select class="form-control-sm" v-model="checkout_type">
                     <option value="">Phương thức thanh toán</option>
                     <option :value="type" v-for="(type,ind) in list_type">{{type.name}}</option>
                 </select>
@@ -16,16 +14,14 @@
         </div>
     </div>
     <div class="alepay__description">
-        <hr>
-        <p class="all__text--decoration">Mô tả</p>
         <div class="form-row">
             <div class="col">
-                <textarea class="form-control-sm rounded" type="text" placeholder="Mô tả đơn hàng"
+                <textarea class="form-control-sm" type="text" placeholder="Mô tả đơn hàng"
                     v-model="order_description"></textarea>
             </div>
         </div>
     </div>
-    <p class="font-weight-bold text-right">Thanh toán Gateway: {{prop_total_payment|toCurrency}}</p>
+    <p class="font-weight-bold text-right">Thanh toán Gateway: {{prop_total_payment||0|toCurrency}}</p>
 
     <!-- <div class="content__btn">
         <button class="btn-pill" @click="createPayment">Thanh toán ngay</button>

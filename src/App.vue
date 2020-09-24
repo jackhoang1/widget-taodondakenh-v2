@@ -80,8 +80,8 @@ let access_token = url.searchParams.get("access_token");
 const APICMS = "https://devbbh.tk"; //dev
 // const APICMS = "https://ext.botup.io"; //product
 
-const ApiBase = "https://app.devchatbox.tk"; //dev
-// const ApiBase = "https://chatbox-app.botbanhang.vn"; //product
+// const ApiBase = "https://app.devchatbox.tk"; //dev
+const ApiBase = "https://chatbox-app.botbanhang.vn"; //product
 
 const Toast = Swal.mixin({
   toast: true,
@@ -118,9 +118,9 @@ export default {
       is_oauth: false,
       is_warning: false,
       // secretKey: '2dd3816056a04c70ad154d3943bb16bd', //product
-      // secretKey: "2218ef13a45c4fd9ade2d049db2ef6f1", //demo-product
+        secretKey: "2218ef13a45c4fd9ade2d049db2ef6f1", //demo-product
       // secretKey: "f5ca4cd874a6427e83ed0441e61355ab", //demo-product-local
-      secretKey: "6e6d71d51a234aec9cde5f7748dd9e78", //dev-local
+    //   secretKey: "6e6d71d51a234aec9cde5f7748dd9e78", //dev-local
       access_token: access_token,
       is_select: "list",
 
@@ -298,8 +298,8 @@ export default {
       if (!order_3d_platform) return (this.is_warning = true);
       if (
         order_3d_platform.delivery_platform == "VIETTELPOST" ||
-        "GHN" ||
-        "GHTK"
+        order_3d_platform.delivery_platform == "GHN" ||
+        order_3d_platform.delivery_platform == "GHTK"
       ) {
         this.payload.delivery_platform = order_3d_platform.delivery_platform;
       }
@@ -308,13 +308,13 @@ export default {
       }
       if (
         order_3d_platform.platform_type == "HARAVAN" ||
-        "MISA" ||
-        "NHANH.VN" ||
-        "KIOTVIET" ||
-        "SAPO" ||
-        "CUSTOM"
+        order_3d_platform.platform_type == "MISA" ||
+        order_3d_platform.platform_type == "NHANH.VN" ||
+        order_3d_platform.platform_type == "KIOTVIET" ||
+        order_3d_platform.platform_type == "SAPO" ||
+        order_3d_platform.platform_type == "CUSTOM"
       ) {
-        this.payload.delivery_platform = order_3d_platform.delivery_platform;
+        this.payload.platform_type = order_3d_platform.platform_type;
       }
       if (order_3d_platform.store_email) {
         this.payload.store_email = order_3d_platform.store_email;
@@ -397,6 +397,16 @@ export default {
         }, 1000);
       } catch (e) {
         console.log(e);
+        if (
+          e.data &&
+          e.data.message &&
+          e.data.message.message == "jwt expired"
+        ) {
+          return Toast2.fire({
+            icon: "error",
+            title: "Vui lòng tải lại trang và kích hoạt lại!",
+          });
+        }
         Toast2.fire({
           icon: "error",
           title: "Xác thực không thành công",
@@ -414,15 +424,47 @@ export default {
 </script>
 
 <style lang="scss">
+@mixin tooltip-position {
+  visibility: hidden;
+  width: 12rem;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 0.5rem 0.3rem;
+  position: absolute;
+  z-index: 1;
+  margin-left: -6rem;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+@mixin tooltip-position-after {
+  content: "";
+  position: absolute;
+  border-width: 5px;
+  border-style: solid;
+}
 * {
   font-size: 13px;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  input,
+  textarea,
+  select {
+    border: none !important;
+    border-radius: 1rem !important;
+    padding: 0.25rem 1rem !important;
+  }
   hr {
     opacity: 0.5;
     margin: 1rem 0 1rem 0;
   }
+  //   input,
+  //   textarea {
+  //     border-radius: 1rem;
+  //     padding: 0 1rem;
+  //   }
   &::-webkit-scrollbar {
     display: none;
   }
@@ -463,7 +505,7 @@ body {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  padding: 10px;
+  padding: 1rem;
   top: 12%;
   width: 100%;
   z-index: 999;
@@ -476,14 +518,15 @@ body {
     input {
       width: 100%;
       height: 35px;
+      background: #eeeeee;
     }
     button {
       font-weight: bold;
       box-shadow: 0 5px 15px 0 #007bff30;
       transition: all 0.5s;
       border-radius: 25px;
-      padding: 10px 40px;
-      margin-top: 20px;
+      padding: 0.5rem 3.5rem;
+      margin-top: 1.5rem;
       &:hover {
         background: #007bff;
         box-shadow: 0 5px 20px 0 #007bff30;
@@ -502,7 +545,7 @@ body {
     .store {
       cursor: pointer;
       text-align: center;
-      padding: 15px 10px;
+      padding: 1rem 1rem;
       border: 2px solid #0001;
       border-radius: 5px;
       font-weight: bold;
@@ -561,7 +604,7 @@ body {
 }
 
 .auth__warning {
-  padding: 0 20px 0 20px;
+  padding: 0 1.5rem 0 1.5rem;
   .auth__activate {
     position: relative;
     background: #f6f6f6;
@@ -599,6 +642,84 @@ body {
     transform: scale(1.03);
     -webkit-box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
     box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
+  }
+}
+.form-control-sm {
+  height: calc(1.5em + 0.5rem + 2px);
+  //   padding: 0.25rem 0.5rem;
+  /* color: #495057; */
+  font-size: 0.875rem;
+  line-height: 1.5;
+  // border-radius: 0.2rem;
+  /* border: 1px solid #ced4da; */
+  // border: none;
+  border-radius: 1rem;
+  padding: 0.25rem 1rem;
+  appearance: none;
+  background-color: #fff;
+  background-clip: padding-box;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+.tooltip {
+  position: relative;
+  display: inline-block;
+  // border-bottom: 1px dotted black;
+  .tooltip-top {
+    @include tooltip-position;
+    bottom: 125%;
+    left: 50%;
+    &::after {
+      @include tooltip-position-after;
+      top: 100%;
+      left: 50%;
+      margin-left: -0.5rem;
+      border-color: #555 transparent transparent transparent;
+    }
+  }
+  .tooltip-bottom {
+    @include tooltip-position;
+    top: 135%;
+    left: 50%;
+    &::after {
+      @include tooltip-position-after;
+      bottom: 100%;
+      left: 50%;
+      margin-left: -0.5rem;
+      border-color: transparent transparent #555 transparent;
+    }
+  }
+  .tooltip-right {
+    @include tooltip-position;
+    top: -5px;
+    left: 125%;
+    &::after {
+      top: 50%;
+      right: 100%;
+      margin-top: -0.5rem;
+      border-color: transparent #555 transparent transparent;
+    }
+  }
+  .tooltip-left {
+    @include tooltip-position;
+    top: -5px;
+    bottom: auto;
+    right: 128%;
+    &::after {
+      @include tooltip-position-after;
+      top: 50%;
+      left: 100%;
+      margin-top: -0.5rem;
+      border-color: transparent transparent transparent #555;
+    }
+  }
+  &:hover {
+    .tooltip-left,
+    .tooltip-right,
+    .tooltip-top,
+    .tooltip-bottom {
+      visibility: visible;
+      opacity: 1;
+    }
   }
 }
 </style>

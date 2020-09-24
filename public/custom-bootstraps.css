@@ -195,20 +195,6 @@ img {
     border-radius: 0.25rem;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
-.form-control-sm {
-    height: calc(1.5em + 0.5rem + 2px);
-    padding: 0.25rem 0.5rem;
-    /* color: #495057; */
-    font-size: 0.875rem;
-    line-height: 1.5;
-    border-radius: 0.2rem;
-    /* border: 1px solid #ced4da; */
-    border: none;
-    appearance: none;
-    background-color: #fff;
-    background-clip: padding-box;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
 @media (prefers-reduced-motion: reduce) {
     .form-control {
         transition: none;

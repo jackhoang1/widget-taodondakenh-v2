@@ -23,39 +23,32 @@ export default {
             message_bbh: "",
             handle_api: false,
             product_info: this.prop_product_info,
-            info_delivery: "",
         }
     },
     created() {
-        EventBus.$on('create-payment', (order_id) => {
-            this.createPayment(order_id)
-        })
     },
     mounted() {
-        console.log('payload', this.payload);
-        console.log('product_info', this.product_info);
     },
     methods: {
-        getDataEventBus(e) {
-            this.info_delivery = e
-        },
         handleBodyCreatePayment(order_id) {
-            let body = {}
-            body['order_id'] = order_id
-            body['order_amount'] = this.prop_total_payment
-            body['currency'] = 'VND'
-            body.other_info = {}
-            body.other_info.checkoutType = this.checkout_type.value
-            body['order_description'] = this.order_description
-            body['total_item'] = this.product_info.total_item
-            body['return_url'] = `https://devbbh.tk/v1/selling-page/payment/check_payment_and_order/?access_token=${this.store_token}&order_id=${order_id}`
-            body['cancel_url'] = `https://devbbh.tk/v1/selling-page/payment/check_payment_and_order/?access_token=${this.store_token}&order_id=${order_id}`
-            body['customer_name'] = this.prop_receiver_name
-            body['customer_email'] = this.prop_receiver_email
-            body['customer_phone'] = this.prop_receiver_phone
-            body['customer_address'] = this.prop_receiver_address
-            body['customer_city'] = this.prop_receiver_city.name
-            body['customer_country'] = this.country
+            let body = {
+                "order_id": order_id,
+                "order_amount": this.prop_total_payment,
+                "currency": 'VND',
+                "other_info": {
+                    "checkoutType": this.checkout_type.value
+                },
+                "order_description": this.order_description,
+                "total_item": this.product_info.total_item,
+                "return_url": `https://devbbh.tk/v1/selling-page/payment/check_payment_and_order/?access_token=${this.store_token}&order_id=${order_id}`,
+                "cancel_url": `https://devbbh.tk/v1/selling-page/payment/check_payment_and_order/?access_token=${this.store_token}&order_id=${order_id}`,
+                "customer_name": this.prop_receiver_name,
+                "customer_email": this.prop_receiver_email,
+                "customer_phone": this.prop_receiver_phone,
+                "customer_address": this.prop_receiver_address,
+                "customer_city": this.prop_receiver_city.name,
+                "customer_country": this.country,
+            }
             return body
         },
         async createPayment(order_id) {
@@ -131,23 +124,6 @@ export default {
         },
     },
     watch: {
-        // prop_receiver_address: function (value) {
-        //     console.log('watch run 0', value);
-        //     this.order_info.receiver_address = this.prop_receiver_address
-        // },
-        // prop_receiver_city: function (value) {
-        //     console.log('watch run 1', value);
-        //     this.order_info.receiver_city = this.prop_receiver_city
-        // },
-        // prop_receiver_district: function (value) {
-        //     console.log('watch run 2', value, value.length);
-        //     this.order_info.receiver_district = this.prop_receiver_district
-        // },
-        // prop_receiver_ward: function (value) {
-        //     console.log('watch run 3', value)
-        //     this.order_info.receiver_ward = this.prop_receiver_ward
-
-        // },
         prop_product_info: function () {
             this.product_info = this.prop_product_info
         }
@@ -164,8 +140,5 @@ export default {
             });
             return formatter.format(value)
         },
-    },
-    destroyed() {
-        EventBus.$off('create-payment')
-    },
+    }
 }

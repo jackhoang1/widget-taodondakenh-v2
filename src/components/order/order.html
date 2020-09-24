@@ -7,36 +7,41 @@
             <div class="order__customer">
                 <p class="order__title">ORDER {{ platform_type }}</p>
                 <div class="order__msg--edit">
-                    <img @click="showSettingMsg" src="https://img.icons8.com/cotton/64/000000/chat-settings.png"
-                        title="Chỉnh sủa mẫu tin nhắn" />
+                    <div class="order__msg--edit-icon tooltip">
+                        <img @click="showSettingMsg" src="@/assets/message.png" />
+                        <span class="tooltip-left">Chỉnh sửa mẫu tin nhắn</span>
+                    </div>
                     <div class="order__msg--edit-input" :class="{ show: is_show_setting_msg}">
                         <textarea rows="3" v-if="is_show_setting_msg" v-model="msg_content"
-                            class="form-control mt-3 mb-3 rounded"></textarea>
-                        <button v-if="is_show_setting_msg" class="btn-pill w-100 mb-4"
-                            @click="showSettingMsg">Done</button>
+                            class="form-control mt-3 mb-3"></textarea>
+                        <div class="d-flex" v-if="is_show_setting_msg">
+                            <button class="btn-pill w-100 mb-4 mx-2" @click="showSettingMsg">Done</button>
+                            <button class="btn-pill w-100 mx-2" @click="handleResetMsg">Reset</button>
+                        </div>
+
                     </div>
                 </div>
                 <!-- Forrm điền thông tin khách hàng -->
                 <div class="form-row">
                     <div class="col">
-                        <input v-model="name" type="text" class="form-control-sm rounded" placeholder="Họ tên" />
+                        <input v-model="name" type="text" class="form-control-sm" placeholder="Họ tên" />
                     </div>
                     <div class="col">
-                        <input v-model="phone" type="number" class="form-control-sm rounded"
+                        <input v-model="phone" type="number" class="form-control-sm"
                             placeholder="Số điện thoại" />
                     </div>
                 </div>
-                <input v-model="email" type="email" class="form-control-sm rounded" placeholder="Email" />
+                <input v-model="email" type="email" class="form-control-sm" placeholder="Email" />
                 <div class="form-row">
                     <div class="col">
-                        <select v-model="country" class="form-control-sm rounded">
+                        <select v-model="country" class="form-control-sm">
                             <option value>Quốc Gia</option>
                             <option selected value="Việt Nam">Việt Nam</option>
                         </select>
                     </div>
                     <!-- Search address -->
                     <div class="col">
-                        <SearchAddress class="rounded" :list_data_input="list_city" :placeholder="'Tỉnh/TP'"
+                        <SearchAddress class="" :list_data_input="list_city" :placeholder="'Tỉnh/TP'"
                             @data_output="city=$event" :getData="getListDistrict" :clearInput="resetChangeCity"
                             :prop_name="'name'" />
                     </div>
@@ -54,9 +59,9 @@
                             :watch_data="district" />
                     </div>
                 </div>
-                <input v-model="street" type="text" class="form-control-sm rounded" placeholder="Địa chỉ cụ thể" />
+                <input v-model="street" type="text" class="form-control-sm" placeholder="Địa chỉ cụ thể" />
                 <div v-if="has_branch">
-                    <select v-model="branch" class="form-control-sm rounded">
+                    <select v-model="branch" class="form-control-sm">
                         <option selected :value="{}">Chi Nhánh</option>
                         <option v-for="(branch, ind) in list_branch" :value="branch" :key="ind">{{branch.branchName}}
                         </option>
@@ -74,14 +79,22 @@
                             <!-- <img src="@/assets/question.png" alt=""> -->
                         </div>
                         <div>
-                            <input id="order__option--order-payment" type="radio" value="1" v-model="order_option">
-                            <label for="order__option--order-payment">Ship COD</label>
-                            <img src="@/assets/question.png" alt="">
+                            <input id="order__option--order-shipcod" type="radio" value="1" v-model="order_option">
+                            <label for="order__option--order-shipcod">Ship COD</label>
+                            <div class="order__option--icon-shipcod tooltip">
+                                <img src="@/assets/question.png" alt="">
+                                <span class="tooltip-top">Hình thức tạo đơn và giao vận với bên thứ 3</span>
+                            </div>
                         </div>
                         <div>
-                            <input id="order__option--order-shipcod" type="radio" value="2" v-model="order_option">
-                            <label for="order__option--order-shipcod">Thanh toán và giao vận</label>
-                            <img src="@/assets/question.png" alt="">
+                            <input id="order__option--order-payment" type="radio" value="2" v-model="order_option">
+                            <label for="order__option--order-payment">Thanh toán và giao vận</label>
+                            <div class="order__option--icon-payment tooltip">
+                                <img class="" src="@/assets/question.png" alt="">
+                                <span class="tooltip-top">Sau khi khách hàng thanh toán, giao vận sẽ được hệ thống tự
+                                    động kích hoạt</span>
+                            </div>
+
                         </div>
 
                     </div>
@@ -102,7 +115,7 @@
                     </div>
                 </div>
                 <div :class="['form-group', { 'show-note': is_show_note }]">
-                    <textarea rows="2" v-model="note" ref="note" class="form-control-sm rounded"
+                    <textarea rows="2" v-model="note" ref="note" class="form-control-sm"
                         :class="{'hide': !is_show_note}"></textarea>
                     <button @click="handleShowNote()" class="btn-pill w-100 mb-4 "
                         :class="{'hide': !is_show_note}">Done</button>
@@ -154,8 +167,9 @@
                         <Delivery ref="delivery" :store_token="store_token" :payload="payload"
                             :prop_receiver_name="name" :prop_receiver_phone="phone" :prop_receiver_email="email"
                             :prop_receiver_address="address" :prop_receiver_city="city"
-                            :prop_receiver_district="district" :prop_receiver_ward="ward" :prop_receiver_street="street" :prop_total_price="total_price"
-                            @shipping_fee="shipping_fee=$event" :propSendMessage="sendMessage" />
+                            :prop_receiver_district="district" :prop_receiver_ward="ward" :prop_receiver_street="street"
+                            :prop_total_price="total_price" @shipping_fee="shipping_fee=$event"
+                            :propSendMessage="sendMessage" />
                     </div>
 
                 </div>
@@ -254,21 +268,95 @@
             <!-- End Thông tin đơn hàng -->
         </div>
     </div>
-    <!-- modal choose delivery payment -->
-    <div class="modal__option--delivery-payment" v-if="show_form=='modal'">
+    <!-- modal loading -->
+    <div class="loading" v-if="is_loading">
         <div class="modal__content">
-            <p>Tạo đơn thành công. Bạn muốn?</p>
-            <div class="content__btn">
-                <button class="" @click="handleShowForm('delivery')" v-if="payload.delivery_token">Tạo đơn giao
-                    vận</button>
-            </div>
-            <div class="content__btn">
-                <button class="" @click="handleShowForm('payment')" v-if="payload.payment_token">Thanh toán
-                    Alepay</button>
-            </div>
-            <div class="content__btn">
-                <button class="" @click="handleShowForm('order')">Tạo đơn hàng mới</button>
-            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                style="margin:auto;display:block;" width="100px" height="100px"
+                viewBox="0 0 100 100" preserveAspectRatio="xMidYMid">
+                <circle cx="75" cy="50" fill="#ffffff" r="7">
+                    <animate attributeName="r" values="4.2;4.2;7;4.2;4.2" times="0;0.1;0.2;0.3;1" dur="1s"
+                        repeatCount="indefinite" begin="-0.9166666666666666s"></animate>
+                    <animate attributeName="fill" values="#ffffff;#ffffff;#ff7500;#ffffff;#ffffff"
+                        repeatCount="indefinite" times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.9166666666666666s">
+                    </animate>
+                </circle>
+                <circle cx="71.65063509461098" cy="62.5" fill="#ffffff" r="7">
+                    <animate attributeName="r" values="4.2;4.2;7;4.2;4.2" times="0;0.1;0.2;0.3;1" dur="1s"
+                        repeatCount="indefinite" begin="-0.8333333333333334s"></animate>
+                    <animate attributeName="fill" values="#ffffff;#ffffff;#ff7500;#ffffff;#ffffff"
+                        repeatCount="indefinite" times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.8333333333333334s">
+                    </animate>
+                </circle>
+                <circle cx="62.5" cy="71.65063509461096" fill="#ffffff" r="7">
+                    <animate attributeName="r" values="4.2;4.2;7;4.2;4.2" times="0;0.1;0.2;0.3;1" dur="1s"
+                        repeatCount="indefinite" begin="-0.75s"></animate>
+                    <animate attributeName="fill" values="#ffffff;#ffffff;#ff7500;#ffffff;#ffffff"
+                        repeatCount="indefinite" times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.75s"></animate>
+                </circle>
+                <circle cx="50" cy="75" fill="#ffffff" r="7">
+                    <animate attributeName="r" values="4.2;4.2;7;4.2;4.2" times="0;0.1;0.2;0.3;1" dur="1s"
+                        repeatCount="indefinite" begin="-0.6666666666666666s"></animate>
+                    <animate attributeName="fill" values="#ffffff;#ffffff;#ff7500;#ffffff;#ffffff"
+                        repeatCount="indefinite" times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.6666666666666666s">
+                    </animate>
+                </circle>
+                <circle cx="37.50000000000001" cy="71.65063509461098" fill="#ffffff" r="7">
+                    <animate attributeName="r" values="4.2;4.2;7;4.2;4.2" times="0;0.1;0.2;0.3;1" dur="1s"
+                        repeatCount="indefinite" begin="-0.5833333333333334s"></animate>
+                    <animate attributeName="fill" values="#ffffff;#ffffff;#ff7500;#ffffff;#ffffff"
+                        repeatCount="indefinite" times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.5833333333333334s">
+                    </animate>
+                </circle>
+                <circle cx="28.34936490538903" cy="62.5" fill="#ffffff" r="7">
+                    <animate attributeName="r" values="4.2;4.2;7;4.2;4.2" times="0;0.1;0.2;0.3;1" dur="1s"
+                        repeatCount="indefinite" begin="-0.5s"></animate>
+                    <animate attributeName="fill" values="#ffffff;#ffffff;#ff7500;#ffffff;#ffffff"
+                        repeatCount="indefinite" times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.5s"></animate>
+                </circle>
+                <circle cx="25" cy="50" fill="#ffffff" r="7">
+                    <animate attributeName="r" values="4.2;4.2;7;4.2;4.2" times="0;0.1;0.2;0.3;1" dur="1s"
+                        repeatCount="indefinite" begin="-0.4166666666666667s"></animate>
+                    <animate attributeName="fill" values="#ffffff;#ffffff;#ff7500;#ffffff;#ffffff"
+                        repeatCount="indefinite" times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.4166666666666667s">
+                    </animate>
+                </circle>
+                <circle cx="28.34936490538903" cy="37.50000000000001" fill="#ffffff" r="7">
+                    <animate attributeName="r" values="4.2;4.2;7;4.2;4.2" times="0;0.1;0.2;0.3;1" dur="1s"
+                        repeatCount="indefinite" begin="-0.3333333333333333s"></animate>
+                    <animate attributeName="fill" values="#ffffff;#ffffff;#ff7500;#ffffff;#ffffff"
+                        repeatCount="indefinite" times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.3333333333333333s">
+                    </animate>
+                </circle>
+                <circle cx="37.499999999999986" cy="28.349364905389038" fill="#ffffff" r="7">
+                    <animate attributeName="r" values="4.2;4.2;7;4.2;4.2" times="0;0.1;0.2;0.3;1" dur="1s"
+                        repeatCount="indefinite" begin="-0.25s"></animate>
+                    <animate attributeName="fill" values="#ffffff;#ffffff;#ff7500;#ffffff;#ffffff"
+                        repeatCount="indefinite" times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.25s"></animate>
+                </circle>
+                <circle cx="49.99999999999999" cy="25" fill="#ffffff" r="7">
+                    <animate attributeName="r" values="4.2;4.2;7;4.2;4.2" times="0;0.1;0.2;0.3;1" dur="1s"
+                        repeatCount="indefinite" begin="-0.16666666666666666s"></animate>
+                    <animate attributeName="fill" values="#ffffff;#ffffff;#ff7500;#ffffff;#ffffff"
+                        repeatCount="indefinite" times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.16666666666666666s">
+                    </animate>
+                </circle>
+                <circle cx="62.5" cy="28.349364905389034" fill="#ffffff" r="7">
+                    <animate attributeName="r" values="4.2;4.2;7;4.2;4.2" times="0;0.1;0.2;0.3;1" dur="1s"
+                        repeatCount="indefinite" begin="-0.08333333333333333s"></animate>
+                    <animate attributeName="fill" values="#ffffff;#ffffff;#ff7500;#ffffff;#ffffff"
+                        repeatCount="indefinite" times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.08333333333333333s">
+                    </animate>
+                </circle>
+                <circle cx="71.65063509461096" cy="37.499999999999986" fill="#ffffff" r="7">
+                    <animate attributeName="r" values="4.2;4.2;7;4.2;4.2" times="0;0.1;0.2;0.3;1" dur="1s"
+                        repeatCount="indefinite" begin="0s"></animate>
+                    <animate attributeName="fill" values="#ffffff;#ffffff;#ff7500;#ffffff;#ffffff"
+                        repeatCount="indefinite" times="0;0.1;0.2;0.3;1" dur="1s" begin="0s"></animate>
+                </circle>
+            </svg>
+            <p>Vui lòng đợi ...</p>
+
         </div>
     </div>
 

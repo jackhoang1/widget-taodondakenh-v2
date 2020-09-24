@@ -66,7 +66,7 @@ export default {
                 },
                 note: "",
             },
-            handle_coupon_ghn: false,
+            coupon_real_ghn: true,
             option_save_info: true,
             handle_api: false,
             is_show_popup: false,
@@ -77,7 +77,6 @@ export default {
         console.log('address', this.order_info.receiver_district, this.order_info.receiver_ward);
     },
     async mounted() {
-        // this.handlCreateOrderId()
         this.getInventory()
         this.handleGetEmailLocal()
     },
@@ -124,25 +123,25 @@ export default {
                         !this.order_info.height ||
                         !this.prop_total_price) return
                     body = {
-                        'sender_province': this.order_info.inventory.provinceId,
-                        'sender_district': this.order_info.inventory.districtId,
-                        'receiver_province': this.order_info.receiver_city.province_id,
-                        'receiver_district': this.order_info.receiver_district.district_id,
-                        'product_type': this.order_info.product_type,
-                        'weight': parseInt(this.order_info.weight),
-                        'length': parseInt(this.order_info.length),
-                        'width': parseInt(this.order_info.width),
-                        'height': parseInt(this.order_info.height),
-                        'product_price': parseInt(this.prop_total_price),
+                        "sender_province": this.order_info.inventory.provinceId,
+                        "sender_district": this.order_info.inventory.districtId,
+                        "receiver_province": this.order_info.receiver_city.province_id,
+                        "receiver_district": this.order_info.receiver_district.district_id,
+                        "product_type": this.order_info.product_type,
+                        "weight": parseInt(this.order_info.weight),
+                        "length": parseInt(this.order_info.length),
+                        "width": parseInt(this.order_info.width),
+                        "height": parseInt(this.order_info.height),
+                        "product_price": parseInt(this.prop_total_price),
                     }
                 }
                 if (this.payload.delivery_platform == 'GHN') {
                     if (!this.order_info.inventory.district_id ||
                         !this.order_info.receiver_district) return
                     body = {
-                        'shop_id': this.order_info.inventory._id,
-                        'from_district': this.order_info.inventory.district_id,
-                        'to_district': this.order_info.receiver_district.meta_data.ghn.district_id,
+                        "shop_id": this.order_info.inventory._id,
+                        "from_district": this.order_info.inventory.district_id,
+                        "to_district": this.order_info.receiver_district.meta_data.ghn.district_id,
                     }
                 }
                 if (this.payload.delivery_platform == 'GHTK') { return }
@@ -168,8 +167,7 @@ export default {
         },
         async getShippingFee() {
             try {
-                // if(this.handle_api) return
-                // this.handle_api = true
+                if (this.handle_api) return
                 if (this.payload.delivery_platform == "VIETTEL_POST") return
                 let body = {}
                 if (this.payload.delivery_platform == "GHN") {
@@ -183,15 +181,15 @@ export default {
                         !this.order_info.width
                     ) return
                     body = {
-                        'shop_id': this.order_info.inventory._id,
-                        'service_id': this.order_info.order_service.service_id,
-                        'coupon': this.order_info.coupon,
-                        'district_id': this.order_info.receiver_district.meta_data.ghn.district_id,
-                        'ward_code': this.order_info.receiver_ward.meta_data.ghn.code,
-                        'height': parseInt(this.order_info.height),
-                        'length': parseInt(this.order_info.length),
-                        'weight': parseInt(this.order_info.weight),
-                        'width': parseInt(this.order_info.width),
+                        "shop_id": this.order_info.inventory._id,
+                        "service_id": this.order_info.order_service.service_id,
+                        "coupon": this.order_info.coupon,
+                        "district_id": this.order_info.receiver_district.meta_data.ghn.district_id,
+                        "ward_code": this.order_info.receiver_ward.meta_data.ghn.code,
+                        "height": parseInt(this.order_info.height),
+                        "length": parseInt(this.order_info.length),
+                        "weight": parseInt(this.order_info.weight),
+                        "width": parseInt(this.order_info.width),
                     }
                 }
                 if (this.payload.delivery_platform == "GHTK") {
@@ -205,32 +203,48 @@ export default {
                     ) return
                     this.order_info.receiver_address = `${this.prop_receiver_street}, ${this.order_info.receiver_ward.name}, ${this.receiver_district.name}, ${this.receiver_city.name}`
                     body = {
-                        // 'sender_province': 'Ha Noi',        // xoá khi update address cms
-                        // 'sender_district': 'Hoang Mai',
-                        'receiver_province': this.order_info.receiver_city.name,
-                        'receiver_district': this.order_info.receiver_district.name,
-                        'receiver_address': this.order_info.receiver_address,
-                        'weight': parseInt(this.order_info.weight) / 1000,  // khối lượng tính theo kg
-                        'value': this.prop_total_price,
-                        'transport': this.order_info.other_info.transport
+                        // "sender_province": "Ha Noi",        // xoá khi update address cms
+                        // "sender_district": "Hoang Mai",
+                        "receiver_province": this.order_info.receiver_city.name,
+                        "receiver_district": this.order_info.receiver_district.name,
+                        "receiver_address": this.order_info.receiver_address,
+                        "weight": parseInt(this.order_info.weight) / 1000,  // khối lượng tính theo kg
+                        "value": this.prop_total_price,
+                        "transport": this.order_info.other_info.transport
                     }
                 }
                 console.log('body 111111111111', body);
                 let path = `${APICMS}/v1/selling-page/delivery/delivery_ship_fee`
                 let headers = { Authorization: this.store_token }
 
+                this.handle_api = true
                 let get_shipping_fee = await Restful.post(path, body, null, headers)
+                this.handle_api = false
+
                 console.log('get_shipping_fee', get_shipping_fee);
                 if (
                     get_shipping_fee.data &&
                     get_shipping_fee.data.data &&
                     get_shipping_fee.data.data.data
                 ) {
-                    this.order_info.shipping_fee = get_shipping_fee.data.data.data.total || get_shipping_fee.data.data.data.fee     //GHN||GHTK
+                    this.coupon_real_ghn = true
+                    return this.order_info.shipping_fee = get_shipping_fee.data.data.data.total || get_shipping_fee.data.data.data.fee     //GHN||GHTK
                 }
+                this.order_info.shipping_fee = 0
             } catch (e) {
                 console.log(e);
-                this.swalToast('Lỗi api getShippingFee')
+                this.handle_api = false
+                if (
+                    e.data &&
+                    e.data.error_message &&
+                    e.data.error_message.code_message_value
+                ) {
+                    this.coupon_real_ghn = false
+                    this.swalToast(e.data.error_message.code_message_value, 'error')
+                }
+                this.order_info.shipping_fee = 0
+
+                // this.swalToast('Lỗi api getShippingFee')
             }
         },
         handleShippingFee() {
@@ -257,24 +271,24 @@ export default {
         infoDelivery(product_info) {
             let other = {}
             let body = {
-                'sender_name': this.order_info.inventory.name,
-                'sender_address': this.order_info.inventory.address,
-                'sender_phone': this.order_info.inventory.phone,
-                'sender_ward': this.order_info.inventory.wardsId,
-                'sender_district': this.order_info.inventory.districtId,
-                'sender_province': this.order_info.inventory.provinceId,
-                'receiver_name': this.order_info.receiver_name,
-                'receiver_phone': this.order_info.receiver_phone,
-                'receiver_address': this.order_info.receiver_address,
-                'product_name': product_info.list_product,
-                'product_quantity': product_info.total_item,
-                'product_price': parseInt(this.prop_total_price),
-                'product_type': this.order_info.product_type,
-                'weight': parseInt(this.order_info.weight),
-                'length': parseInt(this.order_info.length),
-                'width': parseInt(this.order_info.width),
-                'height': parseInt(this.order_info.height),
-                'required_note': this.order_info.note,
+                "sender_name": this.order_info.inventory.name,
+                "sender_address": this.order_info.inventory.address,
+                "sender_phone": this.order_info.inventory.phone,
+                "sender_ward": this.order_info.inventory.wardsId,
+                "sender_district": this.order_info.inventory.districtId,
+                "sender_province": this.order_info.inventory.provinceId,
+                "receiver_name": this.order_info.receiver_name,
+                "receiver_phone": this.order_info.receiver_phone,
+                "receiver_address": this.order_info.receiver_address,
+                "product_name": product_info.list_product,
+                "product_quantity": product_info.total_item,
+                "product_price": parseInt(this.prop_total_price),
+                "product_type": this.order_info.product_type,
+                "weight": parseInt(this.order_info.weight),
+                "length": parseInt(this.order_info.length),
+                "width": parseInt(this.order_info.width),
+                "height": parseInt(this.order_info.height),
+                "required_note": this.order_info.note,
             }
             if (this.payload.delivery_platform == "VIETTEL_POST") {
                 other = {
@@ -298,30 +312,31 @@ export default {
                     "shop_id": this.order_info.inventory._id,
                     "content": `${product_info.list_product} [Tổng số lượng ${product_info.total_item}]`,
                     "required_note": this.order_info.required_note,
-                    "coupon": this.order_info.coupon,
                     "service_type_id": this.order_info.order_service.service_type_id,
                     "payment_type_id": this.order_info.order_payment.value,
                     "order_value": parseInt(this.prop_total_price),
                 }
-
+                if (this.coupon_real_ghn) {
+                    other["coupon"] = this.order_info.coupon
+                }
             }
             if (this.payload.delivery_platform == "GHTK") {
-                delete body['length']
-                delete body['width']
-                delete body['height']
-                delete body['weight']
-                delete body['product_name']
-                delete body['product_quantity']
-                delete body['product_price']
-                // info_delivery['sender_province'] = 'Hà Nội'        // xoá khi update address cms
-                // info_delivery['sender_district'] = 'Hoàng Mai'
-                // info_delivery['sender_ward'] = 'Định Công'
+                delete body["length"]
+                delete body["width"]
+                delete body["height"]
+                delete body["weight"]
+                delete body["product_name"]
+                delete body["product_quantity"]
+                delete body["product_price"]
+                // info_delivery["sender_province"] = "Hà Nội"        // xoá khi update address cms
+                // info_delivery["sender_district"] = "Hoàng Mai"
+                // info_delivery["sender_ward"] = "Định Công"
                 // info_delivery["sender_name"] = this.order_info.inventory.pick_name
                 // info_delivery["sender_address"] = this.order_info.inventory.address
                 // info_delivery["sender_phone"] = this.order_info.inventory.pick_tel
                 // info_delivery["order_id"] = this.order_info.order_id
                 other = {
-                    'products': [{ name: product_info.list_product, weight: parseInt(this.order_info.weight) / 1000, quantity: product_info.total_item }],
+                    "products": [{ name: product_info.list_product, weight: parseInt(this.order_info.weight) / 1000, quantity: product_info.total_item }],
                     "receiver_province": this.order_info.receiver_city.name,
                     "receiver_district": this.order_info.receiver_district.name,
                     "receiver_ward": this.order_info.receiver_ward.name,
@@ -329,7 +344,7 @@ export default {
                     "required_note": this.order_info.note,
                     "order_value": parseInt(this.prop_total_price),
                     "cod_amount": parseInt(this.order_info.cod_amount),
-                    'other_info': {
+                    "other_info": {
                         "transport": this.order_info.other_info.transport,
                         "is_freeship": this.order_info.order_payment.value
                     }
@@ -383,6 +398,10 @@ export default {
                     this.swalToast('Bạn chưa chọn mã ghi chú bắt buộc', 'warning')
                     return false
                 }
+                if (!this.coupon_real_ghn == true) {
+                    this.swalToast('Mã khuyến mãi không đúng', 'warning')
+                    return false
+                }
             }
             if (this.payload.delivery_platform == 'GHTK') {
                 if (!this.order_info.other_info.transport) {
@@ -400,22 +419,22 @@ export default {
             return true
         },
         // component order sẽ gọi hàm này
-        async createOrder(order_id, product_info) {
+        async createDelivery(order_id, product_info) {
             try {
                 if (this.handle_api) return
-                this.handle_api = true
                 let path = `${APICMS}/v1/selling-page/delivery/delivery_create`
                 let headers = { Authorization: this.store_token }
                 let info_delivery = this.infoDelivery(product_info)
                 let body = {
                     ...info_delivery,
-                    'order_id': order_id
+                    "order_id": order_id
                 };
                 console.log("body create delivery", body)
 
+                this.handle_api = true
                 let create_order = await Restful.post(path, body, {}, headers)
-                console.log('aaaaaaaaaaaaaaaaaaaaaa', create_order);
                 this.handle_api = false
+
                 if (
                     create_order.data &&
                     create_order.data.data &&
@@ -440,13 +459,13 @@ export default {
                 console.log("e", e)
                 this.handle_api = false
                 if (
-                    e &&
                     e.data &&
-                    e.data.error_message &&
-                    e.data.code == 403
+                    e.data.error_message
                 ) {
-                    return this.swalToast(e.data.error_message, 'error')
-
+                    if (e.data.error_message.code_message_value) {
+                        return this.swalToast(e.data.error_message.code_message_value, 'error') //GHN
+                    }
+                    this.swalToast(e.data.error_message, 'error')   //VTP
                 }
 
             }

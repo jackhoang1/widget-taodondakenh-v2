@@ -158,13 +158,13 @@ export default {
             if (!item.is_cod && !item.is_gateway) return true;
         },
         isActiveConfirm(item) {
-            if (item.status === "confirmed") {
+            if (item.status === "confirmed" || item.status === "new_confirmed") {
                 return true;
             }
             return false;
         },
         isUnconfirm(item) {
-            return item.status !== "confirmed" && item.status !== "cancelled";
+            return item.status == "unconfirmed";
         },
         isCancelled(item) {
             return item.status === "cancelled";
