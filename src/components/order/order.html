@@ -5,7 +5,7 @@
         <div class="main">
             <!-- thông tin khách hàng -->
             <div class="order__customer">
-                <p class="order__title">ORDER {{ platform_type }}</p>
+                <p class="order__title"><span class="order__title" v-if="is_update_order">CẬP NHẬT </span>ORDER {{ platform_type }}</p>
                 <div class="order__msg--edit">
                     <div class="order__msg--edit-icon tooltip">
                         <img @click="showSettingMsg" src="@/assets/message.png" />
@@ -27,8 +27,7 @@
                         <input v-model="name" type="text" class="form-control-sm" placeholder="Họ tên" />
                     </div>
                     <div class="col">
-                        <input v-model="phone" type="number" class="form-control-sm"
-                            placeholder="Số điện thoại" />
+                        <input v-model="phone" type="number" class="form-control-sm" placeholder="Số điện thoại" />
                     </div>
                 </div>
                 <input v-model="email" type="email" class="form-control-sm" placeholder="Email" />
@@ -79,7 +78,8 @@
                             <!-- <img src="@/assets/question.png" alt=""> -->
                         </div>
                         <div>
-                            <input id="order__option--order-shipcod" type="radio" value="1" v-model="order_option">
+                            <input id="order__option--order-shipcod" type="radio" value="1" v-model="order_option"
+                                @click="checkDelivery">
                             <label for="order__option--order-shipcod">Ship COD</label>
                             <div class="order__option--icon-shipcod tooltip">
                                 <img src="@/assets/question.png" alt="">
@@ -87,7 +87,8 @@
                             </div>
                         </div>
                         <div>
-                            <input id="order__option--order-payment" type="radio" value="2" v-model="order_option">
+                            <input id="order__option--order-payment" type="radio" value="2" v-model="order_option"
+                                @click="checkPayment">
                             <label for="order__option--order-payment">Thanh toán và giao vận</label>
                             <div class="order__option--icon-payment tooltip">
                                 <img class="" src="@/assets/question.png" alt="">
@@ -162,7 +163,7 @@
                 </div>
 
                 <!-- giao vận -->
-                <div v-if="order_option!=0">
+                <div v-if="order_option!=0&&payload.delivery_platform">
                     <div>
                         <Delivery ref="delivery" :store_token="store_token" :payload="payload"
                             :prop_receiver_name="name" :prop_receiver_phone="phone" :prop_receiver_email="email"
@@ -174,7 +175,7 @@
 
                 </div>
                 <!-- thanh toán -->
-                <div v-if="order_option==2">
+                <div v-if="order_option==2&&payload.payment_platform">
                     <div>
                         <Alepay ref="payment" :store_token="store_token" :payload="payload" :prop_receiver_name="name"
                             :prop_receiver_phone="phone" :prop_receiver_email="email" :prop_receiver_address="address"
@@ -272,8 +273,8 @@
     <div class="loading" v-if="is_loading">
         <div class="modal__content">
             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-                style="margin:auto;display:block;" width="100px" height="100px"
-                viewBox="0 0 100 100" preserveAspectRatio="xMidYMid">
+                style="margin:auto;display:block;" width="100px" height="100px" viewBox="0 0 100 100"
+                preserveAspectRatio="xMidYMid">
                 <circle cx="75" cy="50" fill="#ffffff" r="7">
                     <animate attributeName="r" values="4.2;4.2;7;4.2;4.2" times="0;0.1;0.2;0.3;1" dur="1s"
                         repeatCount="indefinite" begin="-0.9166666666666666s"></animate>

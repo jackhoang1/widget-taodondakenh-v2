@@ -203,6 +203,7 @@ $colorCancel: #ed5a29;
     }
     .process {
         user-select: none;
+        pointer-events: none;
         img,
         p {
             cursor: pointer;
@@ -213,9 +214,15 @@ $colorCancel: #ed5a29;
         img.cancelled {
             filter: invert(28%) sepia(66%) saturate(2417%) hue-rotate(334deg) brightness(90%) contrast(91%);
         }
+        .process__poiter--events {
+            pointer-events: auto;
+            color: #025fe8;
+
+        }
         &.pro-confirmed *,
         &.pro-cancelled * {
-            pointer-events: none;
+            // pointer-events: all;
+            // color: #025fe8;
         }
         &.pro-confirmed p:first-of-type,
         &.pro-cancelled p:first-of-type {

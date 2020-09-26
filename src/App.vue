@@ -2,16 +2,18 @@
   <div class>
     <!-- Xác thực App -->
     <div v-if="!is_oauth" class="auth">
-      <div v-if="!show_list_store" class="sign d-flex flex-column align-items-center">
-        <p class="text-dark mb-5">Đăng Nhập CMS</p>
-        <input v-model="cms_account" type="text" class="form-control mb-3" placeholder="Email" />
-        <input
-          v-model="cms_password"
-          type="password"
-          class="form-control mb-3"
-          placeholder="Password"
-        />
-        <button class="btn btn-primary text-light" v-on:click="runSignIn()">Sign In</button>
+      <div class="auth__activate" v-if="!show_list_store">
+        <div class="sign d-flex flex-column align-items-center">
+          <p class="text-dark mb-4">Đăng Nhập CMS</p>
+          <input v-model="cms_account" type="text" class="form-control mb-3" placeholder="Email" />
+          <input
+            v-model="cms_password"
+            type="password"
+            class="form-control mb-3"
+            placeholder="Password"
+          />
+          <button class="btn btn-primary text-light" v-on:click="runSignIn()">Sign In</button>
+        </div>
       </div>
       <div :class="['select-store', 'mb-5', {'show-store': show_list_store}]">
         <div v-if="show_list_store">
@@ -44,14 +46,16 @@
       <list-order
         v-show="is_select === 'list'"
         :store_token="store_token"
-        :phoneProp="payload.phone"
-        @click-edit="handleClickHeader('create')"
+        :payload="payload"
+        :handleEditOrder="handleClickHeader"
+        @platform="getPlatform"
       />
       <create-order
         v-show="is_select === 'create'"
         :store_token="store_token"
         :payload="payload"
         @switch-header="handleClickHeader('list')"
+        @platform_type="payload.platform_type=$event"
       />
     </div>
     <!-- warning -->
@@ -204,6 +208,8 @@ export default {
             customer.conversation_contact.client_phone
           ) {
             this.payload.phone = customer.conversation_contact.client_phone
+              //   .split("+84")
+              //   .join("0")
               .split(".")
               .join("")
               .split(" ")
@@ -291,32 +297,16 @@ export default {
         });
       }
     },
+    getPlatform(delivery_platform, payment_platform) {
+      this.payload.delivery_platform = delivery_platform;
+      this.payload.payment_platform = payment_platform;
+      console.log("payload", this.payload);
+    },
     handleLocalStorage() {
       let order_3d_platform = JSON.parse(
         localStorage.getItem("order_3d_platform")
       );
-      if (!order_3d_platform) return (this.is_warning = true);
-      if (
-        order_3d_platform.delivery_platform == "VIETTELPOST" ||
-        order_3d_platform.delivery_platform == "GHN" ||
-        order_3d_platform.delivery_platform == "GHTK"
-      ) {
-        this.payload.delivery_platform = order_3d_platform.delivery_platform;
-      }
-      if (order_3d_platform.payment_platform == "ALEPAY") {
-        this.payload.payment_platform = order_3d_platform.payment_platform;
-      }
-      if (
-        order_3d_platform.platform_type == "HARAVAN" ||
-        order_3d_platform.platform_type == "MISA" ||
-        order_3d_platform.platform_type == "NHANH.VN" ||
-        order_3d_platform.platform_type == "KIOTVIET" ||
-        order_3d_platform.platform_type == "SAPO" ||
-        order_3d_platform.platform_type == "CUSTOM"
-      ) {
-        this.payload.platform_type = order_3d_platform.platform_type;
-      }
-      if (order_3d_platform.store_email) {
+      if (order_3d_platform && order_3d_platform.store_email) {
         this.payload.store_email = order_3d_platform.store_email;
       }
     },
@@ -324,18 +314,6 @@ export default {
       this.store_token = item.access_token;
       localStorage.removeItem("order_3d_platform");
       let order_3d_platform = {};
-      if (item.delivery_platform) {
-        this.payload.delivery_platform = item.delivery_platform;
-        order_3d_platform["delivery_platform"] = item.delivery_platform;
-      }
-      if (item.payment_platform) {
-        this.payload.payment_platform = item.payment_platform;
-        order_3d_platform["payment_platform"] = item.payment_platform;
-      }
-      if (item.platform_type) {
-        this.payload.platform_type = item.platform_type;
-        order_3d_platform["platform_type"] = item.platform_type;
-      }
       if (item.store_email) {
         this.payload.store_email = item.store_email;
         order_3d_platform["store_email"] = item.store_email;
@@ -509,8 +487,18 @@ body {
   top: 12%;
   width: 100%;
   z-index: 999;
+  .auth__activate {
+    position: relative;
+    background: #f6f6f6;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-radius: 1rem;
+    margin-top: 5%;
+    padding: 5% 10%;
+    -webkit-box-shadow: 0px 1px 5px rgba(126, 142, 177, 0.2);
+    box-shadow: 0 1px 5px rgba(126, 142, 177, 0.2);
+  }
   p {
-    font-size: 1.6rem;
+    font-size: 1.3rem;
     font-weight: bold;
   }
   .sign {
@@ -518,7 +506,7 @@ body {
     input {
       width: 100%;
       height: 35px;
-      background: #eeeeee;
+      //   background: #eeeeee;
     }
     button {
       font-weight: bold;
@@ -585,7 +573,7 @@ body {
     width: 70%;
   }
   .auth p {
-    font-size: 1.9rem;
+    font-size: 1.3rem;
   }
 }
 

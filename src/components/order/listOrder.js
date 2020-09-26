@@ -31,15 +31,17 @@ const Toast2 = Swal.mixin({
 });
 
 export default {
-    props: ["store_token", "phoneProp"],
+    props: ["store_token", "payload", "handleEditOrder"],
     data() {
         return {
             //   basePath: "https://ext.botup.io/v1/selling-page/",
             list_order: [],
-            list_payment: [],
             skip: 0,
             order_filter: "",
             handle_api: false,
+            handle_draft_order: false,
+            delivery_platform: "",
+            payment_platform: "",
         };
     },
     async created() {
@@ -58,13 +60,6 @@ export default {
     },
     mounted() { },
     methods: {
-        ableEdit(item) {
-            if (
-                item.platform_type === "CUSTOM" &&
-                (item.status === "unconfirmed" || item.status === "")
-            )
-                return true;
-        },
         computeTime(timeStamp) {
             let date = new Date(timeStamp);
             let time = `${date.getHours() < 10 ? `0${date.getHours()}` : date.getHours()
@@ -96,9 +91,10 @@ export default {
             classList.add("expand");
         },
         handleClickEdit(item) {
-            this.$emit("click-edit");
+            // this.$emit("click-edit");
+            this.handleEditOrder("create")
             // Emit event để CreateOrder.vue call order detail
-            EventBus.$emit("get-order", item.id);
+            EventBus.$emit("get-order", item);
         },
         async readOrder() {
             try {
@@ -109,7 +105,16 @@ export default {
                 let get_list_order = await Restful.get(path, params, headers);
 
                 if (get_list_order.data && get_list_order.data.data) {
-                    this.list_order = get_list_order.data.data;
+                    if (get_list_order.data.data.orders) {
+                        this.list_order = get_list_order.data.data.orders;
+                    }
+                    if (get_list_order.data.data.delivery_platform) {
+                        this.delivery_platform = get_list_order.data.data.delivery_platform
+                    }
+                    if (get_list_order.data.data.payment_platform) {
+                        this.payment_platform = get_list_order.data.data.payment_platform
+                    }
+                    this.$emit('platform', this.delivery_platform, this.payment_platform)
                 } else {
                     throw "Lỗi lấy danh sách Đơn hàng";
                 }
@@ -128,10 +133,8 @@ export default {
                 });
             }
         },
-        handleUpdateOrder(status, item, ind) {
-            this.updateOrder(status, item, ind);
-        },
-        async updateOrder(status, item, ind) {
+        async updateStatusOrder(status, item, ind) {
+            if (status == "cancel_order") return
             let path = `${APICMS}/v1/selling-page/order/order_update`;
             let headers = { Authorization: this.store_token }
             let body = {
@@ -158,16 +161,15 @@ export default {
             if (!item.is_cod && !item.is_gateway) return true;
         },
         isActiveConfirm(item) {
-            if (item.status === "confirmed" || item.status === "new_confirmed") {
-                return true;
-            }
-            return false;
+            if (item.status != "draft_order")
+                return item.status === "new_order";
         },
         isUnconfirm(item) {
             return item.status == "unconfirmed";
         },
         isCancelled(item) {
-            return item.status === "cancelled";
+            if (item.status == "draft_order")
+                return item.status === "cancel_order";
         },
         async handleGetMoreOrder() {
             try {
@@ -209,19 +211,46 @@ export default {
             }
         },
         checkPhone() {
-            let order = this.list_order.slice(0, 19);
-            if (!this.phoneProp) return;
-            let check = order.find((item) => {
-                return item.customer_phone === this.phoneProp;
-            });
-            if (!check) {
-                if (localStorage.getItem("cus_phone") === this.phoneProp) {
-                    check = true;
+            if (!this.payload.phone) return
+            if (this.payload.phone == localStorage.getItem("cus_phone")) return
+            let length = this.list_order.length
+            let phone_created = false
+            if (length > 0) {
+                for (const order of this.list_order) {
+                    if ((order.status == 'draft_order' && order.customer_phone == this.payload.phone)) {
+                        phone_created = true
+                        break
+                    }
                 }
+                if (phone_created) {
+                    return
+                }
+
             }
-            if (!check) {
-                localStorage.setItem("cus_phone", this.phoneProp);
-                EventBus.$emit("create-empty-order");
+            localStorage.setItem("cus_phone", this.payload.phone);
+            this.createDraftOrder()
+        },
+        async createDraftOrder() {
+            try {
+                if (this.handle_draft_order) return
+                this.handle_draft_order = true
+                let path = `${APICMS}/v1/selling-page/order/order_draft`
+                let body = {
+                    // platform_type: this.payload.platform_type,
+                    customer_phone: this.payload.phone,
+                    customer_name: this.payload.name,
+                    status: 'draft_order',
+                }
+                if (this.payload.email) {
+                    body["customer_email"] = this.payload.email
+                }
+                let headers = { Authorization: this.store_token }
+
+                let create_draft = await Restful.post(path, body, null, headers)
+                this.readOrder()
+                console.log('create_draft', create_draft);
+            } catch (e) {
+                console.log(e);
             }
         },
         swalToast(title, icon) {
@@ -248,12 +277,12 @@ export default {
         EventBus.$off("call-order");
     },
     watch: {
-        store_token() {
+        store_token: function () {
             this.readOrder();
         },
-        phoneProp() {
-            console.log("run watch");
-            this.checkPhone();
-        },
+        // 'payload.phone': function () {
+        //     console.log("run watch list-order");
+        //     this.checkPhone();
+        // },
     },
 };

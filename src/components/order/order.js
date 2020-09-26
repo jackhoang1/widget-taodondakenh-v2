@@ -41,7 +41,7 @@ export default {
     },
     props: [
         "store_token",
-        "payload"
+        "payload",
     ],
     data() {
         return {
@@ -50,7 +50,7 @@ export default {
                 total_item: 0,
                 list_product: ''
             },
-            platform_type: "",
+            platform_type: this.payload.platform_type,
             name: "",
             phone: "",
             street: "",
@@ -108,16 +108,13 @@ export default {
         };
     },
     created() {
-        EventBus.$on("get-order", (id) => {
-            this.getOrderInfo(id)
-        });
-        EventBus.$on("create-empty-order", () => {
-            if (!this.platform_type) {
-                this.wait_create_empty_order = true
-                return
-            }
-            this.createEmptyOrder()
-        });
+        // EventBus.$on("create-empty-order", () => {
+        //     if (!this.platform_type) {
+        //         this.wait_create_empty_order = true
+        //         return
+        //     }
+        //     this.createEmptyOrder()
+        // });
         EventBus.$on("disable-update-order", () => {
             this.is_update_order = false
         });
@@ -127,9 +124,11 @@ export default {
             this.phone = this.payload.phone
             this.email = this.payload.email
         }
+        EventBus.$on("get-order", (item) => {
+            this.getOrderInfo(item)
+        });
     },
     mounted() {
-        console.log("payload", this.payload)
     },
     methods: {
         handleOrderStep() {
@@ -492,7 +491,7 @@ export default {
             }
 
             // Check phone là kiểu Number
-            if (isNaN(Number(this.phone)) || this.phone.length != 10) {
+            if (isNaN(Number(this.phone)) || (this.phone.length != 10 && this.phone.includes('+84'))) {
                 Toast.fire({
                     icon: "error",
                     title: "Số điện thoại không hợp lệ",
@@ -513,10 +512,10 @@ export default {
             try {
                 if (!this.handleCreateOrder()) return
                 // Check xem đang tạo mới order hay update order
-                if (this.is_update_order) {
-                    this.updateOrder()
-                    return
-                }
+                // if (this.is_update_order) {
+                //     this.updateOrder()
+                //     return
+                // }
                 // Ngăn spam "Tạo đơn hàng"
                 this.prevent_click = true
                 if (this.order_option == 1) {
@@ -549,7 +548,7 @@ export default {
                     "customer_district_code": this.district.code,
                     "customer_ward_code": this.ward.code,
                     "note": this.note,
-                    "status": "new_confirmed",
+                    "status": "new_order",
                     "platform_type": this.platform_type,
                     "branchId": this.branch.id,
                     "other_info": {}
@@ -584,6 +583,9 @@ export default {
                     body["customer_ward_code"] = this.ward.meta_data.haravan.code
                     body["customer_address"] = this.address
 
+                }
+                if (this.is_update_order) {
+                    return this.updateOrder(body)
                 }
                 this.callOrder(path, body)
             } catch (e) {
@@ -673,13 +675,13 @@ export default {
                 //     });
                 //     return;
                 // }
-                // if (e && e.data && e.data.error_message) {
-                //     Toast2.fire({
-                //         icon: "error",
-                //         title: e.data.error_message,
-                //     });
-                //     return;
-                // }
+                if (e.data && e.data.error_message) {
+                    Toast2.fire({
+                        icon: "error",
+                        title: e.data.error_message,
+                    });
+                    return;
+                }
                 // if (e && e.errors) {
                 //     Toast2.fire({
                 //         icon: "error",
@@ -738,7 +740,7 @@ export default {
                         customer_ward_name: this.ward.name,
                         customer_street_name: this.street,
                         note: this.note,
-                        status: "unconfirmed",
+                        status: "new_order",
                         platform_type: this.platform_type,
                         branchId: this.branch.id,
                     }
@@ -872,6 +874,7 @@ export default {
                     get_list_product.data.data[0].platform_type
                 ) {
                     this.platform_type = get_list_product.data.data[0].platform_type
+                    this.$emit('platform_type', this.platform_type)
                 }
                 console.log(this.platform_type)
 
@@ -1071,198 +1074,141 @@ export default {
         handleResetMsg() {
             this.msg_content = this.msg_content_reset
         },
-        async getOrderInfo(id) {
+        async getOrderInfo(item) {
             // Reset client_id tránh loạn giỏ hàng
+            console.log('getOrderInfo',item);
             this.client_id = ''
             localStorage.removeItem("client_id")
             this.cart = []
-            let path = `${APICMS}/v1/selling-page/order/order_read`
-            let headers = { Authorization: this.store_token }
-            let params = {
-                id,
-            }
+            this.is_update_order = true
+            this.name = item.customer_name
+            this.phone = item.customer_phone
+            this.email = item.customer_email
+            this.platform_type = item.platform_type
+            this.order_id = item.id
 
-            let order = await Restful.get(path, params, headers)
-
-            let dataOrder = {}
-            if (
-                order.data &&
-                order.data.data
-            ) {
-                this.is_update_order = true
-
-                dataOrder = order.data.data
-                this.name = dataOrder.customer_name
-                this.phone = dataOrder.customer_phone
-                this.email = dataOrder.customer_email
-                this.street = dataOrder.customer_street_name
-                this.note = dataOrder.note
-                this.country = "Việt Nam"
-                this.platform_type = dataOrder.platform_type
-                this.order_id = dataOrder.id
-
-                if (dataOrder.branchId) {
-                    this.branchId = dataOrder.branchId
-                }
-                this.list_city.map((item) => {
-                    if (dataOrder.customer_city_name === item.name) {
-                        this.city = item;
-                    }
-                })
-                if (dataOrder.customer_city_name === "") {
-                    this.city = ""
-                    this.district = ""
-                    this.ward = ""
-                    return
-                }
-
-                await this.getListDistrict()
-                this.list_district.map((item) => {
-                    if (dataOrder.customer_district_name === item.name) {
-                        this.district = item
-                    }
-                })
-
-                await this.getListWard()
-                this.list_ward.map((item) => {
-                    if (dataOrder.customer_ward_name === item.name) {
-                        this.ward = item
-                    }
-                })
-                console.log("call order", order)
-            }
         },
-        async createEmptyOrder() {
+        // async createEmptyOrder() {
+        //     try {
+        //         // Tạo order rỗng
+        //         if (this.platform_type !== "CUSTOM") return
+        //         let path = `${APICMS}/v1/selling-page/order/order_create_3rd`
+        //         let headers = { Authorization: this.store_token }
+        //         let body = {
+        //             customer_name: this.name,
+        //             customer_phone: this.phone,
+        //             customer_address: "Chưa xác định",
+        //             status: "draft_order",
+        //             platform_type: this.platform_type,
+        //         };
+
+        //         let emptyOrder = await Restful.post(path, body, {}, headers)
+
+        //         if (emptyOrder.data && emptyOrder.data.data) {
+        //             console.log("create empty order ok")
+        //             this.order_id = emptyOrder.data.data.id
+        //             EventBus.$emit("call-order")
+        //             Toast2.fire({
+        //                 icon: "success",
+        //                 title: "Tạo đơn hàng thành công",
+        //             })
+        //         } else {
+        //             Toast.fire({
+        //                 icon: "error",
+        //                 title: "Đã xảy ra lỗi khi tạo đơn rỗng",
+        //             })
+        //         }
+        //     } catch (error) {
+        //         if (error.data.error_message.message) {
+        //             Toast2.fire({
+        //                 icon: "error",
+        //                 title: error.data.error_message.message,
+        //             })
+        //             return
+        //         }
+        //         if (error.data.error_message) {
+        //             Toast2.fire({
+        //                 icon: "error",
+        //                 title: error.data.error_message,
+        //             });
+        //             return
+        //         }
+        //         if (error.errors) {
+        //             Toast2.fire({
+        //                 icon: "error",
+        //                 title: error.errors,
+        //             })
+        //             return
+        //         }
+        //         Toast2.fire({
+        //             icon: "error",
+        //             title: "Đã xảy ra lỗi",
+        //         })
+        //     }
+        // },
+        async updateOrder(data) {
             try {
-                // Tạo order rỗng
-                if (this.platform_type !== "CUSTOM") return
-                let path = `${APICMS}/v1/selling-page/order/order_create_3rd`
+                this.is_loading = true
+                let path = `${APICMS}/v1/selling-page/order/order_update_3rd`
                 let headers = { Authorization: this.store_token }
                 let body = {
-                    // access_token: this.store_token,
-                    customer_name: this.name,
-                    customer_phone: this.phone,
-                    customer_address: "Chưa xác định",
-                    status: "unconfirmed",
-                    platform_type: this.platform_type,
-                };
-
-                let emptyOrder = await Restful.post(path, body, {}, headers)
-
-                if (emptyOrder.data && emptyOrder.data.data) {
-                    console.log("create empty order ok")
-                    this.order_id = emptyOrder.data.data.id
-                    EventBus.$emit("call-order")
-                    Toast2.fire({
-                        icon: "success",
-                        title: "Tạo đơn hàng thành công",
-                    })
-                } else {
-                    Toast.fire({
-                        icon: "error",
-                        title: "Đã xảy ra lỗi khi tạo đơn rỗng",
-                    })
+                    ...data,
+                    id: this.order_id
                 }
-            } catch (error) {
-                if (error.data.error_message.message) {
-                    Toast2.fire({
-                        icon: "error",
-                        title: error.data.error_message.message,
-                    })
-                    return
-                }
-                if (error.data.error_message) {
-                    Toast2.fire({
-                        icon: "error",
-                        title: error.data.error_message,
-                    });
-                    return
-                }
-                if (error.errors) {
-                    Toast2.fire({
-                        icon: "error",
-                        title: error.errors,
-                    })
-                    return
-                }
-                Toast2.fire({
-                    icon: "error",
-                    title: "Đã xảy ra lỗi",
-                })
-            }
-        },
-        async updateOrder() {
-            try {
-                this.prevent_click = true
-                let path = `${APICMS}/v1/selling-page/order/order_update`
-                let headers = { Authorization: this.store_token }
-                let body = {
-                    id: this.order_id,
-                    product_info: this.cart,
-                    customer_name: this.name,
-                    customer_phone: this.phone,
-                    customer_email: this.email,
-                    customer_address: this.address,
-                    customer_city_name: this.city.name,
-                    customer_province_name: this.city.name,
-                    customer_district_name: this.district.name,
-                    customer_ward_name: this.ward.name,
-                    customer_street_name: this.street,
-                    note: this.note,
-                    status: "confirmed",
-                }
-                if (!this.city.name.includes("Tỉnh")) {
-                    delete body["customer_province_name"]
-                }
-
-                let callUpdateOrder = await Restful.post(path, body, {}, headers)
-
+                let update_order = await Restful.post(path, body, {}, headers)
+                console.log('update_order ', update_order);
                 if (
-                    callUpdateOrder.data &&
-                    callUpdateOrder.data.data
+                    update_order.data &&
+                    update_order.data.data &&
+                    update_order.data.data.order_info &&
+                    update_order.data.data.order_info.order_id
                 ) {
                     this.is_update_order = false
-                    console.log("before")
-                    // Yêu cầu ListOrder.vue get list order
-                    EventBus.$emit("call-order")
-                    console.log("after")
-
-                    // Đẩy tin nhắn về Msg
-                    if (
-                        callUpdateOrder.data.data.order_id
-                    ) {
-                        let content = this.covertMsgContent(callUpdateOrder.data.data.order_id)
-                        this.sendMessage(content)
-                    } else {
-                        let content = this.covertMsgContent("order_id")
-                        this.sendMessage(content)
+                    let order_id = update_order.data.data.order_info.order_id
+                    if (this.order_option == 1) {
+                        if (this.$refs.delivery) {
+                            await this.$refs.delivery.createDelivery(order_id, this.product_info)
+                        }
                     }
-                    localStorage.removeItem("cus_phone")
-                    Toast2.fire({
-                        icon: "success",
-                        title: "Cập nhật đơn hàng thành công",
-                    })
-
-                    this.$emit("switch-header")
+                    else if (this.order_option == 2) {
+                        if (this.$refs.payment) {
+                            await this.$refs.payment.createPayment(order_id)
+                        }
+                    }
+                    else {
+                        Toast2.fire({
+                            icon: "success",
+                            title: "Tạo đơn hàng thành công",
+                        })
+                        this.sendMessage(order_id)
+                    }
+                    setTimeout(() => {
+                        this.handleDeleteAllCart()
+                    }, 1000)
+                    setTimeout(() => {
+                        EventBus.$emit("call-order")
+                        this.$emit("switch-header")
+                    }, 1000)
+                    this.is_loading = false
                     // Xóa giỏ hàng sau khi tạo đơn
-                    this.handleDeleteAllCart()
                 } else {
+                    this.is_loading = false
+
                     Toast.fire({
                         icon: "error",
                         title: "Đã xảy ra lỗi khi cập nhật đơn",
                     })
-                    this.prevent_click = false
                 }
             } catch (error) {
-                this.prevent_click = false;
-                if (error.data.error_message.message) {
+                this.is_loading = false
+                if (error.data && error.data.error_message && error.data.error_message.message) {
                     Toast2.fire({
                         icon: "error",
                         title: error.data.error_message.message,
                     })
                     return
                 }
-                if (error.data.error_message) {
+                if (error.data && error.data.error_message) {
                     Toast2.fire({
                         icon: "error",
                         title: error.data.error_message,
@@ -1281,6 +1227,16 @@ export default {
                     icon: "error",
                     title: "Đã xảy ra lỗi khi cập nhật đơn",
                 })
+            }
+        },
+        checkPayment() {
+            if (!this.payload.payment_platform) {
+                return this.swalToast("Hãy cài đặt thanh toán để sử dụng chức năng này!", "warning")
+            }
+        },
+        checkDelivery() {
+            if (!this.payload.delivery_platform) {
+                return this.swalToast("Hãy cài đặt giao vận để sử dụng chức năng này!", "warning")
             }
         },
         handleShowForm(name) {
@@ -1306,11 +1262,6 @@ export default {
             })
         },
     },
-    beforeDestroy() {
-        EventBus.$off("get-order")
-        EventBus.$off("create-empty-order")
-        EventBus.$off("disable-update-order")
-    },
     watch: {
         store_token() {
             this.getInitialData();
@@ -1318,11 +1269,11 @@ export default {
             this.phone = this.payload.phone
             this.email = this.payload.email
         },
-        platform_type() {
-            if (this.wait_create_empty_order) {
-                this.createEmptyOrder()
-            }
-        },
+        // platform_type() {
+        //     if (this.wait_create_empty_order) {
+        //         this.createEmptyOrder()
+        //     }
+        // },
         total_price: function () {
             this.handleTotalPayment()
         },
@@ -1331,6 +1282,10 @@ export default {
         },
         order_option: function (newValue) {
             if (newValue == 0) this.shipping_fee = 0
+        },
+        'payload.platform_type': function() {
+            console.log('object',this.payload.platform_type);
+            this.platform_type = this.payload.platform_type
         }
     },
     filters: {
@@ -1348,16 +1303,16 @@ export default {
         },
     },
     destroyed() {
-        EventBus.$off("get-order", (id) => {
-            this.getOrderInfo(id)
+        EventBus.$off("get-order", (item) => {
+            this.getOrderInfo(item)
         });
-        EventBus.$off("create-empty-order", () => {
-            if (!this.platform_type) {
-                this.wait_create_empty_order = true
-                return
-            }
-            this.createEmptyOrder()
-        });
+        // EventBus.$off("create-empty-order", () => {
+        //     if (!this.platform_type) {
+        //         this.wait_create_empty_order = true
+        //         return
+        //     }
+        //     this.createEmptyOrder()
+        // });
         EventBus.$off("disable-update-order", () => {
             this.is_update_order = false
         })
