@@ -20,9 +20,6 @@ export default {
             list_ward_sender: "",
             list_district_receiver: "",
             list_ward_receiver: "",
-            receiver_city: this.prop_receiver_city,
-            receiver_district: this.prop_receiver_district,
-            receiver_ward: this.prop_receiver_ward,
             pricing_services_list: "",
             list_order_payment_vtp: [{ name: 'Chưa thanh toán/Do not collect money', value: 1 }, { name: 'Thu phí ship và giá sản phẩm/Collect ship fee and price of products', value: 2 }, { name: 'Thu giá sản phẩm/Collect price of products', value: 3 }, { name: 'Thu phí ship/Collect ship fee', value: 4 }],
             list_order_payment_ghn: [{ name: 'Người gửi trả tiền', value: 1 }, { name: 'Người nhận trả tiền', value: 2 }],
@@ -78,7 +75,7 @@ export default {
     },
     async mounted() {
         this.getInventory()
-        this.handleGetEmailLocal()
+        this.getEmailLocal()
     },
     methods: {
         async getInventory() {
@@ -194,17 +191,14 @@ export default {
                 }
                 if (this.payload.delivery_platform == "GHTK") {
                     if (!this.prop_receiver_street
-                        || !this.order_info.receiver_ward
                         || !this.order_info.receiver_district
                         || !this.order_info.receiver_city
                         || !this.order_info.weight
                         || !this.order_info.other_info.transport
                         || !this.prop_total_price
                     ) return
-                    this.order_info.receiver_address = `${this.prop_receiver_street}, ${this.order_info.receiver_ward.name}, ${this.receiver_district.name}, ${this.receiver_city.name}`
+                    this.order_info.receiver_address = `${this.prop_receiver_street}, ${this.order_info.receiver_ward.name}, ${this.order_info.receiver_district.name}, ${this.order_info.receiver_city.name}`
                     body = {
-                        // "sender_province": "Ha Noi",        // xoá khi update address cms
-                        // "sender_district": "Hoang Mai",
                         "receiver_province": this.order_info.receiver_city.name,
                         "receiver_district": this.order_info.receiver_district.name,
                         "receiver_address": this.order_info.receiver_address,
@@ -213,7 +207,6 @@ export default {
                         "transport": this.order_info.other_info.transport
                     }
                 }
-                console.log('body 111111111111', body);
                 let path = `${APICMS}/v1/selling-page/delivery/delivery_ship_fee`
                 let headers = { Authorization: this.store_token }
 
@@ -221,7 +214,6 @@ export default {
                 let get_shipping_fee = await Restful.post(path, body, null, headers)
                 this.handle_api = false
 
-                console.log('get_shipping_fee', get_shipping_fee);
                 if (
                     get_shipping_fee.data &&
                     get_shipping_fee.data.data &&
@@ -243,20 +235,54 @@ export default {
                     this.swalToast(e.data.error_message.code_message_value, 'error')
                 }
                 this.order_info.shipping_fee = 0
-
-                // this.swalToast('Lỗi api getShippingFee')
             }
         },
-        handleShippingFee() {
-            if (this.payload.delivery_platform == "VIETTEL_POST") {
-                return this.getPricingServices()
-            }
-            this.getShippingFee()
-        },
+        //handle change btn select//
         async handleShopChange() {
             await this.getPricingServices()
             this.getShippingFee()
         },
+        handleChangeCity() {
+            if (this.payload.delivery_platform == "VIETTEL_POST") {
+                this.getPricingServices()
+            }
+            if (this.payload.delivery_platform == "GHTK") {
+                this.getShippingFee()
+            }
+        },
+        handleChangeDistrict() {
+            if (this.payload.delivery_platform == "VIETTEL_POST") {
+                this.getPricingServices()
+            }
+            if (this.payload.delivery_platform == "GHTK") {
+                this.getShippingFee()
+            }
+            if (this.payload.delivery_platform == "GHN") {
+                this.handleShopChange()
+            }
+        },
+        handleChangeWard() {
+            if (this.payload.delivery_platform == "GHN") {
+                this.getShippingFee()
+            }
+        },
+        handleChangeSize() {
+            if (this.payload.delivery_platform == "VIETTEL_POST") {
+                this.getPricingServices()
+            }
+            if (this.payload.delivery_platform == "GHN") {
+                this.getShippingFee()
+            }
+        },
+        handleChangeWeight() {
+            if (this.payload.delivery_platform == "VIETTEL_POST") {
+                this.getPricingServices()
+            }
+            if (this.payload.delivery_platform == "GHN" || this.payload.delivery_platform == "GHTK") {
+                this.getShippingFee()
+            }
+        },
+        /////////////////////////
         handleShippingFeeVTP() {
             if (this.order_info.order_service) {
                 this.order_info.shipping_fee = this.order_info.order_service.GIA_CUOC
@@ -301,10 +327,14 @@ export default {
                     "order_payment": this.order_info.order_payment.value,
                     "order_service": this.order_info.order_service.MA_DV_CHINH
                 }
-
             }
             if (this.payload.delivery_platform == "GHN") {
+                delete body["sender_ward"]
+                delete body["sender_district"]
+                delete body["required_note"]
                 other = {
+                    "sender_ward": this.order_info.inventory.ward_code,
+                    "sender_district": this.order_info.inventory.district_id,
                     "receiver_province": this.order_info.receiver_city.meta_data.ghn.province_id,
                     "receiver_district": this.order_info.receiver_district.meta_data.ghn.district_id,
                     "receiver_ward": this.order_info.receiver_ward.meta_data.ghn.code,
@@ -341,7 +371,6 @@ export default {
                     "receiver_district": this.order_info.receiver_district.name,
                     "receiver_ward": this.order_info.receiver_ward.name,
                     "code_amount": this.order_info.code_amount_num,
-                    "required_note": this.order_info.note,
                     "order_value": parseInt(this.prop_total_price),
                     "cod_amount": parseInt(this.order_info.cod_amount),
                     "other_info": {
@@ -421,7 +450,6 @@ export default {
         // component order sẽ gọi hàm này
         async createDelivery(order_id, product_info) {
             try {
-                if (this.handle_api) return
                 let path = `${APICMS}/v1/selling-page/delivery/delivery_create`
                 let headers = { Authorization: this.store_token }
                 let info_delivery = this.infoDelivery(product_info)
@@ -431,33 +459,36 @@ export default {
                 };
                 console.log("body create delivery", body)
 
-                this.handle_api = true
                 let create_order = await Restful.post(path, body, {}, headers)
-                this.handle_api = false
 
                 if (
                     create_order.data &&
                     create_order.data.data &&
-                    create_order.data.data.snap_order &&
-                    ((create_order.data.data.snap_order.data && create_order.data.data.snap_order.data.fee) || create_order.data.data.snap_order.data || create_order.data.data.snap_order.success)
-
+                    create_order.data.data.snap_order
                 ) {
-                    if (this.order_option == 1) {
-                        this.propSendMessage(order_id)
+                    if ((create_order.data.data.snap_order.data && create_order.data.data.snap_order.data.fee) || create_order.data.data.snap_order.data || create_order.data.data.snap_order.success) {
+                        let delivery_id = ''
+                        let time = create_order.data.data.updatedAt
+                        if (this.payload.delivery_platform == "GHTK") {
+                            delivery_id = create_order.data.data.snap_order.order.label
+                        }
+                        else {
+                            delivery_id = create_order.data.data.snap_order.data.order_code || create_order.data.data.snap_order.data.ORDER_NUMBER         //GHN || VTP 
+                        }
+                        this.propSendMessage(order_id, null, delivery_id, time)
+                        this.swalToast("Tạo đơn giao vận thành công", "success")
+                        return
                     }
-                    else {
-                        this.propSendMessage(order_id)
+                    if (
+                        !create_order.data.data.snap_order.success &&
+                        this.payload.delivery_platform == "GHTK"
+                    ) {
+                        return this.swalToast(create_order.data.data.snap_order.message, "error", 4000)
                     }
-                    console.log("33333333333333333", create_order)
-                    // this.resetAddress()
-                    // this.handleShowForm('order')
-                    this.swalToast("Tạo đơn giao vận thành công", "success")
-                    return
                 }
-                this.swalToast(`Tạo đơn lỗi bên ${this.payload.delivery_platform}`, "error")
+                this.swalToast(`Tạo đơn lỗi bên ${this.payload.delivery_platform}`, "error", 3000)
             } catch (e) {
                 console.log("e", e)
-                this.handle_api = false
                 if (
                     e.data &&
                     e.data.error_message
@@ -477,7 +508,7 @@ export default {
             localStorage.setItem('order_3d_platform', JSON.stringify({ ...data, 'option_save_info': this.option_save_info, 'sender_email': this.order_info.sender_email }))
             // }
         },
-        handleGetEmailLocal() {
+        getEmailLocal() {
             if (this.payload.delivery_platform == "VIETTEL_POST") {
                 let data = JSON.parse(localStorage.getItem('order_3d_platform'))
                 if (data.option_save_info) {
@@ -531,13 +562,13 @@ export default {
             }).format(number)
             return number.length
         },
-        swalToast(title, icon) {
+        swalToast(title, icon, timer = 2000) {
             const Toast = Swal.mixin({
                 toast: true,
                 position: "center",
                 showConfirmButton: false,
                 width: '80vw',
-                timer: 2000,
+                timer: timer,
                 timerProgressBar: false,
                 onOpen: (toast) => {
                     toast.addEventListener("mouseenter", Swal.stopTimer)
@@ -554,19 +585,22 @@ export default {
     watch: {
         prop_receiver_address: function (value) {
             this.order_info.receiver_address = this.prop_receiver_address
+            if (this.payload.delivery_platform == 'GHTK') {
+                this.getShippingFee()
+            }
         },
         prop_receiver_city: function (value) {
             this.order_info.receiver_city = this.prop_receiver_city
-            if (this.payload.delivery_platform == "VIETTEL_POST") {
-                this.getPricingServices()
-            }
+            this.handleChangeCity()
         },
         prop_receiver_district: function (value) {
+            console.log('11111111111111111111111111');
             this.order_info.receiver_district = this.prop_receiver_district
-            this.getPricingServices()
+            this.handleChangeDistrict()
         },
         prop_receiver_ward: function (value) {
             this.order_info.receiver_ward = this.prop_receiver_ward
+            this.handleChangeWard()
         },
         prop_receiver_name: function () {
             this.order_info.receiver_name = this.prop_receiver_name
@@ -581,7 +615,12 @@ export default {
             this.order_info.sender_email = this.payload.store_email
         },
         prop_total_price: function () {
-            this.handleShippingFee()
+            if (this.payload.delivery_platform == 'VIETTEL_POST') {
+                this.getPricingServices()
+            }
+            if (this.payload.delivery_platform == 'GHTK') {
+                this.getShippingFee()
+            }
         },
         'order_info.shipping_fee': function () {
             console.log('emit shipping fee');

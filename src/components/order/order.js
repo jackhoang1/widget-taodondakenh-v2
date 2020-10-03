@@ -85,8 +85,16 @@ export default {
 
             is_show_order_info: false,
             prevent_click: false,
-            msg_content_reset: 'Quý khách đã tạo thành công đơn hàng số {{order_id}} ',
-            msg_content: 'Quý khách đã tạo thành công đơn hàng số {{order_id}} ',
+            msg_content_reset: {
+                order: 'Thông tin đơn hàng',
+                delivery: 'Đơn hàng {{order_id}} của bạn đã được vận chuyển. Mã vận đơn là {{delivery_id}}. Để kiểm tra tình trạng giao hàng, vui lòng ấn nút "Kiểm tra vận đơn" bên dưới',
+                payment: 'Thanh toán đơn hàng {{order_id}} của bạn trên {{payment_name}}, vui lòng ấn nút "Thanh toán" bên dưới'
+            },
+            msg_content: {
+                order: 'Thông tin đơn hàng',
+                delivery: 'Đơn hàng {{order_id}} của bạn đã được vận chuyển. Mã vận đơn là {{delivery_id}}. Để kiểm tra tình trạng giao hàng, vui lòng ấn nút "Kiểm tra vận đơn" bên dưới',
+                payment: 'Thanh toán đơn hàng {{order_id}} của bạn trên {{payment_name}}, vui lòng ấn nút "Thanh toán" bên dưới'
+            },
             is_show_setting_msg: false,
             is_update_order: false,
             wait_create_empty_order: false,
@@ -105,6 +113,7 @@ export default {
             reset_token: false,
             validate_info: false,
             is_loading: false,
+            is_edit_msg: false,
         };
     },
     created() {
@@ -253,9 +262,7 @@ export default {
         searchByFilter() {
             let products = this.list_product
             let search = this.search_value.toLowerCase()
-            console.log("search", search)
             this.filter_list_product = products.filter((item) => {
-                console.log("here", item.product_name.toLowerCase())
                 return item.product_name.toLowerCase().includes(search)
             })
         },
@@ -291,7 +298,6 @@ export default {
                     get_cart.data.data &&
                     get_cart.data.data.cart
                 ) {
-                    console.log("get cart", get_cart)
                     this.cart = get_cart.data.data.cart
                     this.total_price = get_cart.data.data.total_price
                 }
@@ -329,7 +335,6 @@ export default {
                     body.other_info.UnitId = item.other_info.UnitId
                     body["product_code"] = item.product_code
                 }
-                console.log("body handleAddToCart", body)
                 // Thêm sản phẩm vào giỏ hàng
                 let add_cart = await Restful.post(path, body, null, headers)
                 // Lưu client_id và lưu vào localStorage
@@ -339,7 +344,7 @@ export default {
                     add_cart.data.data.client_id
                 ) {
                     this.client_id = add_cart.data.data.client_id
-                    this.client_id && localStorage.setItem("client_id", this.client_id)
+                    this.client_id && localStorage.setItem("order_3rd_client_id", this.client_id)
                 }
 
                 Toast.fire({
@@ -440,11 +445,9 @@ export default {
         },
         validateEmail(email) {
             let reg = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
-            if (reg.test(email) == false) {
-                return false;
+            if (reg.test(email)) {
+                return true;
             }
-            return true;
-
         },
         handleCreateOrder() {
             if (this.cart.length === 0) {
@@ -464,7 +467,6 @@ export default {
                 !this.ward ||
                 !this.street
             ) {
-                console.log(this.order_option);
                 return Toast.fire({
                     icon: "error",
                     title: "Vui lòng điền đầy đủ thông tin",
@@ -564,6 +566,8 @@ export default {
                     body.other_info.msg_config = {}
                     body.other_info.msg_config.psid = this.payload.psid
                     body.other_info.msg_config.token_bbh = this.payload.token_bbh
+                    body.other_info.msg_config.messages = this.msg_content.delivery
+                    body.other_info.msg_config.access_token = this.store_token
                     body.other_info.info_delivery = this.info_delivery
                 }
                 if (!body.branchId) delete body.branchId    //????
@@ -582,7 +586,6 @@ export default {
                     body["customer_ward_name"] = this.ward.meta_data.haravan.name
                     body["customer_ward_code"] = this.ward.meta_data.haravan.code
                     body["customer_address"] = this.address
-
                 }
                 if (this.is_update_order) {
                     return this.updateOrder(body)
@@ -620,6 +623,7 @@ export default {
                     //     throw create_order.data.data.snap_order
                     // }
                     let order_id = create_order.data.data.order_info.order_id
+                    let time = create_order.data.data.order_info.updatedAt
                     if (this.order_option == 1) {
                         if (this.$refs.delivery) {
                             await this.$refs.delivery.createDelivery(order_id, this.product_info)
@@ -635,7 +639,7 @@ export default {
                             icon: "success",
                             title: "Tạo đơn hàng thành công",
                         })
-                        this.sendMessage(order_id)
+                        this.sendMessage(order_id, null, null, time)
                     }
                     setTimeout(() => {
                         this.handleDeleteAllCart()
@@ -702,73 +706,6 @@ export default {
                 });
             }
         },
-        async createHaravanCustomer(body) {
-            try {
-                let path = `${APICMS}/v1/selling-page/other/haravan_create_customer`
-                console.log("haraas")
-                let headers = { Authorization: this.store_token }
-                let customer = {
-                    customer_name: this.name,
-                    customer_email: this.email,
-                    customer_address: this.address,
-                    customer_phone: this.phone,
-                    customer_province_name: this.city.name,
-                    customer_city_name: this.city.name,
-                }
-
-                let createCustomer = await Restful.post(path, customer, null, headers)
-
-                console.log("hrv acc success")
-                path = `${APICMS}/v1/selling-page/order/order_create_3rd`
-                this.callOrder(path, body)
-            } catch (e) {
-                console.log("eeer", e.data.error_message)
-                if (
-                    e.data &&
-                    e.data.error_message === 'Địa chỉ Email đã được sử dụng.'
-                ) {
-                    let path = `${APICMS}/v1/selling-page/order/order_create_3rd`
-                    let body = {
-                        product_info: this.cart,
-                        customer_name: this.name,
-                        customer_phone: this.phone,
-                        customer_email: this.email,
-                        customer_address: this.address,
-                        customer_city_name: this.city.name,
-                        customer_province_name: this.city.name,
-                        customer_district_name: this.district.name,
-                        customer_ward_name: this.ward.name,
-                        customer_street_name: this.street,
-                        note: this.note,
-                        status: "new_order",
-                        platform_type: this.platform_type,
-                        branchId: this.branch.id,
-                    }
-                    if (!body.branchId) delete body.branchId
-                    if (!this.city.name.includes("Tỉnh")) {
-                        delete body["customer_province_name"]
-                    }
-                    this.callOrder(path, body)
-                    return
-                }
-                if (
-                    e.data &&
-                    e.data.error_message
-                ) {
-                    Toast2.fire({
-                        icon: "error",
-                        title: e.data.error_message,
-                    })
-                    this.prevent_click = false
-                    return
-                }
-                Toast2.fire({
-                    icon: "error",
-                    title: "Xảy ra lỗi khi tạo Haravan customer",
-                });
-                this.prevent_click = false;
-            }
-        },
         async handleDeleteAllCart() {
             try {
                 // Xóa giỏ hàng sau khi tạo thành cong đơn hàng
@@ -795,56 +732,115 @@ export default {
                 console.log("error", e)
             }
         },
-        covertMsgContent(order_id) {
-            localStorage.setItem("msg_content", this.msg_content)
-            return this.msg_content.replace(/{{order_id}}/g, order_id)
+        covertMsgContent(order_id, delivery_id, payment_name) {
+            let msg_order = this.msg_content.order.replace(/{{order_id}}/g, order_id)
+            let msg_delivery = this.msg_content.delivery.replace(/{{order_id}}/g, order_id).replace(/{{delivery_id}}/g, delivery_id)
+            let msg_payment = this.msg_content.payment.replace(/{{order_id}}/g, order_id).replace(/{{payment_name}}/g, payment_name)
+            return { msg_order, msg_delivery, msg_payment }
         },
-        async sendMessage(order_id, url_payment) {
+        async sendMessage(order_id, url_payment, delivery_id, time) {
             try {
-                let list_product = this.cart.map((item) => {
-                    return `${item.product_quantity}  ${item.product_name} \n`
-                });
-                let strProduct = list_product.join(" ")
-                let content = this.covertMsgContent(order_id);
-                let path = `https://api.botbanhang.vn/v1.3/public/json`
-                let params = {
-                    access_token: this.payload.token_bbh,
-                    psid: this.payload.psid,
+                let msg_sample = this.covertMsgContent(order_id, delivery_id, this.payload.payment_platform);
+                let timestamp = Number(time.toString().slice(0, 10))
+                let address = {
+                    "street_1": `${this.street}`,
+                    "street_2": "",
+                    "city": `${this.district.name}`,
+                    "postal_code": `${this.city.meta_data.haravan.province_id}`,
+                    "state": `${this.city.meta_data.haravan.code}`,
+                    "country": "VN"
                 }
-                let messages = [
-                    { text: content },
-                    {
-                        text: `Tên khách hàng: ${this.name} \nSố điện thoại: ${this.phone} \nEmail: ${this.email} \nĐịa chỉ: ${this.address}`,
-                    },
-                    {
-                        text: `Danh sách sản phẩm: \n${strProduct} \nGiá trị đơn hàng: \n${this.$options.filters.toCurrency(this.total_price)}`,
-                    },
-                ]
+                let summary = {
+                    "subtotal": `${this.total_price}`,
+                    "shipping_cost": `${this.shipping_fee}`,
+                    "total_cost": `${this.total_payment}`
+                }
+                let elements = this.cart.map(product => {
+                    return {
+                        "title": `${product.product_name}`,
+                        "quantity": `${product.product_quantity}`,
+                        "price": `${product.product_price}`,
+                        "currency": "VND",
+                        "image_url": `${product.product_image}`
+                    }
+                })
+                let payload = {
+                    "template_type": "receipt",
+                    "recipient_name": `${this.name}`,
+                    "order_number": `${order_id}`,
+                    "currency": "VND",
+                    "payment_method": 'No',
+                    "timestamp": `${timestamp}`,
+                    address,
+                    summary,
+                    elements
+                }
+                let template_btn = []
                 if (this.order_option == 1) {
-                    messages = messages.concat(
+                    payload['payment_method'] = `Ship cod ${this.payload.delivery_platform}`
+                    template_btn = template_btn.concat(
                         [
                             {
-                                text: `Đơn hàng của quý khách đang được giao vận.\nPhí ship ${this.$options.filters.toCurrency(this.shipping_fee)}`
+                                "attachment": {
+                                    "type": "template",
+                                    "payload": {
+                                        "template_type": "button",
+                                        "text": msg_sample.msg_delivery,
+                                        "buttons": [
+                                            {
+                                                "type": "web_url",
+                                                "url": `https://devbbh.tk/dev-cms/#/deliver/?access_token=${this.store_token}&order_id=${delivery_id}`,
+                                                "title": "Kiểm tra vận đơn"
+                                            }
+                                        ]
+                                    }
+                                }
                             }
                         ]
                     )
                 }
                 if (this.order_option == 2) {
-                    messages = messages.concat(
+                    payload['payment_method'] = `Payment ${this.payload.payment_platform}`
+                    template_btn = template_btn.concat(
                         [
                             {
-                                text: `Phí ship ${this.$options.filters.toCurrency(this.shipping_fee)} \n Tổng thanh toán ${this.$options.filters.toCurrency(this.total_payment)}`
-                            },
-                            {
-                                text: `Sau khi thanh toán đơn hàng sẽ được giao vận ${url_payment}`
+                                "attachment": {
+                                    "type": "template",
+                                    "payload": {
+                                        "template_type": "button",
+                                        "text": msg_sample.msg_payment,
+                                        "buttons": [
+                                            {
+                                                "type": "web_url",
+                                                "url": `${url_payment}`,
+                                                "title": "Thanh toán"
+                                            }
+                                        ]
+                                    }
+                                }
                             }
                         ]
                     )
                 }
+                let messages = [
+                    { text: msg_sample.msg_order },
+                    {
+                        "attachment": {
+                            "type": "template",
+                            payload
+                        }
+                    }
+                ]
+                messages = messages.concat(template_btn)
                 let body = { messages }
+                let path = `https://api.botbanhang.vn/v1.3/public/json`
+                let params = {
+                    access_token: this.payload.token_bbh,
+                    psid: this.payload.psid,
+                }
+
                 let sent_message = await Restful.post(path, body, params)
 
-                console.log("send", body)
             } catch (e) {
                 console.log("error send mess", e)
                 this.swalToast("Lỗi khi gửi tin về message", "error")
@@ -867,17 +863,14 @@ export default {
                     get_list_product.data.data
                 ) {
                     this.list_product = get_list_product.data.data
+                    if (
+                        get_list_product.data.data[0] &&
+                        get_list_product.data.data[0].platform_type
+                    ) {
+                        this.platform_type = get_list_product.data.data[0].platform_type
+                        this.$emit('platform_type', this.platform_type)
+                    }
                 }
-                if (
-                    get_list_product.data &&
-                    get_list_product.data.data[0] &&
-                    get_list_product.data.data[0].platform_type
-                ) {
-                    this.platform_type = get_list_product.data.data[0].platform_type
-                    this.$emit('platform_type', this.platform_type)
-                }
-                console.log(this.platform_type)
-
                 // Lấy chi nhánh nếu là Kiotviet
                 if (this.platform_type === "KIOTVIET") {
                     this.has_branch = true
@@ -910,7 +903,7 @@ export default {
                 return product.image;
             };
 
-            products.map((product, ind) => {
+            products.map((product, index) => {
                 let map_variant = product.variants.map((variant) => {
                     variant.image = findImage(product, variant.image_id)
                     return {
@@ -925,11 +918,11 @@ export default {
             });
         },
         async getInitialData() {
-            if (localStorage.getItem("client_id")) {
-                this.client_id = localStorage.getItem("client_id")
+            if (localStorage.getItem("order_3rd_client_id")) {
+                this.client_id = localStorage.getItem("order_3rd_client_id")
             }
-            if (localStorage.getItem("msg_content")) {
-                this.msg_content = localStorage.getItem("msg_content")
+            if (localStorage.getItem("order_3rd_msg_content")) {
+                this.msg_content = JSON.parse(localStorage.getItem("order_3rd_msg_content"))
             }
             await this.getListProduct()
             this.getListProvince()
@@ -986,7 +979,6 @@ export default {
                     this.getBranchKiotviet()
                     return true
                 }
-
             } catch (e) {
                 this.swalToast('Lỗi reset token kiotviet', 'error')
                 console.log(e)
@@ -1005,7 +997,6 @@ export default {
                     reset_token_misa.data.data
                 ) {
                     this.reset_token = true
-                    console.log("reset_token_misa", reset_token_misa)
                     this.getBranchMisa()
                     return true
                 }
@@ -1022,7 +1013,6 @@ export default {
 
                 let get_branch = await Restful.post(path, null, null, headers)
 
-                console.log("get branch misa", get_branch)
                 if (
                     get_branch.data &&
                     get_branch.data.data
@@ -1031,7 +1021,6 @@ export default {
                     this.list_branch = list_branch.map((branch) => {
                         return { id: branch.Id, branchName: branch.Name }
                     })
-                    // console.log("list_branch", this.list_branch)
                     this.has_branch = true
                 }
                 if (
@@ -1064,21 +1053,10 @@ export default {
             }
         },
 
-        showSettingMsg() {
-            this.is_show_setting_msg = !this.is_show_setting_msg;
-        },
-        handleSaveMsg() {
-            localStorage.setItem('msg_content', this.msg_content)
-            this.showSettingMsg()
-        },
-        handleResetMsg() {
-            this.msg_content = this.msg_content_reset
-        },
         async getOrderInfo(item) {
             // Reset client_id tránh loạn giỏ hàng
-            console.log('getOrderInfo',item);
             this.client_id = ''
-            localStorage.removeItem("client_id")
+            localStorage.removeItem("order_3rd_client_id")
             this.cart = []
             this.is_update_order = true
             this.name = item.customer_name
@@ -1086,66 +1064,8 @@ export default {
             this.email = item.customer_email
             this.platform_type = item.platform_type
             this.order_id = item.id
-
+            this.$emit('msg-info', item.other_info)
         },
-        // async createEmptyOrder() {
-        //     try {
-        //         // Tạo order rỗng
-        //         if (this.platform_type !== "CUSTOM") return
-        //         let path = `${APICMS}/v1/selling-page/order/order_create_3rd`
-        //         let headers = { Authorization: this.store_token }
-        //         let body = {
-        //             customer_name: this.name,
-        //             customer_phone: this.phone,
-        //             customer_address: "Chưa xác định",
-        //             status: "draft_order",
-        //             platform_type: this.platform_type,
-        //         };
-
-        //         let emptyOrder = await Restful.post(path, body, {}, headers)
-
-        //         if (emptyOrder.data && emptyOrder.data.data) {
-        //             console.log("create empty order ok")
-        //             this.order_id = emptyOrder.data.data.id
-        //             EventBus.$emit("call-order")
-        //             Toast2.fire({
-        //                 icon: "success",
-        //                 title: "Tạo đơn hàng thành công",
-        //             })
-        //         } else {
-        //             Toast.fire({
-        //                 icon: "error",
-        //                 title: "Đã xảy ra lỗi khi tạo đơn rỗng",
-        //             })
-        //         }
-        //     } catch (error) {
-        //         if (error.data.error_message.message) {
-        //             Toast2.fire({
-        //                 icon: "error",
-        //                 title: error.data.error_message.message,
-        //             })
-        //             return
-        //         }
-        //         if (error.data.error_message) {
-        //             Toast2.fire({
-        //                 icon: "error",
-        //                 title: error.data.error_message,
-        //             });
-        //             return
-        //         }
-        //         if (error.errors) {
-        //             Toast2.fire({
-        //                 icon: "error",
-        //                 title: error.errors,
-        //             })
-        //             return
-        //         }
-        //         Toast2.fire({
-        //             icon: "error",
-        //             title: "Đã xảy ra lỗi",
-        //         })
-        //     }
-        // },
         async updateOrder(data) {
             try {
                 this.is_loading = true
@@ -1155,8 +1075,9 @@ export default {
                     ...data,
                     id: this.order_id
                 }
+
                 let update_order = await Restful.post(path, body, {}, headers)
-                console.log('update_order ', update_order);
+
                 if (
                     update_order.data &&
                     update_order.data.data &&
@@ -1222,7 +1143,6 @@ export default {
                     });
                     return
                 }
-
                 Toast2.fire({
                     icon: "error",
                     title: "Đã xảy ra lỗi khi cập nhật đơn",
@@ -1241,6 +1161,16 @@ export default {
         },
         handleShowForm(name) {
             this.show_form = name;
+        },
+        handleModalEditMsg() {
+            this.is_edit_msg = !this.is_edit_msg
+        },
+        handleSaveMsg() {
+            localStorage.setItem('order_3rd_msg_content', JSON.stringify(this.msg_content))
+            this.handleModalEditMsg()
+        },
+        handleResetMsg() {
+            this.msg_content = this.msg_content_reset
         },
         swalToast(title, icon) {
             const Toast = Swal.mixin({
@@ -1283,8 +1213,7 @@ export default {
         order_option: function (newValue) {
             if (newValue == 0) this.shipping_fee = 0
         },
-        'payload.platform_type': function() {
-            console.log('object',this.payload.platform_type);
+        'payload.platform_type': function () {
             this.platform_type = this.payload.platform_type
         }
     },

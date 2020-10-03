@@ -40,8 +40,8 @@ export default {
                 },
                 "order_description": this.order_description,
                 "total_item": this.product_info.total_item,
-                "return_url": `https://devbbh.tk/v1/selling-page/payment/check_payment_and_order/?access_token=${this.store_token}&order_id=${order_id}`,
-                "cancel_url": `https://devbbh.tk/v1/selling-page/payment/check_payment_and_order/?access_token=${this.store_token}&order_id=${order_id}`,
+                "return_url": `https://devbbh.tk/dev-cms/#/payment/?access_token=${this.store_token}&order_id=${order_id}`,
+                "cancel_url": `https://devbbh.tk/dev-cms/#/payment/?access_token=${this.store_token}&order_id=${order_id}`,
                 "customer_name": this.prop_receiver_name,
                 "customer_email": this.prop_receiver_email,
                 "customer_phone": this.prop_receiver_phone,
@@ -53,18 +53,13 @@ export default {
         },
         async createPayment(order_id) {
             try {
-                if (this.handle_api) return
-                this.handle_api = true
                 let path = `${APICMS}/v1/selling-page/payment/payment_create`
                 let body = this.handleBodyCreatePayment(order_id)
                 let params = {}
                 let headers = { Authorization: this.store_token }
-                console.log('body create payment', body);
 
                 let create_payment = await Restful.post(path, body, params, headers)
 
-                this.handle_api = false
-                console.log('create payment', create_payment);
                 if (create_payment.data &&
                     create_payment.data.data &&
                     create_payment.data.data.snap_payment
@@ -72,14 +67,14 @@ export default {
                     let url_payment = create_payment.data.data.snap_payment.checkoutUrl
                     // let message_bbh = []
                     if (url_payment) {
-                        this.propSendMessage(order_id, url_payment)
+                        let time = create_payment.data.data.updatedAt
+                        this.propSendMessage(order_id, url_payment, null, time)
                     }
                 }
                 console.log('this.url_payment', this.url_payment);
                 this.swalToast('Tạo Thanh toán thành công', 'success')
             } catch (e) {
                 console.log(e);
-                this.handle_api = false
                 if (
                     e.data &&
                     e.data.error_message &&

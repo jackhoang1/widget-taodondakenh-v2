@@ -5,20 +5,12 @@
         <div class="main">
             <!-- thông tin khách hàng -->
             <div class="order__customer">
-                <p class="order__title"><span class="order__title" v-if="is_update_order">CẬP NHẬT </span>ORDER {{ platform_type }}</p>
+                <p class="order__title"><span class="order__title" v-if="is_update_order">CẬP NHẬT </span>ORDER
+                    {{ platform_type }}</p>
                 <div class="order__msg--edit">
                     <div class="order__msg--edit-icon tooltip">
-                        <img @click="showSettingMsg" src="@/assets/message.png" />
+                        <img @click="handleModalEditMsg" src="@/assets/message.png" />
                         <span class="tooltip-left">Chỉnh sửa mẫu tin nhắn</span>
-                    </div>
-                    <div class="order__msg--edit-input" :class="{ show: is_show_setting_msg}">
-                        <textarea rows="3" v-if="is_show_setting_msg" v-model="msg_content"
-                            class="form-control mt-3 mb-3"></textarea>
-                        <div class="d-flex" v-if="is_show_setting_msg">
-                            <button class="btn-pill w-100 mb-4 mx-2" @click="showSettingMsg">Done</button>
-                            <button class="btn-pill w-100 mx-2" @click="handleResetMsg">Reset</button>
-                        </div>
-
                     </div>
                 </div>
                 <!-- Forrm điền thông tin khách hàng -->
@@ -51,7 +43,6 @@
                             @data_output="district=$event" :getData="getListWard" :clearInput="resetChangeDistrict"
                             :prop_name="'name'" :watch_data="city" />
                     </div>
-
                     <div class="col" style="margin-bottom:10px">
                         <SearchAddress :list_data_input="list_ward" :placeholder="'Phường/Xã'"
                             @data_output="ward=$event" :getData="false" :clearInput="false" :prop_name="'name'"
@@ -62,7 +53,7 @@
                 <div v-if="has_branch">
                     <select v-model="branch" class="form-control-sm">
                         <option selected :value="{}">Chi Nhánh</option>
-                        <option v-for="(branch, ind) in list_branch" :value="branch" :key="ind">{{branch.branchName}}
+                        <option v-for="(branch, index) in list_branch" :value="branch" :key="index">{{branch.branchName}}
                         </option>
                     </select>
                 </div>
@@ -125,8 +116,8 @@
 
                 <!-- Giỏ hàng -->
                 <div class="list-product">
-                    <div class="product-detail d-flex align-items-center border-bottom" v-for="(item, ind) in cart"
-                        :key="ind">
+                    <div class="product-detail d-flex align-items-center border-bottom" v-for="(item, index) in cart"
+                        :key="index">
                         <img class="border rounded mr-1"
                             :src="item.product_image || 'https://img.icons8.com/officexs/80/000000/spinner-frame-6.png'"
                             alt="product" />
@@ -162,7 +153,7 @@
                     </div>
                 </div>
 
-                <!-- giao vận -->
+                <!-- Giao vận -->
                 <div v-if="order_option!=0&&payload.delivery_platform">
                     <div>
                         <Delivery ref="delivery" :store_token="store_token" :payload="payload"
@@ -174,7 +165,7 @@
                     </div>
 
                 </div>
-                <!-- thanh toán -->
+                <!-- Thanh toán -->
                 <div v-if="order_option==2&&payload.payment_platform">
                     <div>
                         <Alepay ref="payment" :store_token="store_token" :payload="payload" :prop_receiver_name="name"
@@ -212,7 +203,7 @@
                 <div v-show="is_show_popup" class="list-product">
                     <div v-if="!filter_list_product.length"
                         class="product d-flex align-items-center border-bottom border-top py-2"
-                        v-for="(item, ind) in list_product" :key="ind" @click="handleAddToCart(item)">
+                        v-for="(item, index) in list_product" :key="index" @click="handleAddToCart(item)">
                         <img class="border rounded mr-2"
                             :src="item.image || 'https://img.icons8.com/officexs/80/000000/spinner-frame-6.png'"
                             alt="product" />
@@ -225,7 +216,7 @@
                     </div>
                     <div v-if="filter_list_product.length"
                         class="product d-flex align-items-center border-bottom border-top py-2"
-                        v-for="(item, ind) in filter_list_product" :key="ind" @click="handleAddToCart(item)">
+                        v-for="(item, index) in filter_list_product" :key="index" @click="handleAddToCart(item)">
                         <img class="border rounded mr-2"
                             :src="item.image || 'https://img.icons8.com/officexs/80/000000/spinner-frame-6.png'"
                             alt="product" />
@@ -251,7 +242,7 @@
                     <p v-if="note">Ghi chú: {{note}}</p>
                     <br />
                     <p>Danh sách sản phẩm:</p>
-                    <p v-for="(item, ind) in cart" :key="ind">{{`${item.product_quantity} ${item.product_name}`}}</p>
+                    <p v-for="(item, index) in cart" :key="index">{{`${item.product_quantity} ${item.product_name}`}}</p>
                     <br />
                     <div v-if="order_option!=0">
                         <p>Tổng giá sản phẩm: {{total_price | toCurrency}}</p>
@@ -270,7 +261,7 @@
         </div>
     </div>
     <!-- modal loading -->
-    <div class="loading" v-if="is_loading">
+    <div class="modal" v-if="is_loading">
         <div class="modal__content">
             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
                 style="margin:auto;display:block;" width="100px" height="100px" viewBox="0 0 100 100"
@@ -360,5 +351,26 @@
 
         </div>
     </div>
+    <!-- modal edit msg -->
+    <div class="modal" :class="{'modal-transition':is_edit_msg}" v-if="is_edit_msg">
 
+        <div class="modal__msg">
+            <div class="modal__btn--close">
+                <img src="@/assets/close.png" alt="" @click="handleModalEditMsg">
+            </div>
+            <div>
+                <p>Đơn hàng</p>
+                <textarea rows="1" v-model="msg_content.order" class="form-control mt-1 mb-3"></textarea>
+                <p>Giao vận</p>
+                <textarea rows="3" v-model="msg_content.delivery" class="form-control mt-1 mb-3"></textarea>
+                <p>Thanh toán</p>
+                <textarea rows="3" v-model="msg_content.payment" class="form-control mt-1 mb-3"></textarea>
+                <div class="d-flex">
+                    <button class="btn-pill w-100 m2-4 mx-2" @click="handleSaveMsg">Lưu</button>
+                    <button class="btn-pill w-100 mx-2" @click="handleResetMsg">Đặt lại</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
 </div>

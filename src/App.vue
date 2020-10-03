@@ -5,17 +5,24 @@
       <div class="auth__activate" v-if="!show_list_store">
         <div class="sign d-flex flex-column align-items-center">
           <p class="text-dark mb-4">Đăng Nhập CMS</p>
-          <input v-model="cms_account" type="text" class="form-control mb-3" placeholder="Email" />
+          <input
+            v-model="cms_account"
+            type="text"
+            class="form-control mb-3"
+            placeholder="Email"
+          />
           <input
             v-model="cms_password"
             type="password"
             class="form-control mb-3"
             placeholder="Password"
           />
-          <button class="btn btn-primary text-light" v-on:click="runSignIn()">Sign In</button>
+          <button class="btn btn-primary text-light" v-on:click="runSignIn()">
+            Sign In
+          </button>
         </div>
       </div>
-      <div :class="['select-store', 'mb-5', {'show-store': show_list_store}]">
+      <div :class="['select-store', 'mb-5', { 'show-store': show_list_store }]">
         <div v-if="show_list_store">
           <p class="text-center mb-5">Danh sách Store</p>
           <div
@@ -23,25 +30,31 @@
             class="store"
             @click="handleChooseStore(item)"
             :key="ind"
-          >{{ item.store_name }}</div>
+          >
+            {{ item.store_name }}
+          </div>
         </div>
       </div>
       <div v-if="overlaySign" class="overlay"></div>
     </div>
     <!--End Xác thực App -->
 
-    <div v-if="is_oauth&&!is_warning" class="widget">
+    <div v-if="is_oauth && !is_warning" class="widget">
       <div class="d-flex header border-bottom">
         <div
           class="list-order flex-grow-1 text-center py-2"
-          :class="{'select': isSelectList}"
+          :class="{ select: isSelectList }"
           @click="handleClickHeader('list')"
-        >Thông tin</div>
+        >
+          Thông tin
+        </div>
         <div
           class="create-order flex-grow-1 text-center py-2"
           :class="[isSelectList ? '' : 'select']"
           @click="handleClickHeader('create')"
-        >Tạo đơn</div>
+        >
+          Tạo đơn
+        </div>
       </div>
       <list-order
         v-show="is_select === 'list'"
@@ -55,11 +68,12 @@
         :store_token="store_token"
         :payload="payload"
         @switch-header="handleClickHeader('list')"
-        @platform_type="payload.platform_type=$event"
+        @platform_type="payload.platform_type = $event"
+        @msg-info="getMsgInfoDraft"
       />
     </div>
     <!-- warning -->
-    <div v-if="is_oauth&&is_warning" class="auth__warning">
+    <div v-if="is_oauth && is_warning" class="auth__warning">
       <div class="auth__activate">
         <div class="text-center">
           <img src="@/assets/error.png" alt />
@@ -84,8 +98,8 @@ let access_token = url.searchParams.get("access_token");
 const APICMS = "https://devbbh.tk"; //dev
 // const APICMS = "https://ext.botup.io"; //product
 
-// const ApiBase = "https://app.devchatbox.tk"; //dev
-const ApiBase = "https://chatbox-app.botbanhang.vn"; //product
+const ApiBase = "https://app.devchatbox.tk"; //dev
+// const ApiBase = "https://chatbox-app.botbanhang.vn"; //product
 
 const Toast = Swal.mixin({
   toast: true,
@@ -122,9 +136,9 @@ export default {
       is_oauth: false,
       is_warning: false,
       // secretKey: '2dd3816056a04c70ad154d3943bb16bd', //product
-        secretKey: "2218ef13a45c4fd9ade2d049db2ef6f1", //demo-product
-      // secretKey: "f5ca4cd874a6427e83ed0441e61355ab", //demo-product-local
-    //   secretKey: "6e6d71d51a234aec9cde5f7748dd9e78", //dev-local
+      // secretKey: "2218ef13a45c4fd9ade2d049db2ef6f1", //demo-product
+      //   secretKey: "f5ca4cd874a6427e83ed0441e61355ab", //demo-product-local
+      secretKey: "6e6d71d51a234aec9cde5f7748dd9e78", //dev-local
       access_token: access_token,
       is_select: "list",
 
@@ -162,7 +176,6 @@ export default {
   methods: {
     async partnerAuth() {
       try {
-        console.log("creeeee apppp");
         let body = {
           access_token: this.access_token,
           secret_key: this.secretKey,
@@ -217,7 +230,6 @@ export default {
           }
           await this.createCustomer();
           this.handleLocalStorage();
-          console.log("info cus", get_customer_info);
         }
       } catch (error) {
         // Chạy vào SignIn
@@ -255,7 +267,6 @@ export default {
 
         // Call Api Đăng nhập Botup
         let cms_signin = await Restful.post(path, body);
-        console.log("singin botup", cms_signin.data);
 
         // Lấy danh sách Store
         path = `${APICMS}/v1/selling-page/store/store_read`;
@@ -275,7 +286,6 @@ export default {
 
         let read_store = await Restful.get(path, params);
 
-        console.log("store", read_store.data);
         if (read_store.data && read_store.data.data) {
           this.list_store = read_store.data.data;
           this.show_list_store = true;
@@ -300,7 +310,17 @@ export default {
     getPlatform(delivery_platform, payment_platform) {
       this.payload.delivery_platform = delivery_platform;
       this.payload.payment_platform = payment_platform;
-      console.log("payload", this.payload);
+    },
+    getMsgInfoDraft(msg_info) {
+      if (msg_info) {
+        this.payload.psid = msg_info.psid;
+        this.payload.token_bbh = msg_info.token_bbh;
+        return;
+      }
+      Toast2.fire({
+        icon: "error",
+        title: 'Không có thông tin msg_info',
+      });
     },
     handleLocalStorage() {
       let order_3d_platform = JSON.parse(
@@ -343,7 +363,6 @@ export default {
           create_customer.data.data.id
         ) {
           this.payload.customer_id = create_customer.data.data.id;
-          console.log("this.payload.customer_id", this.payload.customer_id);
         }
       } catch (e) {
         console.log(e);

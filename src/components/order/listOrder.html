@@ -13,23 +13,11 @@
         </div>
         <!-- Danh sách đơn hàng -->
         <div v-if="list_order.length == 0" style="text-align:center;padding-top:10%;">Bạn chưa có đơn hàng!</div>
-        <div v-for="(item, ind) in list_order" class="order-detail" :key="ind">
-
-            <!-- Tiêu đề đơn hàng-->
-            <!-- <div class="order-title d-flex align-items-center border rounded"
-               :class="{ confirmed: isActiveConfirm(item), cancelled: isCancelled(item) }"
-               @click="handleClickOrder(ind)">
-                <img src="https://img.icons8.com/ios-filled/50/000000/expand-arrow.png"/>
-                <p class="text-dark m-0" >000{{ind + 1}}</p>
-                <img v-if="ableEdit(item)" class="edit ml-auto"
-                   src="https://img.icons8.com/material/48/000000/edit--v1.png"
-                   @click.stop="handleClickEdit(item)"/>
-            </div> -->
-            <div class="order-title d-flex align-items-center border rounded"
-                :class="{ 'order-title-gateway':changeClassGateway(item),'order-title-cod':changeClassCod(item), 'order-title-normal':changeClassNormal(item)}"
-                @click="handleClickOrder(ind)">
-                <img src="https://img.icons8.com/ios-filled/50/000000/expand-arrow.png" />
-                <p class="text-dark m-0">000{{list_order.length-ind}}</p>
+        <div class="order__detail" v-for="(item, index) in list_order" :key="index">
+            <div class="order__title d-flex align-items-center border rounded" :class="handleClassLabel(item)"
+                @click="handleClickOrder(index)">
+                <img class="order__title-arrow" src="https://img.icons8.com/ios-filled/50/000000/expand-arrow.png" />
+                <p class="text-light m-0">000{{list_order.length-index}}</p>
                 <div class="order__title--icon-status"
                     v-if="(item.is_cod&&item.delivery_status=='Đã chọn giao vận. Chưa tạo đơn.')||(item.is_gateway&&item.payment_status=='Đã chọn cổng thanh toán. Chưa tạo đơn.')||(item.is_gateway&&item.is_cod&&item.delivery_status!='Đã tạo đơn giao vận.')">
                     <img class="" src="@/assets/error.png" title="Đơn lỗi" />
@@ -42,12 +30,12 @@
                 </div>
                 <div class="order__title--icon-status" v-if="item.status=='draft_order'">
                     <img style="transform: none;height:15px;width:15px" src="@/assets/draft1.png" alt=""
-                        title="Đơn nháp" @click.stop="handleClickEdit(item)">
+                        title="Cập nhật đơn nháp" @click.stop="handleClickEdit(item)">
                 </div>
             </div>
             <!-- Đơn hàng mở rộng -->
-            <div class="order-expand">
-                <div class="status d-flex align-items-center">
+            <div class="order__expand">
+                <div class="order__status d-flex align-items-center">
                     <img src="https://img.icons8.com/windows/26/000000/star.png" v-if="item.status!='cancel_order'" />
                     <img v-if="item.status === 'cancel_order'" src="@/assets/cancel.png" />
                     <div class="d-flex align-items-center" v-if="item.status=='draft_order'">
@@ -61,11 +49,15 @@
                     <p v-if="item.status=='confirmed_order'" class="m-0 text-primary">Đã xác nhận</p>
                     <p v-if="item.status=='deliver_order'" class="m-0 text-primary">Đang giao hàng</p>
                     <p v-if="item.status=='return_order'" class="m-0 text-primary">Hoàn hàng</p>
-                    <p v-if="item.status=='sucess_order'" class="m-0 text-primary">Đã nhận hàng</p>
+                    <p v-if="item.status=='success_order'" class="m-0 text-primary">Đã nhận hàng</p>
                     <p v-if="item.status=='returned_order'" class="m-0 text-primary">Đã hoàn hàng</p>
                     <p v-if="item.status=='cancel_order'" class="m-0 text-primary">Đơn huỷ</p>
                     <p v-if="item.status=='remove_order'" class="m-0 text-primary">Đơn xoá</p>
 
+                </div>
+                <div>
+                    <img src="@/assets/user.png" alt="">
+                    <p class="text-primary m-0">{{item.customer_name}}</p>
                 </div>
                 <div class="phone d-flex align-items-center">
                     <img src="https://img.icons8.com/windows/32/000000/phone.png" />
@@ -79,63 +71,6 @@
                     <img src="https://img.icons8.com/android/24/000000/clock.png" />
                     <p class="m-0">Cập nhật TT: {{computeTime(item.updatedAt)}}</p>
                 </div>
-                <!-- trạng thái order ship cod -->
-                <!-- <div v-if="item.is_cod">
-                    <div class="d-flex align-items-center"
-                        v-if="!item.is_gateway&&item.delivery_status=='Đã tạo đơn giao vận.'">
-                        <img src="@/assets/tick.png" title="Thành công" />
-                        <div>Đã giao vận</div>
-                    </div>
-                    <div class="d-flex" v-if="item.delivery_status=='Đã chọn giao vận. Chưa tạo đơn.'">
-                        <img src="@/assets/error.png" alt="">
-                        <div>Giao vận lỗi</div>
-                    </div>
-                </div> -->
-                <!-- trạng thái order gateway -->
-                <!-- <div class="order__detail--gateway d-flex align-items-center" v-if="item.is_gateway">
-                    <div class="d-flex"
-                        v-if="item.payment_status=='Đã tạo đơn. Đang chờ thanh toán'||item.payment_status== 'Đang chờ thanh toán. Giao dịch thanh toán bị Review!'">
-                        <img src="@/assets/waiting.png" />
-                        <div>Chờ thanh toán</div>
-                    </div>
-                    <div class="d-flex" v-if="item.payment_status=='Thanh toán thành công.'">
-                        <img src="@/assets/tick.png" title="Thành công" />
-                        <div>Thanh toán</div>
-                    </div>
-                    <div class="d-flex" v-if="item.payment_status=='Thanh toán thành công.'">
-                        <img src="https://img.icons8.com/ios-filled/24/000000/more-than.png" />
-                        <div class="d-flex" v-if="item.is_cod&&item.delivery_status=='Đã tạo đơn giao vận.'">
-                            <img src="@/assets/tick.png" alt="">
-                            <div>Giao vận</div>
-                        </div>
-                        <div class="d-flex" v-if="item.is_cod&&item.delivery_status!='Đã tạo đơn giao vận.'">
-                            <img src="@/assets/error.png" alt="">
-                            <div>Giao vận lỗi</div>
-                        </div>
-                    </div>
-                </div> -->
-
-
-
-                <!-- Tiến trình đơn hàng -->
-                <!-- <div class="process d-flex align-items-center"
-                    :class="{ 'pro-confirmed': isActiveConfirm(item), 'pro-cancelled': isCancelled(item)} ">
-                    <img class="active" src="https://img.icons8.com/windows/26/000000/star.png" />
-                    <p class="m-0 text-primary">Mới</p>
-                    <img src="https://img.icons8.com/ios-filled/24/000000/more-than.png" />
-                    <img :class="{ active: isActiveConfirm(item) }"
-                        src="https://img.icons8.com/windows/32/000000/checked.png"
-                        @click="updateStatusOrder('confirmed_order', item, ind)" />
-                    <p :class="{ 'text-primary': isActiveConfirm(item) }" class="m-0"
-                        @click="updateStatusOrder('confirmed_order', item, ind)">Xác nhận</p>
-                    <img src="https://img.icons8.com/ios-filled/24/000000/more-than.png" />
-                    <img :class="{ cancelled: isCancelled(item)}"
-                        src="https://img.icons8.com/windows/32/000000/cancel.png"
-                        @click="updateStatusOrder('cancel_order', item, ind)" />
-                    <p class="m-0" :class="{ 'text-danger': isCancelled(item)}"
-                        @click="updateStatusOrder('cancel_order', item, ind)">Huỷ</p>
-                </div> -->
-                <!--  -->
                 <div class="process d-flex align-items-center">
                     <img src="https://img.icons8.com/windows/26/000000/star.png" v-if="item.status=='draft_order'" />
                     <img src="https://img.icons8.com/windows/26/000000/star.png" v-if="item.status!='draft_order'" />
@@ -148,14 +83,14 @@
                         v-if="item.status!='confirmed_order'" />
                     <img src="@/assets/tick.png" alt="" v-if="item.status=='confirmed_order'">
                     <p :class="{'process__poiter--events':item.status=='new_order'}"
-                        @click="updateStatusOrder('confirmed_order', item, ind)">Xác nhận</p>
+                        @click="updateStatusOrder('confirmed_order', item, index)">Xác nhận</p>
                     <img src="https://img.icons8.com/ios-filled/24/000000/more-than.png" />
                     <img src="https://img.icons8.com/windows/32/000000/cancel.png"
                         v-if="item.status != 'cancel_order'" />
                     <img src="@/assets/cancel.png" v-if="item.status == 'cancel_order'" />
 
                     <p :class="{'process__poiter--events':item.status=='draft_order'}"
-                        @click="updateStatusOrder('cancel_order', item, ind)">Huỷ</p>
+                        @click="updateStatusOrder('cancel_order', item, index)">Huỷ</p>
                 </div>
             </div>
             <!-- -->
