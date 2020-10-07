@@ -13,11 +13,10 @@
       @click="handleClickInput"
       @change="onChange()"
     />
-    <img src="@/assets/arrow.png" alt id="input_img" @click="handleClickInput" />
     <ul id="autocomplete-results" v-show="isOpen" class="autocomplete-results">
       <input
-        id="input-search"
-        class="form-control-sm"
+        id=""
+        class="input-search form-control-sm"
         ref="input_search"
         type="text"
         autocomplete="off"
@@ -31,10 +30,18 @@
         v-else
         v-for="(result, i) in results"
         :key="i"
-        @click="setResult(result);onChange();if(getData){getData()}"
+        @click="
+          setResult(result);
+          onChange();
+          if (getData) {
+            getData();
+          }
+        "
         class="autocomplete-result"
         :class="{ 'is-active': i === arrowCounter }"
-      >{{ result[prop_name] }}</li>
+      >
+        {{ result[prop_name] }}
+      </li>
     </ul>
   </div>
 </template>
@@ -65,9 +72,7 @@ export default {
 
   methods: {
     onChange() {
-      console.log("list_data_input", this.list_data_input);
       if (!this.list_data_input) return;
-      console.log("emit", this.data_output);
       // Let's warn the parent that a change was made
       this.$emit("data_output", this.data_output);
       if (this.changeInput) {
@@ -91,7 +96,7 @@ export default {
       this.results = this.list_data_input.filter((item) => {
         return (
           this.handleSlug(item[this.prop_name]).indexOf(
-            this.handleSlug(this.search)||""
+            this.handleSlug(this.search) || ""
           ) > -1
         );
       });
@@ -101,7 +106,6 @@ export default {
       this.result = result[this.prop_name];
       this.data_output = result;
       this.isOpen = false;
-      console.log(" this.isOpen", this.isOpen);
     },
     onArrowDown(evt) {
       if (this.arrowCounter < this.results.length) {
@@ -159,7 +163,6 @@ export default {
   watch: {
     list_data_input: function (val, oldValue) {
       // actually compare them
-      console.log("this.list_data_input", this.list_data_input);
       if (val.length !== oldValue.length) {
         this.results = val;
         this.isLoading = false;
@@ -183,6 +186,11 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@mixin imageSelect {
+  background: url("data:image/svg+xml;utf8,<svg fill='black' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>")
+    no-repeat right #eee !important;
+  background-size: 20px;
+}
 $colorHover: #007bff;
 * {
   font-size: 0.9rem;
@@ -207,16 +215,8 @@ $colorHover: #007bff;
 }
 .autocomplete {
   position: relative;
-  #input_img {
-    position: absolute;
-    bottom: 8px;
-    left: 87%;
-    width: 10px;
-    z-index: 2;
-    opacity: 0.7;
-  }
   .input-result {
-    background: #eee;
+    @include imageSelect;
     width: 100%;
     &:focus {
       box-shadow: none;
@@ -230,12 +230,17 @@ $colorHover: #007bff;
     padding: 0;
     margin: 0;
     border: 1px solid #eeeeee;
+    // border-radius: 1rem;
     max-height: 200px;
     overflow-y: auto;
     width: 100%;
-    #input-search {
-      width: 92%;
-      margin: 5px;
+    .input-search {
+      width: 90%;
+      margin: 10px 5% 5px;
+      background-color: #fff;
+      border-color: #8bbafe;
+      outline: 0;
+      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
     }
     .autocomplete-result {
       list-style: none;

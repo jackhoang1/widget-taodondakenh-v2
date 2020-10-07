@@ -3,21 +3,22 @@
         <div class="order__text">Đơn hàng</div>
 
         <!-- Lọc đơn -->
-        <div class="order__list--filter">
+        <!-- <div class="order__list--filter">
             <select v-model="order_filter">
                 <option value="">Lọc đơn</option>
                 <option value="">Order</option>
                 <option value="">ShipCod</option>
                 <option value="">Gateway</option>
             </select>
-        </div>
+        </div> -->
         <!-- Danh sách đơn hàng -->
         <div v-if="list_order.length == 0" style="text-align:center;padding-top:10%;">Bạn chưa có đơn hàng!</div>
         <div class="order__detail" v-for="(item, index) in list_order" :key="index">
             <div class="order__title d-flex align-items-center border rounded" :class="handleClassLabel(item)"
                 @click="handleClickOrder(index)">
                 <img class="order__title-arrow" src="https://img.icons8.com/ios-filled/50/000000/expand-arrow.png" />
-                <p class="text-light m-0">000{{list_order.length-index}}</p>
+                <!-- <p class="text-light m-0">000{{list_order.length-index}}</p> -->
+                <p class="text-light m-0">{{item.order_id}}</p>
                 <div class="order__title--icon-status"
                     v-if="(item.is_cod&&item.delivery_status=='Đã chọn giao vận. Chưa tạo đơn.')||(item.is_gateway&&item.payment_status=='Đã chọn cổng thanh toán. Chưa tạo đơn.')||(item.is_gateway&&item.is_cod&&item.delivery_status!='Đã tạo đơn giao vận.')">
                     <img class="" src="@/assets/error.png" title="Đơn lỗi" />
@@ -35,24 +36,28 @@
             </div>
             <!-- Đơn hàng mở rộng -->
             <div class="order__expand">
-                <div class="order__status d-flex align-items-center">
+                <div class="order__status d-flex align-items-center text-primary">
                     <img src="https://img.icons8.com/windows/26/000000/star.png" v-if="item.status!='cancel_order'" />
                     <img v-if="item.status === 'cancel_order'" src="@/assets/cancel.png" />
-                    <div class="d-flex align-items-center" v-if="item.status=='draft_order'">
-                        <p class="m-0 text-primary">Đơn nháp</p>
-                        <div class="pl-2">
-                            <img src="@/assets/draft1.png" alt="" @click.stop="handleClickEdit(item)">
+                    <div class="order__status--draft d-flex align-items-center"
+                        v-if="item.status=='draft_order'">
+                        <p class="m-0">Đơn nháp</p>
+                        <img src="https://img.icons8.com/ios-filled/24/000000/more-than.png" />
+                        <div class="order__status--draft-edit d-flex align-items-center" @click.stop="handleClickEdit(item)">
+                            <img src="@/assets/draft1.png" alt="">
+                            <span class="">Sửa</span>
                         </div>
                     </div>
+
                     <p v-if="item.status=='new_order'" class="m-0">Đơn Mới</p>
                     <p v-if="item.status=='out_stock'" class="m-0">Chờ hàng về</p>
-                    <p v-if="item.status=='confirmed_order'" class="m-0 text-primary">Đã xác nhận</p>
-                    <p v-if="item.status=='deliver_order'" class="m-0 text-primary">Đang giao hàng</p>
-                    <p v-if="item.status=='return_order'" class="m-0 text-primary">Hoàn hàng</p>
-                    <p v-if="item.status=='success_order'" class="m-0 text-primary">Đã nhận hàng</p>
-                    <p v-if="item.status=='returned_order'" class="m-0 text-primary">Đã hoàn hàng</p>
-                    <p v-if="item.status=='cancel_order'" class="m-0 text-primary">Đơn huỷ</p>
-                    <p v-if="item.status=='remove_order'" class="m-0 text-primary">Đơn xoá</p>
+                    <p v-if="item.status=='confirmed_order'" class="m-0">Đã xác nhận</p>
+                    <p v-if="item.status=='deliver_order'" class="m-0">Đang giao hàng</p>
+                    <p v-if="item.status=='return_order'" class="m-0">Hoàn hàng</p>
+                    <p v-if="item.status=='success_order'" class="m-0">Đã nhận hàng</p>
+                    <p v-if="item.status=='returned_order'" class="m-0">Đã hoàn hàng</p>
+                    <p v-if="item.status=='cancel_order'" class="m-0">Đơn huỷ</p>
+                    <p v-if="item.status=='remove_order'" class="m-0">Đơn xoá</p>
 
                 </div>
                 <div>

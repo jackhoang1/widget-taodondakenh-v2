@@ -1,7 +1,7 @@
 import EventBus from "@/EventBus.js"
 import Restful from "@/services/resful.js"
 import SearchAddress from "@/components/SearchAddress.vue"
-import Alepay from "@/components/payment/alepay/Alepay.vue"
+import Payment from "@/components/payment/Payment.vue"
 import Delivery from "@/components/delivery/Delivery.vue"
 
 // const APICMS = "https://ext.botup.io"  //product
@@ -37,7 +37,7 @@ export default {
     components: {
         SearchAddress,
         Delivery,
-        Alepay
+        Payment
     },
     props: [
         "store_token",
@@ -103,9 +103,19 @@ export default {
             show_delivery: false,
             show_payment: false,
             show_form: 'order',
+            validate_failed: {
+                name: false,
+                phone: false,
+                email: false,
+                country: false,
+                city: false,
+                district: false,
+                ward: false,
+                street: false,
+                branch: false,
+            },
 
             order_option: 0,
-            order_step: 0,
             is_cod: false,
             is_gateway: false,
             info_delivery: "",
@@ -140,12 +150,11 @@ export default {
     mounted() {
     },
     methods: {
-        handleOrderStep() {
-            if (this.order_step == 0 && this.order_option == 0) {
-                this.handleCallApiOrder()
-            }
+        getEmailLocal() {
+            console.log('store_email', this.payload.store_email);
+            if (this.email || !this.payload.store_email) return
+            this.email = this.payload.store_email
         },
-
         resetAddress() {
             this.city = ""
             this.district = ""
@@ -445,9 +454,57 @@ export default {
         },
         validateEmail(email) {
             let reg = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
-            if (reg.test(email)) {
+            let is_email = reg.test(email)
+            if (is_email) {
                 return true;
             }
+            this.validate_failed.email = !is_email ? true : false
+            Toast.fire({
+                icon: "error",
+                title: "Email không hợp lệ!",
+            })
+        },
+        validatePhone(phone) {
+            let is_phone = phone.match(/^[0]{1}?[1-9]{1}?[0-9]{8}$/im) || phone.match(/^[\+]?[8]{1}?[4]{1}?[0-9]{9}$/im)
+            if (is_phone) {
+                return true
+            }
+            this.validate_failed.phone = !is_phone ? true : false
+            Toast.fire({
+                icon: "error",
+                title: "Số điện thoại không hợp lệ",
+            })
+
+        },
+        validateInfo() {
+            let validate = true
+            this.validate_failed.name = !this.name ? true : false
+            this.validate_failed.phone = !this.phone ? true : false
+            this.validate_failed.email = !this.email ? true : false
+            this.validate_failed.country = !this.country ? true : false
+            this.validate_failed.city = !this.city ? true : false
+            this.validate_failed.district = !this.district ? true : false
+            this.validate_failed.ward = !this.ward ? true : false
+            this.validate_failed.street = !this.street ? true : false
+            this.validate_failed.branch = !Object.keys(this.branch)[0] ? true : false
+            //check validate components delivery, payment
+            if (this.$refs.delivery && !this.$refs.delivery.validateCreateDelivery()) { validate = false }
+            if (this.$refs.payment && !this.$refs.payment.validateCreatePayment()) { validate = false }
+            if (!this.name ||
+                !this.phone ||
+                !this.country ||
+                !this.city ||
+                !this.district ||
+                !this.ward ||
+                !this.street) validate = false
+            if (this.list_branch[0] && !Object.keys(this.branch)[0]) {
+                validate = false
+            }
+            if (validate) return true
+            Toast.fire({
+                icon: "error",
+                title: "Vui lòng điền đầy đủ thông tin",
+            })
         },
         handleCreateOrder() {
             if (this.cart.length === 0) {
@@ -457,49 +514,12 @@ export default {
                 })
                 return
             }
-            // Validate form thông tin khách hàng
-            if (
-                !this.name ||
-                !this.phone ||
-                !this.country ||
-                !this.city ||
-                !this.district ||
-                !this.ward ||
-                !this.street
-            ) {
-                return Toast.fire({
-                    icon: "error",
-                    title: "Vui lòng điền đầy đủ thông tin",
-                })
-            }
-            if (!this.validateEmail(this.email)) {
-                return Toast.fire({
-                    icon: "error",
-                    title: "Email không hợp lệ!",
-                })
-            }
-            //check validate components delivery, payment
-            if (this.$refs.delivery && !this.$refs.delivery.validateCreateDelivery()) return
-            if (this.$refs.payment && !this.$refs.payment.validateCreatePayment()) return
+            if (!this.validateInfo()) { return }
+            if (!this.validatePhone(this.phone)) { return }
+            if (!this.validateEmail(this.email)) { return }
             // Check trạng thái chọn chọn chi nhánh
-            if (this.list_branch[0]) {
-                if (!Object.keys(this.branch)[0]) {
-                    Toast.fire({
-                        icon: "error",
-                        title: "Vui lòng chọn chi nhánh",
-                    })
-                    return
-                }
-            }
-
             // Check phone là kiểu Number
-            if (isNaN(Number(this.phone)) || (this.phone.length != 10 && this.phone.includes('+84'))) {
-                Toast.fire({
-                    icon: "error",
-                    title: "Số điện thoại không hợp lệ",
-                })
-                return
-            }
+
             if (this.order_option != 0 && !this.shipping_fee) {
                 return Toast.fire({
                     icon: "error",
@@ -738,7 +758,7 @@ export default {
             let msg_payment = this.msg_content.payment.replace(/{{order_id}}/g, order_id).replace(/{{payment_name}}/g, payment_name)
             return { msg_order, msg_delivery, msg_payment }
         },
-        async sendMessage(order_id, url_payment, delivery_id, time) {
+        async sendMessage(order_id, url_payment, delivery_id, time = 1577840400000) {
             try {
                 let msg_sample = this.covertMsgContent(order_id, delivery_id, this.payload.payment_platform);
                 let timestamp = Number(time.toString().slice(0, 10))
@@ -1061,7 +1081,7 @@ export default {
             this.is_update_order = true
             this.name = item.customer_name
             this.phone = item.customer_phone
-            this.email = item.customer_email
+            this.email = item.customer_email || this.payload.store_email  //customer không có email > email merchant
             this.platform_type = item.platform_type
             this.order_id = item.id
             this.$emit('msg-info', item.other_info)
@@ -1086,6 +1106,7 @@ export default {
                 ) {
                     this.is_update_order = false
                     let order_id = update_order.data.data.order_info.order_id
+                    let time = update_order.data.data.order_info.updatedAt
                     if (this.order_option == 1) {
                         if (this.$refs.delivery) {
                             await this.$refs.delivery.createDelivery(order_id, this.product_info)
@@ -1101,7 +1122,7 @@ export default {
                             icon: "success",
                             title: "Tạo đơn hàng thành công",
                         })
-                        this.sendMessage(order_id)
+                        this.sendMessage(order_id, null, null, time)
                     }
                     setTimeout(() => {
                         this.handleDeleteAllCart()
@@ -1114,7 +1135,6 @@ export default {
                     // Xóa giỏ hàng sau khi tạo đơn
                 } else {
                     this.is_loading = false
-
                     Toast.fire({
                         icon: "error",
                         title: "Đã xảy ra lỗi khi cập nhật đơn",
@@ -1215,6 +1235,9 @@ export default {
         },
         'payload.platform_type': function () {
             this.platform_type = this.payload.platform_type
+        },
+        'payload.store_email': function () {
+            this.getEmailLocal()
         }
     },
     filters: {

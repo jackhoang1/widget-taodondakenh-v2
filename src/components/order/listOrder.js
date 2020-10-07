@@ -112,12 +112,9 @@ export default {
                 let headers = { Authorization: this.store_token }
 
                 let get_list_order = await Restful.get(path, params, headers)
-                console.log('this.list_order', get_list_order)
                 if (get_list_order.data && get_list_order.data.data) {
                     if (get_list_order.data.data.orders) {
                         this.list_order = get_list_order.data.data.orders
-                        console.log('this.list_order 2', this)
-                        console.log('this.list_order 2', this.list_order)
                     }
                     if (get_list_order.data.data.delivery_platform) {
                         this.delivery_platform = get_list_order.data.data.delivery_platform
@@ -144,17 +141,19 @@ export default {
                 });
             }
         },
-        async updateStatusOrder(status, item, ind) {
-            if (status == "cancel_order") return
-            let path = `${APICMS}/v1/selling-page/order/order_update`
-            let headers = { Authorization: this.store_token }
-            let body = {
-                id: item.id,
-                status: status,
+        async updateStatusOrder(status, item, index) {
+            if (item.status == "draft_order" || item.status == "new_order") {
+                let path = `${APICMS}/v1/selling-page/order/order_update`
+                let headers = { Authorization: this.store_token }
+                let body = {
+                    id: item.id,
+                    status: status,
+                }
+                let updated = await Restful.post(path, body, {}, headers)
+                await this.readOrder()
+                this.handleClickOrder(index, true)
             }
-            let updated = await Restful.post(path, body, {}, headers)
-            await this.readOrder()
-            this.handleClickOrder(ind, true)
+
         },
         changeClassGateway(item) {
             //   if (item.status == "unconfirmed") return "unconfirmed";
@@ -214,7 +213,6 @@ export default {
 
                 let get_list_order = await Restful.get(path, params, headers);
 
-                console.log("get_list_order", get_list_order.data);
                 if (get_list_order.data && get_list_order.data.data && get_list_order.data.data.orders) {
                     if (get_list_order.data.data.orders.length == 0) {
                         Toast2.fire({

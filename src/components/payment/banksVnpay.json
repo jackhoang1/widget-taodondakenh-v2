@@ -1,0 +1,243 @@
+[
+    {
+        "serial":1,
+        "code": "ABBANK",
+        "name": "Ngân hàng thương mại cổ phần An Bình (ABBANK)"
+    },
+    {
+        "serial":2,
+        "code": "ACB",
+        "name": "Ngân hàng ACB"
+    },
+    {
+        "serial":3,
+        "code": "AGRIBANK",
+        "name": "Ngân hàng Nông nghiệp (Agribank)"
+    },
+    {
+        "serial":4,
+        "code": "BACABANK",
+        "name": "Ngân Hàng TMCP Bắc Á"
+    },
+    {
+        "serial":5,
+        "code": "BIDV",
+        "name": "Ngân hàng đầu tư và phát triển Việt Nam (BIDV)"
+    },
+    {
+        "serial":6,
+        "code": "DONGABANK",
+        "name": "Ngân hàng Đông Á (DongABank)"
+    },
+    {
+        "serial":7,
+        "code": "EXIMBANK",
+        "name": "Ngân hàng EximBank"
+    },
+    {
+        "serial":8,
+        "code": "HDBANK",
+        "name": "Ngân hàng HDBank"
+    },
+    {
+        "serial":9,
+        "code": "IVB",
+        "name": "Ngân hàng TNHH Indovina (IVB)"
+    },
+    {
+        "serial":10,
+        "code": "MBBANK",
+        "name": "Ngân hàng thương mại cổ phần Quân đội"
+    },
+    {
+        "serial":11,
+        "code": "MSBANK",
+        "name": "Ngân hàng Hàng Hải (MSBANK)"
+    },
+    {
+        "serial":12,
+        "code": "NAMABANK",
+        "name": "Ngân hàng Nam Á (NamABank)"
+    },
+    {
+        "serial":13,
+        "code": "NCB",
+        "name": "Ngân hàng Quốc dân (NCB)"
+    },
+    {
+        "serial":14,
+        "code": "OCB",
+        "name": "Ngân hàng Phương Đông (OCB)"
+    },
+    {
+        "serial":15,
+        "code": "OJB",
+        "name": "Ngân hàng Đại Dương (OceanBank)"
+    },
+    {
+        "serial":16,
+        "code": "PVCOMBANK",
+        "name": "Ngân hàng TMCP Đại Chúng Việt Nam"
+    },
+    {
+        "serial":17,
+        "code": "SACOMBANK",
+        "name": "Ngân hàng TMCP Sài Gòn Thương Tín (SacomBank)"
+    },
+    {
+        "serial":18,
+        "code": "SAIGONBANK",
+        "name": "Ngân hàng thương mại cổ phần Sài Gòn Công Thương"
+    },
+    {
+        "serial":19,
+        "code": "SCB",
+        "name": "Ngân hàng TMCP Sài Gòn (SCB)"
+    },
+    {
+        "serial":20,
+        "code": "SHB",
+        "name": "Ngân hàng Thương mại cổ phần Sài Gòn - Hà Nội(SHB)"
+    },
+    {
+        "serial":21,
+        "code": "TECHCOMBANK",
+        "name": "Ngân hàng Kỹ thương Việt Nam (TechcomBank)"
+    },
+    {
+        "serial":22,
+        "code": "TPBANK",
+        "name": "Ngân hàng Tiên Phong (TPBank)"
+    },
+    {
+        "serial":23,
+        "code": "VPBANK",
+        "name": "Ngân hàng Việt Nam Thịnh vượng (VPBank)"
+    },
+    {
+        "serial":24,
+        "code": "SEABANK",
+        "name": "Ngân Hàng TMCP Đông Nam Á"
+    },
+    {
+        "serial":25,
+        "code": "VIB",
+        "name": "Ngân hàng Thương mại cổ phần Quốc tế Việt Nam (VIB)"
+    },
+    {
+        "serial":26,
+        "code": "VIETABANK",
+        "name": "Ngân hàng TMCP Việt Á"
+    },
+    {
+        "serial":27,
+        "code": "VIETBANK",
+        "name": "Ngân hàng thương mại cổ phần Việt Nam Thương Tín"
+    },
+    {
+        "serial":28,
+        "code": "VIETCAPITALBANK",
+        "name": "Ngân Hàng Bản Việt"
+    },
+    {
+        "serial":29,
+        "code": "VIETCOMBANK",
+        "name": "Ngân hàng Ngoại thương (Vietcombank)"
+    },
+    {
+        "serial":30,
+        "code": "VIETINBANK",
+        "name": "Ngân hàng Công thương (Vietinbank)"
+    },
+    {
+        "serial":31,
+        "code": "BIDC",
+        "name": "Ngân Hàng BIDC"
+    },
+    {
+        "serial":32,
+        "code": "LAOVIETBANK",
+        "name": "NGÂN HÀNG LIÊN DOANH LÀO - VIỆT"
+    },
+    {
+        "serial":33,
+        "code": "WOORIBANK",
+        "name": "Ngân hàng TNHH MTV Woori Việt Nam"
+    },
+    {
+        "serial":34,
+        "code": "AMEX",
+        "name": "American Express"
+    },
+    {
+        "serial":35,
+        "code": "VISA",
+        "name": "Thẻ quốc tế Visa"
+    },
+    {
+        "serial":36,
+        "code": "MASTERCARD",
+        "name": "Thẻ quốc tế MasterCard"
+    },
+    {
+        "serial":37,
+        "code": "JCB",
+        "name": "Thẻ quốc tế JCB"
+    },
+    {
+        "serial":38,
+        "code": "UPI",
+        "name": "UnionPay International"
+    },
+    {
+        "serial":39,
+        "code": "VNMART",
+        "name": "Ví điện tử VnMart"
+    },
+    {
+        "serial":40,
+        "code": "VNPAYQR",
+        "name": "Cổng thanh toán VNPAYQR"
+    },
+    {
+        "serial":41,
+        "code": "1PAY",
+        "name": "Ví điện tử 1Pay"
+    },
+    {
+        "serial":42,
+        "code": "FOXPAY",
+        "name": "Ví điện tử FOXPAY"
+    },
+    {
+        "serial":43,
+        "code": "VIMASS",
+        "name": "Ví điện tử Vimass"
+    },
+    {
+        "serial":44,
+        "code": "VINID",
+        "name": "Ví điện tử VINID"
+    },
+    {
+        "serial":45,
+        "code": "VIVIET",
+        "name": "Ví điện tử Ví Việt"
+    },
+    {
+        "serial":46,
+        "code": "VNPTPAY",
+        "name": "Ví điện tử VNPTPAY"
+    },
+    {
+        "serial":47,
+        "code": "YOLO",
+        "name": "Ví điện tử YOLO"
+    },
+    {
+        "serial":48,
+        "code": "VIETCAPITALBANK",
+        "name": "Ngân Hàng Bản Việt"
+    }
+
+]

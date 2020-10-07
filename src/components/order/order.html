@@ -5,8 +5,7 @@
         <div class="main">
             <!-- thông tin khách hàng -->
             <div class="order__customer">
-                <p class="order__title"><span class="order__title" v-if="is_update_order">CẬP NHẬT </span>ORDER
-                    {{ platform_type }}</p>
+                <p class="order__title">Đơn {{ platform_type }}</p>
                 <div class="order__msg--edit">
                     <div class="order__msg--edit-icon tooltip">
                         <img @click="handleModalEditMsg" src="@/assets/message.png" />
@@ -16,44 +15,51 @@
                 <!-- Forrm điền thông tin khách hàng -->
                 <div class="form-row">
                     <div class="col">
-                        <input v-model="name" type="text" class="form-control-sm" placeholder="Họ tên" />
+                        <input v-model="name" type="text" class="form-control-sm"
+                            :class="{'validate-failed':validate_failed.name}" placeholder="Họ tên" />
                     </div>
                     <div class="col">
-                        <input v-model="phone" type="number" class="form-control-sm" placeholder="Số điện thoại" />
+                        <input v-model="phone" type="text" class="form-control-sm"
+                            :class="{'validate-failed':validate_failed.phone}" placeholder="Số điện thoại" />
                     </div>
                 </div>
-                <input v-model="email" type="email" class="form-control-sm" placeholder="Email" />
+                <input v-model="email" type="email" class="form-control-sm"
+                    :class="{'validate-failed':validate_failed.email}" placeholder="Email" />
                 <div class="form-row">
-                    <div class="col">
-                        <select v-model="country" class="form-control-sm">
+                    <div class="order__address col" :class="{'validate-failed-address':validate_failed.country}">
+                        <select v-model="country" class="form-control-sm m-0">
                             <option value>Quốc Gia</option>
                             <option selected value="Việt Nam">Việt Nam</option>
                         </select>
                     </div>
                     <!-- Search address -->
-                    <div class="col">
-                        <SearchAddress class="" :list_data_input="list_city" :placeholder="'Tỉnh/TP'"
-                            @data_output="city=$event" :getData="getListDistrict" :clearInput="resetChangeCity"
-                            :prop_name="'name'" />
+                    <div class="order__address col" :class="{'validate-failed-address':validate_failed.city}">
+                        <SearchAddress :list_data_input="list_city" :placeholder="'Tỉnh/TP'" @data_output="city=$event"
+                            :getData="getListDistrict" :clearInput="resetChangeCity" :prop_name="'name'" />
                     </div>
                 </div>
                 <div class="form-row">
-                    <div class="col" style="margin-bottom:10px">
+                    <div class="col" :class="{'validate-failed-address':validate_failed.district}"
+                        style="margin-bottom:10px">
                         <SearchAddress :list_data_input="list_district" :placeholder="'Quận/Huyện'"
                             @data_output="district=$event" :getData="getListWard" :clearInput="resetChangeDistrict"
                             :prop_name="'name'" :watch_data="city" />
                     </div>
-                    <div class="col" style="margin-bottom:10px">
+                    <div class="col" :class="{'validate-failed-address':validate_failed.ward}"
+                        style="margin-bottom:10px">
                         <SearchAddress :list_data_input="list_ward" :placeholder="'Phường/Xã'"
                             @data_output="ward=$event" :getData="false" :clearInput="false" :prop_name="'name'"
                             :watch_data="district" />
                     </div>
                 </div>
-                <input v-model="street" type="text" class="form-control-sm" placeholder="Địa chỉ cụ thể" />
+                <input v-model="street" type="text" class="form-control-sm"
+                    :class="{'validate-failed':validate_failed.street}" placeholder="Địa chỉ cụ thể" />
                 <div v-if="has_branch">
-                    <select v-model="branch" class="form-control-sm">
+                    <select v-model="branch" class="form-control-sm"
+                        :class="{'validate-failed':validate_failed.branch}">
                         <option selected :value="{}">Chi Nhánh</option>
-                        <option v-for="(branch, index) in list_branch" :value="branch" :key="index">{{branch.branchName}}
+                        <option v-for="(branch, index) in list_branch" :value="branch" :key="index">
+                            {{branch.branchName}}
                         </option>
                     </select>
                 </div>
@@ -110,7 +116,7 @@
                     <textarea rows="2" v-model="note" ref="note" class="form-control-sm"
                         :class="{'hide': !is_show_note}"></textarea>
                     <button @click="handleShowNote()" class="btn-pill w-100 mb-4 "
-                        :class="{'hide': !is_show_note}">Done</button>
+                        :class="{'hide': !is_show_note}">Xong</button>
                 </div>
                 <!-- End Tìm sản phẩm và Tạo ghi chú -->
 
@@ -145,7 +151,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- End Giỏ hàng -->
                 <!-- tổng phí đơn hàng -->
                 <div v-if="order_option!=0">
                     <div class="font-weight-bold text-right mt-3">
@@ -157,8 +162,8 @@
                 <div v-if="order_option!=0&&payload.delivery_platform">
                     <div>
                         <Delivery ref="delivery" :store_token="store_token" :payload="payload"
-                            :prop_receiver_name="name" :prop_receiver_phone="phone" :prop_receiver_email="email"
-                            :prop_receiver_address="address" :prop_receiver_city="city"
+                            :is_update_order="is_update_order" :prop_receiver_name="name" :prop_receiver_phone="phone"
+                            :prop_receiver_email="email" :prop_receiver_address="address" :prop_receiver_city="city"
                             :prop_receiver_district="district" :prop_receiver_ward="ward" :prop_receiver_street="street"
                             :prop_total_price="total_price" @shipping_fee="shipping_fee=$event"
                             :propSendMessage="sendMessage" />
@@ -168,9 +173,10 @@
                 <!-- Thanh toán -->
                 <div v-if="order_option==2&&payload.payment_platform">
                     <div>
-                        <Alepay ref="payment" :store_token="store_token" :payload="payload" :prop_receiver_name="name"
-                            :prop_receiver_phone="phone" :prop_receiver_email="email" :prop_receiver_address="address"
-                            :prop_receiver_city="city" :prop_receiver_district="district" :prop_receiver_ward="ward"
+                        <Payment ref="payment" :store_token="store_token" :payload="payload"
+                            :is_update_order="is_update_order" :prop_receiver_name="name" :prop_receiver_phone="phone"
+                            :prop_receiver_email="email" :prop_receiver_address="address" :prop_receiver_city="city"
+                            :prop_receiver_district="district" :prop_receiver_ward="ward"
                             :prop_product_info="product_info" :total_price="total_price"
                             @shipping_fee="shipping_fee=$event" :prop_total_payment="total_payment"
                             :order_option="order_option" :propSendMessage="sendMessage" />
@@ -233,6 +239,11 @@
 
             <!-- Thông tin đơn hàng -->
             <div :class="[ 'order-info', { 'show-order-info': is_show_order_info }]">
+                <div>
+                    <div class="close" @click="closeOrderInfo()">
+                        <img src="@/assets/close1.png" alt="">
+                    </div>
+                </div>
                 <div v-if="is_show_order_info">
                     <p class="mt-2 mb-3">Thông tin đơn hàng</p>
                     <p>Khách hàng: {{name}}</p>
@@ -242,7 +253,8 @@
                     <p v-if="note">Ghi chú: {{note}}</p>
                     <br />
                     <p>Danh sách sản phẩm:</p>
-                    <p v-for="(item, index) in cart" :key="index">{{`${item.product_quantity} ${item.product_name}`}}</p>
+                    <p v-for="(item, index) in cart" :key="index">{{`${item.product_quantity} ${item.product_name}`}}
+                    </p>
                     <br />
                     <div v-if="order_option!=0">
                         <p>Tổng giá sản phẩm: {{total_price | toCurrency}}</p>
@@ -252,9 +264,6 @@
                     <button :class="['btn-pill', 'mt-3', 'mb-4', 'w-100', {'prevent-click': prevent_click}]"
                         @click="handleCallApiOrder()" :disabled="handle_api">Xác
                         nhận</button>
-                    <button class="close" @click="closeOrderInfo()">
-                        <img src="https://img.icons8.com/ios/48/000000/delete-sign.png" />
-                    </button>
                 </div>
             </div>
             <!-- End Thông tin đơn hàng -->
@@ -353,18 +362,19 @@
     </div>
     <!-- modal edit msg -->
     <div class="modal" :class="{'modal-transition':is_edit_msg}" v-if="is_edit_msg">
-
         <div class="modal__msg">
-            <div class="modal__btn--close">
-                <img src="@/assets/close.png" alt="" @click="handleModalEditMsg">
+            <div style="margin-bottom: 1.5rem;">
+                <div class="close" @click="handleModalEditMsg">
+                    <img src="@/assets/close1.png" alt="">
+                </div>
             </div>
             <div>
                 <p>Đơn hàng</p>
-                <textarea rows="1" v-model="msg_content.order" class="form-control mt-1 mb-3"></textarea>
+                <textarea rows="1" v-model="msg_content.order" class="form-control-sm mt-1 mb-3"></textarea>
                 <p>Giao vận</p>
-                <textarea rows="3" v-model="msg_content.delivery" class="form-control mt-1 mb-3"></textarea>
+                <textarea rows="3" v-model="msg_content.delivery" class="form-control-sm mt-1 mb-3"></textarea>
                 <p>Thanh toán</p>
-                <textarea rows="3" v-model="msg_content.payment" class="form-control mt-1 mb-3"></textarea>
+                <textarea rows="3" v-model="msg_content.payment" class="form-control-sm mt-1 mb-3"></textarea>
                 <div class="d-flex">
                     <button class="btn-pill w-100 m2-4 mx-2" @click="handleSaveMsg">Lưu</button>
                     <button class="btn-pill w-100 mx-2" @click="handleResetMsg">Đặt lại</button>

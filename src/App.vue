@@ -98,8 +98,8 @@ let access_token = url.searchParams.get("access_token");
 const APICMS = "https://devbbh.tk"; //dev
 // const APICMS = "https://ext.botup.io"; //product
 
-const ApiBase = "https://app.devchatbox.tk"; //dev
-// const ApiBase = "https://chatbox-app.botbanhang.vn"; //product
+// const ApiBase = "https://app.devchatbox.tk"; //dev
+const ApiBase = "https://chatbox-app.botbanhang.vn"; //product
 
 const Toast = Swal.mixin({
   toast: true,
@@ -136,9 +136,9 @@ export default {
       is_oauth: false,
       is_warning: false,
       // secretKey: '2dd3816056a04c70ad154d3943bb16bd', //product
-      // secretKey: "2218ef13a45c4fd9ade2d049db2ef6f1", //demo-product
+      secretKey: "2218ef13a45c4fd9ade2d049db2ef6f1", //demo-product
       //   secretKey: "f5ca4cd874a6427e83ed0441e61355ab", //demo-product-local
-      secretKey: "6e6d71d51a234aec9cde5f7748dd9e78", //dev-local
+      // secretKey: "6e6d71d51a234aec9cde5f7748dd9e78", //dev-local
       access_token: access_token,
       is_select: "list",
 
@@ -167,13 +167,23 @@ export default {
   },
   async created() {
     await this.partnerAuth();
+    this.testAndroid(this.access_token);
   },
+  mounted() {},
   computed: {
     isSelectList() {
       return this.is_select === "list";
     },
   },
   methods: {
+    testAndroid(toast) {
+      console.log("test android run");
+      var ua = navigator.userAgent.toLowerCase();
+      var isAndroid = ua.indexOf("android") > -1; //&& ua.indexOf("mobile");
+      if (isAndroid) {
+        Android.showToast(toast);
+      }
+    },
     async partnerAuth() {
       try {
         let body = {
@@ -319,7 +329,7 @@ export default {
       }
       Toast2.fire({
         icon: "error",
-        title: 'Không có thông tin msg_info',
+        title: "Không có thông tin msg_info",
       });
     },
     handleLocalStorage() {
@@ -428,7 +438,7 @@ export default {
   color: #fff;
   text-align: center;
   border-radius: 6px;
-  padding: 0.5rem 0.3rem;
+  padding: 0.3rem 0.3rem;
   position: absolute;
   z-index: 1;
   margin-left: -6rem;
@@ -441,18 +451,23 @@ export default {
   border-width: 5px;
   border-style: solid;
 }
+@mixin imageSelect {
+  background: url("data:image/svg+xml;utf8,<svg fill='black' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>")
+    no-repeat right #eee !important;
+  background-size: 20px;
+}
 * {
   font-size: 13px;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  input,
-  textarea,
-  select {
-    border: none !important;
-    border-radius: 1rem !important;
-    padding: 0.25rem 1rem !important;
-  }
+  // input,
+  // textarea,
+  // select {
+  //   border: none !important;
+  //   border-radius: 1rem !important;
+  //   padding: 0.25rem 1rem !important;
+  // }
   hr {
     opacity: 0.5;
     margin: 1rem 0 1rem 0;
@@ -525,7 +540,6 @@ body {
     input {
       width: 100%;
       height: 35px;
-      //   background: #eeeeee;
     }
     button {
       font-weight: bold;
@@ -603,7 +617,7 @@ body {
   user-select: none;
 }
 .widget .header > div {
-  font-weight: bold;
+  font-weight: 500;
   font-size: 1rem;
 }
 .widget .header .select {
@@ -629,7 +643,6 @@ body {
   left: 50%;
   transform: translate(-50%, -70%);
   background: #fff;
-  font-size: 1rem;
   color: #777777;
 }
 .btn-pill {
@@ -653,19 +666,27 @@ body {
 }
 .form-control-sm {
   height: calc(1.5em + 0.5rem + 2px);
-  //   padding: 0.25rem 0.5rem;
-  /* color: #495057; */
+  width: 100%;
+  padding: 0.25rem 1rem;
+  color: #000000;
   font-size: 0.875rem;
   line-height: 1.5;
-  // border-radius: 0.2rem;
-  /* border: 1px solid #ced4da; */
-  // border: none;
   border-radius: 1rem;
-  padding: 0.25rem 1rem;
+  /* border: 1px solid #ced4da; */
+  border: none;
   appearance: none;
-  background-color: #fff;
+  background: #eee;
   background-clip: padding-box;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  option {
+    background: #ffffff;
+  }
+  &:focus {
+    box-shadow: none;
+    background: #eee;
+    outline: none;
+    border: none;
+  }
 }
 .tooltip {
   position: relative;
@@ -728,5 +749,19 @@ body {
       opacity: 1;
     }
   }
+}
+.validate-failed {
+  border: 1px solid red !important;
+}
+.validate-failed-address {
+  // margin-bottom: 1rem !important;
+  padding: 0 !important;
+  margin-left: 5px !important;
+  margin-right: 5px !important;
+  border-radius: 1rem !important;
+  border: 1px solid red !important;
+}
+select {
+  @include imageSelect;
 }
 </style>

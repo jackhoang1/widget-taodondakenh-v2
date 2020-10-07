@@ -1,12 +1,16 @@
 import Restful from '@/services/resful.js'
-import EventBus from "@/EventBus.js"
-
+import orderTypeVnpay from "@/components/payment/orderTypeVnpay.json"
+import banksVnpay from "@/components/payment/banksVnpay.json"
+import SearchBankVnpay from "@/components/SearchAddress.vue"
 // const APICMS = "https://ext.botup.io"  //product
 // const APICMS = "http://localhost:1337" //dev
 const APICMS = "https://devbbh.tk" //dev
 
 export default {
-    props: ['store_token', 'payload', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_email', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_product_info', 'total_price', 'prop_total_payment', 'order_option', 'propSendMessage'],
+    components: {
+        SearchBankVnpay
+    },
+    props: ['store_token', 'payload', 'is_update_order', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_email', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_product_info', 'total_price', 'prop_total_payment', 'order_option', 'propSendMessage'],
     data() {
         return {
             list_type: [
@@ -16,18 +20,41 @@ export default {
                 // { name: 'Thanh toán ngay với thẻ ATM, IB, QRCODE, thẻ quốc tế và thanh toán trả góp', value: 3 },
                 // { name: 'Thanh toán ngay với thẻ ATM, IB, QRCODE, thẻ quốc tế', value: 4 },
             ],
+            list_order_type_vnpay: orderTypeVnpay,
+            order_type_vnpay: "",
+            list_bank_vnpay: banksVnpay,
+            bank_vnpay: "",
             checkout_type: "",
             country: 'Việt Nam',
-            order_description: '',
+            order_description: 'Thanh toán đơn hàng {{order_id}}',
             url_payment: "",
             message_bbh: "",
             handle_api: false,
             product_info: this.prop_product_info,
+            validate_failed: {
+                checkout_type: false,
+                order_description: false,
+                order_type_vnpay: false,
+                bank_vnpay: false
+
+            }
         }
     },
     created() {
     },
     mounted() {
+        this.initialization
+    },
+    computed: {
+        initialization() {       // default hình  thức thanh toán
+            if (this.payload.payment_platform == 'ALEPAY') {
+                this.checkout_type = this.list_type[1]
+            }
+            if (this.payload.payment_platform == 'VNPAY') {
+                this.order_type_vnpay = this.list_order_type_vnpay[0]
+            }
+
+        }
     },
     methods: {
         handleBodyCreatePayment(order_id) {
@@ -49,12 +76,19 @@ export default {
                 "customer_city": this.prop_receiver_city.name,
                 "customer_country": this.country,
             }
+
+            if (this.payload.payment_platform == "VNPAY") {
+                body["bank_code"] = this.bank_vnpay.code
+                body["order_type"] = this.order_type_vnpay.code
+                body["request_url"] = "http://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+            }
             return body
         },
         async createPayment(order_id) {
             try {
                 let path = `${APICMS}/v1/selling-page/payment/payment_create`
                 let body = this.handleBodyCreatePayment(order_id)
+                body["order_description"] = body["order_description"].replace(/{{order_id}}/gi, order_id)
                 let params = {}
                 let headers = { Authorization: this.store_token }
 
@@ -64,7 +98,7 @@ export default {
                     create_payment.data.data &&
                     create_payment.data.data.snap_payment
                 ) {
-                    let url_payment = create_payment.data.data.snap_payment.checkoutUrl
+                    let url_payment = create_payment.data.data.snap_payment.checkoutUrl || create_payment.data.data.snap_payment.data
                     // let message_bbh = []
                     if (url_payment) {
                         let time = create_payment.data.data.updatedAt
@@ -88,13 +122,16 @@ export default {
 
         },
         validateCreatePayment() {
-            if (!this.checkout_type) {
-                this.swalToast('Bạn chưa chọn Phương thức thanh toán', 'warning')
+            this.validate_failed.checkout_type = !this.checkout_type ? true : false
+            this.validate_failed.order_description = !this.order_description ? true : false
+            this.validate_failed.bank_vnpay = !this.bank_vnpay ? true : false
+            this.validate_failed.order_type_vnpay = !this.order_type_vnpay ? true : false
+            if (!this.order_description.trim()) return false
+            if (this.payload.payment_platform == 'ALEPAY' && !this.checkout_type) {
                 return false
             }
-            if (!this.order_description.trim()) {
-                this.swalToast('Bạn chưa điền Mô tả đơn hàng', 'warning')
-                return false
+            if (this.payload.payment_platform == 'VNPAY') {
+                if (!this.order_type_vnpay || !this.bank_vnpay) return false
             }
             return true
         },

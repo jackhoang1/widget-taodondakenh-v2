@@ -29,7 +29,6 @@ option {
     padding: 1rem;
     .order__title {
         margin-top: 0.5rem;
-        font-size: 1rem;
         text-align: center;
     }
     .order__option {
@@ -62,6 +61,9 @@ option {
                 cursor: pointer;
             }
         }
+    }
+    .order__address {
+        margin-bottom: 1rem;
     }
     .show {
         height: initial;
@@ -341,9 +343,35 @@ option {
     overflow: hidden;
     padding: 0;
     border-radius: 15px 15px 0 0;
+    p {
+        text-align: center;
+    }
+    button {
+        font-weight: bold;
+    }
 }
-.order-info p {
-    text-align: center;
+.close {
+    // position: absolute;
+    background: silver;
+    // top: 10px;
+    // right: 10px;
+    opacity: 1;
+    border-radius: 50%;
+    padding: 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    &:hover {
+        cursor: pointer;
+        opacity: 1 !important;
+    }
+    &:focus {
+        outline: none;
+    }
+    img {
+        width: 10px;
+        height: 10px;
+    }
 }
 .order-info p:last-child {
     font-weight: bold;
@@ -352,31 +380,8 @@ option {
 .order-info p:last-of-type {
     font-weight: bold;
 }
-.order-info button {
-    font-weight: bold;
-}
 .order-info::-webkit-scrollbar {
     display: none;
-}
-.order-info .close {
-    position: absolute;
-    width: 30px;
-    height: 30px;
-    top: 10px;
-    right: 10px;
-    opacity: 1;
-    border-radius: 50%;
-}
-.order-info .close:hover {
-    opacity: 1 !important;
-}
-.order-info .close img {
-    width: 22px;
-    height: 22px;
-    filter: invert(30%) sepia(96%) saturate(2052%) hue-rotate(198deg) brightness(99%) contrast(108%);
-}
-.order-info .close:focus {
-    outline: none;
 }
 .show-order-info {
     bottom: 0;
@@ -445,6 +450,9 @@ option {
         margin: 1rem;
         padding: 1rem;
         border-radius: 1rem;
+        textarea{
+            height: 3rem;
+        }
     }
 }
 .modal-transition {

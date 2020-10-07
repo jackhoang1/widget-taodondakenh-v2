@@ -1,0 +1,97 @@
+[
+    {
+        "serial": 1,
+        "code": 100000,
+        "name": "Thực Phẩm - Tiêu Dùng"
+    },
+    {
+        "serial": 2,
+        "code": 110000,
+        "name": "Điện thoại - Máy tính bảng"
+    },
+    {
+        "serial": 3,
+        "code": 120000,
+        "name": "Điện gia dụng"
+    },
+    {
+        "serial": 4,
+        "code": 130000,
+        "name": "Máy tính - Thiết bị văn phòng"
+    },
+    {
+        "serial": 5,
+        "code": 140000,
+        "name": "Điện tử - Âm thanh"
+    },
+    {
+        "serial": 6,
+        "code": 150000,
+        "name": "Sách/Báo/Tạp chí"
+    },
+    {
+        "serial": 7,
+        "code": 160000,
+        "name": "Thể thao, dã ngoại"
+    },
+    {
+        "serial": 8,
+        "code": 170000,
+        "name": "Khách sạn & Du lịch"
+    },
+    {
+        "serial": 9,
+        "code": 180000,
+        "name": "Ẩm thực"
+    },
+    {
+        "serial": 10,
+        "code": 190000,
+        "name": "Giải trí & Đào tạo"
+    },
+    {
+        "serial": 11,
+        "code": 200000,
+        "name": "Thời trang"
+    },
+    {
+        "serial": 12,
+        "code": 210000,
+        "name": "Sức khỏe - Làm đẹp"
+    },
+    {
+        "serial": 13,
+        "code": 220000,
+        "name": "Mẹ & Bé"
+    },
+    {
+        "serial": 14,
+        "code": 230000,
+        "name": "Vật dụng nhà bếp"
+    },
+    {
+        "serial": 15,
+        "code": 240000,
+        "name": "Xe cộ - phương tiện"
+    },
+    {
+        "serial": 16,
+        "code": 250000,
+        "name": "Thanh toán hóa đơn"
+    },
+    {
+        "serial": 17,
+        "code": 250007,
+        "name": "Vé máy bay"
+    },
+    {
+        "serial": 18,
+        "code": 260000,
+        "name": "Mua mã thẻ"
+    },
+    {
+        "serial": 19,
+        "code": 270000,
+        "name": "Nhà thuốc - Dịch vụ y tế"
+    }
+]

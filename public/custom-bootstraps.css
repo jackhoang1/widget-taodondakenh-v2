@@ -6,41 +6,41 @@ input,
 button,
 select,
 textarea {
-  margin: 0;
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  padding: 0 10px 0 10px;
-  border-radius: 1rem;
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    padding: 0 10px 0 10px;
+    border-radius: 1rem;
 }
 button,
 input {
-  overflow: visible;
+    overflow: visible;
 }
 button,
 select {
-  text-transform: none;
+    text-transform: none;
 }
 select {
-  word-wrap: normal;
+    word-wrap: normal;
 }
 button {
-  -webkit-appearance: button;
+    -webkit-appearance: button;
 }
 button:not(:disabled) {
-  cursor: pointer;
+    cursor: pointer;
 }
 textarea {
-  resize: vertical;
+    resize: vertical;
 }
 img {
-  vertical-align: middle;
+    vertical-align: middle;
 }
 /*Flex*/
 *,
 *::before,
 *::after {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 .d-flex {
@@ -212,8 +212,7 @@ img {
         transition: none;
     }
 }
-.form-control:focus,
-.form-control-sm:focus {
+.form-control:focus {
     /* color: #495057; */
     background-color: #fff;
     border-color: #8bbafe;

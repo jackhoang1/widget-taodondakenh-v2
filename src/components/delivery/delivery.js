@@ -9,7 +9,7 @@ const APICMS = "https://devbbh.tk"; //dev
 
 export default {
     components: { Autocomplete },
-    props: ['store_token', 'payload', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_email', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_receiver_street', 'prop_total_price', 'order_option', 'propSendMessage'],
+    props: ['store_token', 'payload', 'is_update_order', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_email', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_receiver_street', 'prop_total_price', 'order_option', 'propSendMessage'],
     data() {
         return {
             list_inventories: "",
@@ -63,6 +63,22 @@ export default {
                 },
                 note: "",
             },
+            validate_failed: {
+                inventory: false,
+                order_payment: false,
+                weight: false,
+                order_service: false,
+                length: false,
+                width: false,
+                height: false,
+                product_type: false,
+                required_note: false,
+                coupon_real_ghn: false,
+                other_info: {
+                    transport: false,
+                },
+                order_value_num: false,
+            },
             coupon_real_ghn: true,
             option_save_info: true,
             handle_api: false,
@@ -71,11 +87,25 @@ export default {
         };
     },
     async created() {
-        console.log('address', this.order_info.receiver_district, this.order_info.receiver_ward);
     },
     async mounted() {
         this.getInventory()
         this.getEmailLocal()
+        this.formatNumber(this.prop_total_price)    //default cod_amount = total_price
+        this.initialization                         //default hình thức thanh toán
+    },
+    computed: {
+        initialization() {   //default mã ghi chú bắt buộc(GHN), hình thức thanh toán , phân loại sản phẩm(VTP)
+            if (this.payload.delivery_platform == 'VIETTEL_POST') {
+                this.order_info.product_type = 'HH'
+                this.order_info.order_payment = this.list_order_payment_vtp[0]
+            }
+            if (this.payload.delivery_platform == 'GHN') {
+                this.order_info.required_note = 'KHONGCHOXEMHANG'
+                this.order_info.order_payment = this.list_order_payment_ghn[1]
+            }
+            if (this.payload.delivery_platform == 'GHTK') { this.order_info.order_payment = this.list_order_payment_ghtk[0] }
+        },
     },
     methods: {
         async getInventory() {
@@ -91,14 +121,10 @@ export default {
                     get_inventory.data &&
                     get_inventory.data.data
                 ) {
-                    if (this.payload.delivery_platform == 'VIETTEL_POST') {
-                        return this.list_inventories = get_inventory.data.data.inventory
-                    }
-                    if (this.payload.delivery_platform == 'GHN') {
-                        return this.list_inventories = get_inventory.data.data.shops
-                    }
-                    if (this.payload.delivery_platform == 'GHTK') {
-                        return this.list_inventories = get_inventory.data.data.data
+                    let list_inventories = get_inventory.data.data.inventory || get_inventory.data.data.shops || get_inventory.data.data.data
+                    if (list_inventories && list_inventories.length > 0) {
+                        this.list_inventories = list_inventories
+                        this.order_info.inventory = this.list_inventories[0]    //default store serial 1
                     }
                 }
             } catch (e) {
@@ -151,12 +177,15 @@ export default {
 
                 if (
                     get_pricing_services.data &&
-                    get_pricing_services.data.data &&
-                    get_pricing_services.data.code == 200
+                    get_pricing_services.data.data
                 ) {
+                    let services = get_pricing_services.data.data.services
                     this.order_info.order_service = ""
                     this.order_info.shipping_fee = 0
-                    this.pricing_services_list = get_pricing_services.data.data.services
+                    this.pricing_services_list = services
+                    if (services && services.length > 0) {
+                        this.order_info.order_service = services[0]   //default dịch vụ 1
+                    }
                 }
             } catch (e) {
                 console.log(e)
@@ -386,64 +415,50 @@ export default {
         },
         // component order sẽ gọi hàm này
         validateCreateDelivery() {
-            if (!this.order_info.inventory) {
-                this.swalToast('Bạn chưa chọn kho hàng', 'warning')
-                return false
-            }
-            if (!this.order_info.order_payment) {
-                this.swalToast('Bạn chưa chọn hình thức thanh toán đơn hàng', 'warning')
-                return false
-            }
-            if (!this.order_info.weight) {
-                this.swalToast('Bạn chưa nhập khối lượng', 'warning')
-                return false
-            }
+            this.validate_failed.inventory = !this.order_info.inventory ? true : false
+            this.validate_failed.order_payment = !this.order_info.order_payment ? true : false
+            this.validate_failed.weight = !this.order_info.weight ? true : false
             if (this.payload.delivery_platform == 'VIETTEL_POST' || this.payload.delivery_platform == 'GHN') {
-                if (!this.order_info.order_service) {
-                    this.swalToast('Bạn chưa chọn dịch vụ giao vận', 'warning')
-                    return false
-                }
-                if (!this.order_info.length) {
-                    this.swalToast('Bạn chưa nhập chiều dài', 'warning')
-                    return false
-                }
-                if (!this.order_info.width) {
-                    this.swalToast('Bạn chưa nhập chiều rộng', 'warning')
-                    return false
-                }
-                if (!this.order_info.height) {
-                    this.swalToast('Bạn chưa nhập chiều cao', 'warning')
-                    return false
-                }
+                this.validate_failed.order_service = !this.order_info.order_service ? true : false
+                this.validate_failed.length = !this.order_info.length ? true : false
+                this.validate_failed.width = !this.order_info.width ? true : false
+                this.validate_failed.height = !this.order_info.height ? true : false
             }
             if (this.payload.delivery_platform == 'VIETTEL_POST') {
-                if (!this.order_info.product_type) {
-                    this.swalToast('Bạn chưa chọn phân loại sản phẩm', 'warning')
-                    return false
-                }
+                this.validate_failed.product_type = !this.order_info.product_type ? true : false
             }
             if (this.payload.delivery_platform == 'GHN') {
-                if (!this.order_info.required_note) {
-                    this.swalToast('Bạn chưa chọn mã ghi chú bắt buộc', 'warning')
-                    return false
-                }
-                if (!this.coupon_real_ghn == true) {
-                    this.swalToast('Mã khuyến mãi không đúng', 'warning')
-                    return false
-                }
+                this.validate_failed.required_note = !this.order_info.required_note ? true : false
+                this.validate_failed.coupon_real_ghn = !this.coupon_real_ghn ? true : false
+            }
+            if (this.payload.delivery_platform == 'GHTK') {
+                this.validate_failed.other_info.transport = !this.order_info.other_info.transport ? true : false
+                this.validate_failed.width = !this.order_info.weight / 1000 > 20 ? true : false
+                this.validate_failed.order_value_num = !this.order_info.order_value_num >= 20000000 ? true : false
+            }
+
+            if (!this.order_info.inventory || !this.order_info.order_payment || !this.order_info.weight) { return false }
+
+            if (this.payload.delivery_platform == 'VIETTEL_POST' || this.payload.delivery_platform == 'GHN') {
+                if (!this.order_info.order_service || !this.order_info.length || !this.order_info.width || !this.order_info.height) { return false }
+            }
+            if (this.payload.delivery_platform == 'VIETTEL_POST' && !this.order_info.product_type) { return false }
+            if (this.payload.delivery_platform == 'GHN') {
+                if (!this.order_info.required_note || !this.coupon_real_ghn == true) { return false }
             }
             if (this.payload.delivery_platform == 'GHTK') {
                 if (!this.order_info.other_info.transport) {
-                    this.swalToast('Bạn chưa chọn đường vận chuyển!', 'warning')
-                }
-                if (this.order_info.weight / 1000 > 20) {
-                    this.swalToast('Khối lượng tổng đơn hàng không quá 20kg', 'warning')
                     return false
                 }
-                if (this.order_info.order_value_num >= 20000000) {
-                    this.swalToast('Giá trị đơn hàng để tính phí bảo hiểm không quá 20.000.000đ', 'warning')
-                    return false
-                }
+                // if (this.order_info.weight / 1000 > 20) {
+                //     console.log('11111111111111111111');
+                //     this.swalToast('Khối lượng tổng đơn hàng không quá 20kg', 'warning')
+                //     return false
+                // }
+                // if (this.order_info.order_value_num >= 20000000) {
+                //     this.swalToast('Giá trị đơn hàng để tính phí bảo hiểm không quá 20.000.000đ', 'warning')
+                //     return false
+                // }
             }
             return true
         },
@@ -511,7 +526,7 @@ export default {
         getEmailLocal() {
             if (this.payload.delivery_platform == "VIETTEL_POST") {
                 let data = JSON.parse(localStorage.getItem('order_3d_platform'))
-                if (data.option_save_info) {
+                if (data && data.option_save_info) {
                     return this.order_info.sender_email = data.sender_email
                 }
                 this.option_save_info = false
@@ -554,7 +569,7 @@ export default {
             }
         },
         async formatNumber(string) {
-            let number = string.replace(/\D/g, "")
+            let number = string.toString().replace(/\D/g, "")
             this.order_info.cod_amount_num = number
             this.order_info.cod_amount = new Intl.NumberFormat("de-DE", {
                 style: "currency",
@@ -583,6 +598,9 @@ export default {
         },
     },
     watch: {
+        'order_info.inventory': function () {
+            this.handleShopChange()
+        },
         prop_receiver_address: function (value) {
             this.order_info.receiver_address = this.prop_receiver_address
             if (this.payload.delivery_platform == 'GHTK') {
@@ -620,6 +638,9 @@ export default {
             }
             if (this.payload.delivery_platform == 'GHTK') {
                 this.getShippingFee()
+            }
+            if (this.payload.delivery_platform == 'GHN' || this.payload.delivery_platform == 'GHTK') {
+                this.formatNumber(this.prop_total_price)
             }
         },
         'order_info.shipping_fee': function () {

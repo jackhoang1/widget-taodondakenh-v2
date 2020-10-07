@@ -93,6 +93,16 @@ $colorCancel: #ed5a29;
         transition: height 0.25s ease-out;
         background: #fff;
         overflow: hidden;
+        .order__status--draft{
+            width: 100%;
+            .order__status--draft-edit {
+                padding-right: 1rem;
+                &:hover {
+                    cursor: pointer;
+                }
+            }
+        }
+        
         > div {
             display: none !important;
         }
@@ -227,7 +237,7 @@ $colorCancel: #ed5a29;
     border: 2px solid #dee2e6;
     border-top: none;
     border-radius: 0 0 0.35rem 0.35rem;
-    padding: 5px 10px 5px 30px;
+    padding: 5px 10px 5px 25px;
     > div {
         margin-bottom: 5px;
         display: flex !important;
@@ -266,7 +276,7 @@ $colorCancel: #ed5a29;
     .order__status img:first-child,
     .process img:first-child {
         position: relative;
-        left: -2.5px;
+        // left: -2.5px;
     }
     .phone img {
         width: 18px;
