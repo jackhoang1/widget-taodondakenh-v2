@@ -127,13 +127,6 @@ export default {
         };
     },
     created() {
-        // EventBus.$on("create-empty-order", () => {
-        //     if (!this.platform_type) {
-        //         this.wait_create_empty_order = true
-        //         return
-        //     }
-        //     this.createEmptyOrder()
-        // });
         EventBus.$on("disable-update-order", () => {
             this.is_update_order = false
         });
@@ -323,7 +316,7 @@ export default {
                         icon: "error",
                         title: "Thêm sản phẩm thất bại",
                     });
-                    return;
+                    return
                 }
                 let path = `${APICMS}/v1/selling-page/cart/cart_add_product`
                 let body = {
@@ -368,7 +361,7 @@ export default {
                 });
             }
         },
-        async handleDeleteCart(item) {
+        async delProductCart(item) {
             try {
                 let path = `${APICMS}/v1/selling-page/cart/cart_delete_product`
                 let body = {
@@ -474,10 +467,8 @@ export default {
                 icon: "error",
                 title: "Số điện thoại không hợp lệ",
             })
-
         },
-        validateInfo() {
-            let validate = true
+        validateOrder() {
             this.validate_failed.name = !this.name ? true : false
             this.validate_failed.phone = !this.phone ? true : false
             this.validate_failed.email = !this.email ? true : false
@@ -487,39 +478,49 @@ export default {
             this.validate_failed.ward = !this.ward ? true : false
             this.validate_failed.street = !this.street ? true : false
             this.validate_failed.branch = !Object.keys(this.branch)[0] ? true : false
-            //check validate components delivery, payment
-            if (this.$refs.delivery && !this.$refs.delivery.validateCreateDelivery()) { validate = false }
-            if (this.$refs.payment && !this.$refs.payment.validateCreatePayment()) { validate = false }
-            if (!this.name ||
-                !this.phone ||
-                !this.country ||
-                !this.city ||
-                !this.district ||
-                !this.ward ||
-                !this.street) validate = false
-            if (this.list_branch[0] && !Object.keys(this.branch)[0]) {
-                validate = false
-            }
-            if (validate) return true
-            Toast.fire({
-                icon: "error",
-                title: "Vui lòng điền đầy đủ thông tin",
-            })
-        },
-        handleCreateOrder() {
             if (this.cart.length === 0) {
                 Toast.fire({
                     icon: "error",
                     title: "Giỏ hàng trống",
                 })
-                return
+                return 'failed'
             }
-            if (!this.validateInfo()) { return }
-            if (!this.validatePhone(this.phone)) { return }
-            if (!this.validateEmail(this.email)) { return }
-            // Check trạng thái chọn chọn chi nhánh
-            // Check phone là kiểu Number
+            if (!this.name || !this.phone || !this.email || !this.country || !this.city || !this.district || !this.ward || !this.street) {
+                return false
+            }
+            if (this.list_branch[0] && !Object.keys(this.branch)[0]) {
+                return false
+            }
+            return true
+        },
+        validateAll() {
+            let validate = true
+            let validate_order = this.validateOrder()
+            if (validate_order == 'failed') validate = 'failed'
+            if (!validate_order) validate = false
+            //check validate components delivery, payment
+            if (this.$refs.delivery) {
+                let validate_delivery = this.$refs.delivery.validateCreateDelivery()
+                if (validate_delivery == 'failed') validate = 'failed'
+                if (!validate_delivery) validate = false
+            }
+            if (this.$refs.payment) {
+                let validate_payment = this.$refs.payment.validateCreatePayment()
+                if (!validate_payment) validate = false
+            }
+            if (!validate) {
+                Toast.fire({
+                    icon: "error",
+                    title: "Vui lòng điền đầy đủ thông tin",
+                })
+            }
+            if (!this.validatePhone(this.phone)) validate = false
+            if (!this.validateEmail(this.email)) validate = false
 
+            return validate
+        },
+        handleCreateOrder() {
+            if (!this.validateAll() || this.validateAll() == 'failed') { return }
             if (this.order_option != 0 && !this.shipping_fee) {
                 return Toast.fire({
                     icon: "error",
@@ -662,7 +663,7 @@ export default {
                         this.sendMessage(order_id, null, null, time)
                     }
                     setTimeout(() => {
-                        this.handleDeleteAllCart()
+                        this.DelAllCart()
                     }, 1000)
                     setTimeout(() => {
                         EventBus.$emit("call-order")
@@ -726,7 +727,7 @@ export default {
                 });
             }
         },
-        async handleDeleteAllCart() {
+        async DelAllCart() {
             try {
                 // Xóa giỏ hàng sau khi tạo thành cong đơn hàng
                 let path = `${APICMS}/v1/selling-page/cart/cart_delete`
@@ -962,6 +963,9 @@ export default {
                 ) {
                     this.list_branch = get_branch.data.data.data
                     this.has_branch = true
+                    if (this.list_branch && this.list_branch.length > 0) {
+                        this.branch = this.list_branch[0]   //default branch 1
+                    }
                 }
             } catch (e) {
                 if (this.resetTokenKiotviet()) return
@@ -1037,11 +1041,14 @@ export default {
                     get_branch.data &&
                     get_branch.data.data
                 ) {
-                    let list_branch = get_branch.data.data
-                    this.list_branch = list_branch.map((branch) => {
-                        return { id: branch.Id, branchName: branch.Name }
-                    })
+                    let branchs = get_branch.data.data
                     this.has_branch = true
+                    if (branchs && branchs.length > 0) {
+                        this.list_branch = branchs.map((branch) => {
+                            return { id: branch.Id, branchName: branch.Name }
+                        })
+                        this.branch = this.list_branch[0]   //default branch 1
+                    }
                 }
                 if (
                     get_branch.data &&
@@ -1125,7 +1132,7 @@ export default {
                         this.sendMessage(order_id, null, null, time)
                     }
                     setTimeout(() => {
-                        this.handleDeleteAllCart()
+                        this.DelAllCart()
                     }, 1000)
                     setTimeout(() => {
                         EventBus.$emit("call-order")
@@ -1219,11 +1226,6 @@ export default {
             this.phone = this.payload.phone
             this.email = this.payload.email
         },
-        // platform_type() {
-        //     if (this.wait_create_empty_order) {
-        //         this.createEmptyOrder()
-        //     }
-        // },
         total_price: function () {
             this.handleTotalPayment()
         },
@@ -1258,13 +1260,6 @@ export default {
         EventBus.$off("get-order", (item) => {
             this.getOrderInfo(item)
         });
-        // EventBus.$off("create-empty-order", () => {
-        //     if (!this.platform_type) {
-        //         this.wait_create_empty_order = true
-        //         return
-        //     }
-        //     this.createEmptyOrder()
-        // });
         EventBus.$off("disable-update-order", () => {
             this.is_update_order = false
         })

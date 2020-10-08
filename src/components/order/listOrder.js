@@ -65,7 +65,6 @@ export default {
         }
     },
     mounted() {
-
     },
     methods: {
         computeTime(timeStamp) {
@@ -155,21 +154,6 @@ export default {
             }
 
         },
-        changeClassGateway(item) {
-            //   if (item.status == "unconfirmed") return "unconfirmed";
-            //   // if(item.status=='confirmed') return 'confirmed'
-            //   if (item.status == "cancelled") return "cancelled";
-            if (item.is_gateway) return true
-        },
-        changeClassCod(item) {
-            //   if (item.status == "unconfirmed") return "unconfirmed";
-            //   // if(item.status=='confirmed') return 'confirmed'
-            //   if (item.status == "cancelled") return "cancelled";
-            if (item.is_cod && !item.is_gateway) return true
-        },
-        changeClassNormal(item) {
-            if (!item.is_cod && !item.is_gateway) return true
-        },
         handleClassLabel(item) {
             if (item.status == 'draft_order')
                 return 'label-draft-order'
@@ -244,17 +228,18 @@ export default {
             if (!this.payload.phone || this.payload.phone == localStorage.getItem("order_3rd_cus_phone")) return
             let length = this.list_order.length
             let phone_created = false
+            let first_run = false
             if (length > 0) {
                 for (const order of this.list_order) {
                     if ((order.status == 'draft_order' && order.customer_phone == this.payload.phone)) {
                         phone_created = true
                         break
                     }
-                    if (order.status != 'draft_order') {
+                    if (order.status != 'draft_order' && !first_run) {
+                        first_run = true
                         if (order.customer_phone == this.payload.phone) {
                             phone_created = true
                         }
-                        break
                     }
                 }
                 if (phone_created) {
@@ -319,10 +304,6 @@ export default {
     watch: {
         store_token: function () {
             this.readOrder();
-        },
-        // 'payload.phone': function () {
-        //     console.log("run watch list-order");
-        //     this.checkPhone();
-        // },
+        }
     },
 };

@@ -94,7 +94,6 @@ let urlString = location.href;
 let url = new URL(urlString);
 let access_token = url.searchParams.get("access_token");
 
-// const APICMS = "http://localhost:1337"; //dev
 const APICMS = "https://devbbh.tk"; //dev
 // const APICMS = "https://ext.botup.io"; //product
 

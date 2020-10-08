@@ -1,6 +1,5 @@
 import Restful from '@/services/resful.js'
 import orderTypeVnpay from "@/components/payment/orderTypeVnpay.json"
-import banksVnpay from "@/components/payment/banksVnpay.json"
 import SearchBankVnpay from "@/components/SearchAddress.vue"
 // const APICMS = "https://ext.botup.io"  //product
 // const APICMS = "http://localhost:1337" //dev
@@ -22,7 +21,6 @@ export default {
             ],
             list_order_type_vnpay: orderTypeVnpay,
             order_type_vnpay: "",
-            list_bank_vnpay: banksVnpay,
             bank_vnpay: "",
             checkout_type: "",
             country: 'Việt Nam',
@@ -35,8 +33,6 @@ export default {
                 checkout_type: false,
                 order_description: false,
                 order_type_vnpay: false,
-                bank_vnpay: false
-
             }
         }
     },
@@ -78,7 +74,6 @@ export default {
             }
 
             if (this.payload.payment_platform == "VNPAY") {
-                body["bank_code"] = this.bank_vnpay.code
                 body["order_type"] = this.order_type_vnpay.code
                 body["request_url"] = "http://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
             }
@@ -124,14 +119,13 @@ export default {
         validateCreatePayment() {
             this.validate_failed.checkout_type = !this.checkout_type ? true : false
             this.validate_failed.order_description = !this.order_description ? true : false
-            this.validate_failed.bank_vnpay = !this.bank_vnpay ? true : false
             this.validate_failed.order_type_vnpay = !this.order_type_vnpay ? true : false
             if (!this.order_description.trim()) return false
             if (this.payload.payment_platform == 'ALEPAY' && !this.checkout_type) {
                 return false
             }
-            if (this.payload.payment_platform == 'VNPAY') {
-                if (!this.order_type_vnpay || !this.bank_vnpay) return false
+            if (this.payload.payment_platform == 'VNPAY' && !this.order_type_vnpay) {
+                return false
             }
             return true
         },

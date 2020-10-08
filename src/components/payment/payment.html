@@ -6,13 +6,6 @@
     </div>
     <div v-if="payload.payment_platform=='VNPAY'">
         <div class="form-row">
-            <div class="col" :class="{'validate-failed-address':validate_failed.bank_vnpay}" style="margin-bottom:10px">
-                <SearchBankVnpay :list_data_input="list_bank_vnpay"
-                    :placeholder="'Ngân hàng Cổng thanh toán VNPAY hỗ trợ'" @data_output="bank_vnpay=$event"
-                    :prop_name="'name'" />
-            </div>
-        </div>
-        <div class="form-row">
             <div class="col">
                 <select class="form-control-sm" :class="{'validate-failed':validate_failed.order_type_vnpay}"
                     v-model="order_type_vnpay">

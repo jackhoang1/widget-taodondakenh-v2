@@ -3,7 +3,6 @@ import Autocomplete from "@/components/SearchAddress.vue"
 import EventBus from "@/EventBus.js"
 
 // const APICMS = "https://ext.botup.io" //product
-// const APICMS = "http://localhost:1337" //dev
 const APICMS = "https://devbbh.tk"; //dev
 
 
@@ -104,7 +103,10 @@ export default {
                 this.order_info.required_note = 'KHONGCHOXEMHANG'
                 this.order_info.order_payment = this.list_order_payment_ghn[1]
             }
-            if (this.payload.delivery_platform == 'GHTK') { this.order_info.order_payment = this.list_order_payment_ghtk[0] }
+            if (this.payload.delivery_platform == 'GHTK') {
+                 this.order_info.order_payment = this.list_order_payment_ghtk[0]
+                 this.order_info.other_info.transport = 'road'
+                }
         },
     },
     methods: {
@@ -387,13 +389,6 @@ export default {
                 delete body["product_name"]
                 delete body["product_quantity"]
                 delete body["product_price"]
-                // info_delivery["sender_province"] = "Hà Nội"        // xoá khi update address cms
-                // info_delivery["sender_district"] = "Hoàng Mai"
-                // info_delivery["sender_ward"] = "Định Công"
-                // info_delivery["sender_name"] = this.order_info.inventory.pick_name
-                // info_delivery["sender_address"] = this.order_info.inventory.address
-                // info_delivery["sender_phone"] = this.order_info.inventory.pick_tel
-                // info_delivery["order_id"] = this.order_info.order_id
                 other = {
                     "products": [{ name: product_info.list_product, weight: parseInt(this.order_info.weight) / 1000, quantity: product_info.total_item }],
                     "receiver_province": this.order_info.receiver_city.name,
@@ -413,16 +408,17 @@ export default {
             let info_delivery = { ...body, ...other }
             return info_delivery
         },
-        // component order sẽ gọi hàm này
+        // call in component order
         validateCreateDelivery() {
+            //handle border red when failed
             this.validate_failed.inventory = !this.order_info.inventory ? true : false
             this.validate_failed.order_payment = !this.order_info.order_payment ? true : false
             this.validate_failed.weight = !this.order_info.weight ? true : false
             if (this.payload.delivery_platform == 'VIETTEL_POST' || this.payload.delivery_platform == 'GHN') {
                 this.validate_failed.order_service = !this.order_info.order_service ? true : false
-                this.validate_failed.length = !this.order_info.length ? true : false
-                this.validate_failed.width = !this.order_info.width ? true : false
-                this.validate_failed.height = !this.order_info.height ? true : false
+                this.validate_failed.length = !this.order_info.length || this.order_info["length"] < 0 ? true : false
+                this.validate_failed.width = !this.order_info.width || this.order_info["width"] < 0 ? true : false
+                this.validate_failed.height = !this.order_info.height || this.order_info["height"] < 0 ? true : false
             }
             if (this.payload.delivery_platform == 'VIETTEL_POST') {
                 this.validate_failed.product_type = !this.order_info.product_type ? true : false
@@ -433,14 +429,14 @@ export default {
             }
             if (this.payload.delivery_platform == 'GHTK') {
                 this.validate_failed.other_info.transport = !this.order_info.other_info.transport ? true : false
-                this.validate_failed.width = !this.order_info.weight / 1000 > 20 ? true : false
-                this.validate_failed.order_value_num = !this.order_info.order_value_num >= 20000000 ? true : false
+                this.validate_failed.weight = !this.order_info.weight || this.order_info.weight / 1000 > 20 ? true : false
+                this.validate_failed.order_value_num = !this.order_info.order_value_num || this.order_info.order_value_num >= 20000000 ? true : false
             }
-
+            //handle sweetalert when failed
             if (!this.order_info.inventory || !this.order_info.order_payment || !this.order_info.weight) { return false }
 
             if (this.payload.delivery_platform == 'VIETTEL_POST' || this.payload.delivery_platform == 'GHN') {
-                if (!this.order_info.order_service || !this.order_info.length || !this.order_info.width || !this.order_info.height) { return false }
+                if (!this.order_info.order_service || this.order_info["length"] < 0 || this.order_info["width"] < 0 || this.order_info["height"] < 0) { return false }
             }
             if (this.payload.delivery_platform == 'VIETTEL_POST' && !this.order_info.product_type) { return false }
             if (this.payload.delivery_platform == 'GHN') {
@@ -450,15 +446,14 @@ export default {
                 if (!this.order_info.other_info.transport) {
                     return false
                 }
-                // if (this.order_info.weight / 1000 > 20) {
-                //     console.log('11111111111111111111');
-                //     this.swalToast('Khối lượng tổng đơn hàng không quá 20kg', 'warning')
-                //     return false
-                // }
-                // if (this.order_info.order_value_num >= 20000000) {
-                //     this.swalToast('Giá trị đơn hàng để tính phí bảo hiểm không quá 20.000.000đ', 'warning')
-                //     return false
-                // }
+                if (this.order_info.weight / 1000 > 20) {
+                    this.swalToast('Khối lượng tổng đơn hàng không quá 20kg', 'warning')
+                    return 'failed'
+                }
+                if (this.order_info.order_value_num >= 20000000) {
+                    this.swalToast('Giá trị đơn hàng để tính phí bảo hiểm không quá 20.000.000đ', 'warning')
+                    return 'failed'
+                }
             }
             return true
         },

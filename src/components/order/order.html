@@ -147,7 +147,7 @@
                             <p class="price text-right">{{ item.product_price | toCurrency }}</p>
                         </div>
                         <div class="edit ml-1 d-flex flex-column justify-content-between">
-                            <img @click="handleDeleteCart(item)" src="@/assets/del-icon.png" alt="delete" title="xoá" />
+                            <img @click="delProductCart(item)" src="@/assets/del-icon.png" alt="delete" title="xoá" />
                         </div>
                     </div>
                 </div>
@@ -198,8 +198,8 @@
                 <div class="d-flex align-items-center" :class="{ 'hidden-search': !is_show_popup}">
                     <div class="search rounded d-flex align-items-center flex-grow-1"
                         :class="{ 'hidden-search': !is_show_popup}">
-                        <img class="mx-2" src="https://img.icons8.com/ios-glyphs/48/000000/search.png" alt="icon" />
-                        <input @keyup.enter="handleSearch()" v-model="search_value" class="flex-grow-1" type="text"
+                        <img src="https://img.icons8.com/ios-glyphs/48/000000/search.png" alt="">
+                        <input @keyup.enter="handleSearch" v-model="search_value" class="form-control-sm flex-grow-1" type="text"
                             placeholder="Tìm sản phẩm" />
                     </div>
                     <button @click="handleClosePopup()">
@@ -238,29 +238,36 @@
             <!-- End Popup tìm sản phẩm-->
 
             <!-- Thông tin đơn hàng -->
-            <div :class="[ 'order-info', { 'show-order-info': is_show_order_info }]">
+            <div :class="[ 'order__info', { 'show-order-info': is_show_order_info }]">
                 <div>
                     <div class="close" @click="closeOrderInfo()">
                         <img src="@/assets/close1.png" alt="">
                     </div>
                 </div>
                 <div v-if="is_show_order_info">
-                    <p class="mt-2 mb-3">Thông tin đơn hàng</p>
+                    <p class="order__info--title">Thông tin đơn hàng</p>
                     <p>Khách hàng: {{name}}</p>
                     <p>Số điện thoại: {{phone}}</p>
                     <p>Email: {{email}}</p>
                     <p>Địa chỉ: {{address}}</p>
                     <p v-if="note">Ghi chú: {{note}}</p>
-                    <br />
                     <p>Danh sách sản phẩm:</p>
                     <p v-for="(item, index) in cart" :key="index">{{`${item.product_quantity} ${item.product_name}`}}
                     </p>
-                    <br />
                     <div v-if="order_option!=0">
-                        <p>Tổng giá sản phẩm: {{total_price | toCurrency}}</p>
-                        <p>Phí giao vận: {{shipping_fee | toCurrency}}</p>
+                        <div class="order__info--total-price d-flex justify-content-between">
+                            <p>Tổng giá sản phẩm</p>
+                            <p>{{total_price | toCurrency}}</p>
+                        </div>
+                        <div class="order__info--shipping-fee d-flex justify-content-between">
+                            <p>Phí giao vận</p>
+                            <p>{{shipping_fee | toCurrency}}</p>
+                        </div>
                     </div>
-                    <p class="font-weight-bold">Tổng giá trị đơn hàng: {{total_payment | toCurrency}}</p>
+                    <div class="order__info--total-payment d-flex justify-content-between">
+                        <p>Tổng giá trị đơn hàng</p>
+                        <p>{{total_payment | toCurrency}}</p>
+                    </div>
                     <button :class="['btn-pill', 'mt-3', 'mb-4', 'w-100', {'prevent-click': prevent_click}]"
                         @click="handleCallApiOrder()" :disabled="handle_api">Xác
                         nhận</button>
