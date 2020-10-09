@@ -188,7 +188,7 @@
                         <p>Tổng tiền</p>
                         <p>{{ total_payment||0 | toCurrency }}</p>
                     </div>
-                    <button @click="handleCreateOrder" class="btn-pill mb-4 w-100">Tạo đơn hàng</button>
+                    <button class="btn-pill mb-4 w-100" @click="handleCreateOrder">Tạo đơn hàng</button>
                 </div>
                 <!-- End Tổng tiền và tạo đơn hàng -->
             </div>
@@ -269,7 +269,7 @@
                         <p>{{total_payment | toCurrency}}</p>
                     </div>
                     <button :class="['btn-pill', 'mt-3', 'mb-4', 'w-100', {'prevent-click': prevent_click}]"
-                        @click="handleCallApiOrder()" :disabled="handle_api">Xác
+                        @click="handleCallApiOrder" :disabled="handle_api">Xác
                         nhận</button>
                 </div>
             </div>

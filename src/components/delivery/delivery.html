@@ -39,24 +39,24 @@
                 <div class="col">
                     <input v-model="order_info.weight" type="number" min="0" class="form-control-sm"
                         :class="{'validate-failed':validate_failed.weight}" placeholder="Cân nặng (gram)"
-                        title="Cân nặng (gram)" @change="handleChangeWeight" />
+                        title="Cân nặng (gram)" @keyup="handleWeightTimeout" />
                 </div>
                 <div class="col" v-if="payload.delivery_platform=='VIETTEL_POST'||payload.delivery_platform=='GHN'">
                     <input v-model="order_info.length" type="number" min="0" class="form-control-sm"
                         :class="{'validate-failed':validate_failed.length}" placeholder="Chiều dài (cm)"
-                        title="Chiều dài (cm)" @change="handleChangeSize" />
+                        title="Chiều dài (cm)" @keyup="handleSizeTimeout" />
                 </div>
             </div>
             <div class="form-row" v-if="payload.delivery_platform=='VIETTEL_POST'||payload.delivery_platform=='GHN'">
                 <div class="col">
                     <input v-model="order_info.width" type="number" min="0" class="form-control-sm"
                         :class="{'validate-failed':validate_failed.width}" placeholder="Chiều rộng (cm)"
-                        title="Chiều rộng (cm)" @change="handleChangeSize" />
+                        title="Chiều rộng (cm)" @keyup="handleSizeTimeout" />
                 </div>
                 <div class="col">
                     <input v-model="order_info.height" type="number" min="0" class="form-control-sm"
                         :class="{'validate-failed':validate_failed.height}" placeholder="Chiều cao (cm)"
-                        title="Chiều cao (cm)" @change="handleChangeSize" />
+                        title="Chiều cao (cm)" @keyup="handleSizeTimeout" />
                 </div>
             </div>
         </div>

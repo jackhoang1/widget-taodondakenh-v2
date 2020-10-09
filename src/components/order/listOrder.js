@@ -141,7 +141,7 @@ export default {
             }
         },
         async updateStatusOrder(status, item, index) {
-            if (item.status == "draft_order" || item.status == "new_order") {
+            if ((item.status == "draft_order" && status == 'cancel_order') || (item.status == "new_order" && status == 'confirmed_order')) {
                 let path = `${APICMS}/v1/selling-page/order/order_update`
                 let headers = { Authorization: this.store_token }
                 let body = {

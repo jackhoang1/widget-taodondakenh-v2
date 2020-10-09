@@ -62,6 +62,7 @@ export default {
                 },
                 note: "",
             },
+            timer: "",
             validate_failed: {
                 inventory: false,
                 order_payment: false,
@@ -104,9 +105,9 @@ export default {
                 this.order_info.order_payment = this.list_order_payment_ghn[1]
             }
             if (this.payload.delivery_platform == 'GHTK') {
-                 this.order_info.order_payment = this.list_order_payment_ghtk[0]
-                 this.order_info.other_info.transport = 'road'
-                }
+                this.order_info.order_payment = this.list_order_payment_ghtk[0]
+                this.order_info.other_info.transport = 'road'
+            }
         },
     },
     methods: {
@@ -221,7 +222,7 @@ export default {
                     }
                 }
                 if (this.payload.delivery_platform == "GHTK") {
-                    if (!this.prop_receiver_street
+                    if (!this.order_info.receiver_ward
                         || !this.order_info.receiver_district
                         || !this.order_info.receiver_city
                         || !this.order_info.weight
@@ -296,6 +297,9 @@ export default {
             if (this.payload.delivery_platform == "GHN") {
                 this.getShippingFee()
             }
+            if (this.payload.delivery_platform == "GHTK") {
+                this.getShippingFee()
+            }
         },
         handleChangeSize() {
             if (this.payload.delivery_platform == "VIETTEL_POST") {
@@ -322,7 +326,26 @@ export default {
                 this.order_info.shipping_fee = 0
             }
             this.$emit('shipping_fee', this.order_info.shipping_fee)
-            console.log('emit', this.order_info.shipping_fee);
+        },
+        handleWeightTimeout() {
+            if (this.timer) {
+                clearTimeout(this.timer);
+                this.timer = null;
+            }
+            this.timer = setTimeout(() => {
+                this.order_info.shipping_fee = 0
+                this.handleChangeWeight()
+            }, 1000);
+        },
+        handleSizeTimeout() {
+            if (this.timer) {
+                clearTimeout(this.timer);
+                this.timer = null;
+            }
+            this.timer = setTimeout(() => {
+                this.order_info.shipping_fee = 0
+                this.handleChangeSize()
+            }, 1000);
         },
         //component order sẽ gọi hàm này
         infoDelivery(product_info) {
@@ -432,11 +455,11 @@ export default {
                 this.validate_failed.weight = !this.order_info.weight || this.order_info.weight / 1000 > 20 ? true : false
                 this.validate_failed.order_value_num = !this.order_info.order_value_num || this.order_info.order_value_num >= 20000000 ? true : false
             }
-            //handle sweetalert when failed
+            //handle validate
             if (!this.order_info.inventory || !this.order_info.order_payment || !this.order_info.weight) { return false }
 
             if (this.payload.delivery_platform == 'VIETTEL_POST' || this.payload.delivery_platform == 'GHN') {
-                if (!this.order_info.order_service || this.order_info["length"] < 0 || this.order_info["width"] < 0 || this.order_info["height"] < 0) { return false }
+                if (!this.order_info.order_service || this.order_info["length"] <= 0 || this.order_info["width"] <= 0 || this.order_info["height"] <= 0) { return false }
             }
             if (this.payload.delivery_platform == 'VIETTEL_POST' && !this.order_info.product_type) { return false }
             if (this.payload.delivery_platform == 'GHN') {
@@ -596,22 +619,21 @@ export default {
         'order_info.inventory': function () {
             this.handleShopChange()
         },
-        prop_receiver_address: function (value) {
+        prop_receiver_address: function () {
             this.order_info.receiver_address = this.prop_receiver_address
             if (this.payload.delivery_platform == 'GHTK') {
                 this.getShippingFee()
             }
         },
-        prop_receiver_city: function (value) {
+        prop_receiver_city: function () {
             this.order_info.receiver_city = this.prop_receiver_city
             this.handleChangeCity()
         },
-        prop_receiver_district: function (value) {
-            console.log('11111111111111111111111111');
+        prop_receiver_district: function () {
             this.order_info.receiver_district = this.prop_receiver_district
             this.handleChangeDistrict()
         },
-        prop_receiver_ward: function (value) {
+        prop_receiver_ward: function () {
             this.order_info.receiver_ward = this.prop_receiver_ward
             this.handleChangeWard()
         },

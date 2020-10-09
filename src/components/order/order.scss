@@ -375,6 +375,7 @@ option {
     &:hover {
         cursor: pointer;
         opacity: 1 !important;
+        transform: scale(1.1);
     }
     &:focus {
         outline: none;
