@@ -3,10 +3,7 @@ import Restful from "@/services/resful.js"
 import SearchAddress from "@/components/SearchAddress.vue"
 import Payment from "@/components/payment/Payment.vue"
 import Delivery from "@/components/delivery/Delivery.vue"
-
-// const APICMS = "https://ext.botup.io"  //product
-// const APICMS = "http://localhost:1337" //dev
-const APICMS = "https://devbbh.tk"; //dev
+import { APICMS } from "@/services/domain.js"
 
 const Toast = Swal.mixin({
     toast: true,
@@ -84,7 +81,6 @@ export default {
             list_product: [],
 
             is_show_order_info: false,
-            prevent_click: false,
             msg_content_reset: {
                 order: 'Thông tin đơn hàng',
                 delivery: 'Đơn hàng {{order_id}} của bạn đã được vận chuyển. Mã vận đơn là {{delivery_id}}. Để kiểm tra tình trạng giao hàng, vui lòng ấn nút "Kiểm tra vận đơn" bên dưới',
@@ -222,35 +218,23 @@ export default {
         async handleSearch() {
             try {
                 if (this.search_value) {
-                    if (this.platform_type === "HARAVAN" || this.platform_type === "SAPO") {
-                        this.searchByFilter()
-                        return
-                    }
-                    // Tìm sản phẩm
-                    let search_value_data = this.search_value
-                    let search_value = search_value_data
-                    // let path = `${APICMS}/v1/selling-page/product/product_read`
                     let params = {
-                        search: search_value,
+                        search: this.search_value,
                     }
-
                     await this.getListProduct(params)
-
-                    if (this.list_product.length) return
-                    // Search với các search_value viết hoa kí tự đầu
-                    search_value = search_value_data.charAt(0).toUpperCase() + search_value.substring(1)
-                    params.search = search_value
-
-                    await this.getListProduct(params)
-
-                    if (this.list_product.length) return
-
-                    // Search với các search_value viết thường
-                    search_value = search_value_data.toLowerCase()
-                    params.search = search_value
-                    await this.getListProduct(params)
-
-                    if (!this.list_product.length) {
+                    if (this.list_product.length > 0) return
+                    if (this.list_product.length == 0 && (this.platform_type == 'SAPO' || this.platform_type == 'HARAVAN')) {
+                        console.log('runnnnnnnnnnnnnnnnnnnnnnnn')
+                        await this.getListProduct()
+                        this.searchByFilter()
+                        if (this.filter_list_product.length == 0) {
+                            return Toast.fire({
+                                icon: "error",
+                                title: "Không tìm thấy sản phẩm",
+                            })
+                        }
+                    }
+                    if (this.list_product.length == 0) {
                         Toast.fire({
                             icon: "error",
                             title: "Không tìm thấy sản phẩm",
@@ -259,6 +243,10 @@ export default {
                 }
             } catch (e) {
                 console.log("error", e)
+                Toast.fire({
+                    icon: "error",
+                    title: "Lỗi khi tìm kiếm",
+                })
             }
         },
         searchByFilter() {
@@ -267,6 +255,8 @@ export default {
             this.filter_list_product = products.filter((item) => {
                 return item.product_name.toLowerCase().includes(search)
             })
+            console.log('searchByFilter sapo', this.filter_list_product);
+
         },
         handleClosePopup() {
             // Close Popup tìm sản phẩm
@@ -336,6 +326,10 @@ export default {
                     body.other_info = {}
                     body.other_info.UnitId = item.other_info.UnitId
                     body["product_code"] = item.product_code
+                }
+                if (this.platform_type === 'ONLINECRM') {
+                    body['product_id'] = item.product_code
+                    body['product_code'] = item.product_code
                 }
                 // Thêm sản phẩm vào giỏ hàng
                 let add_cart = await Restful.post(path, body, null, headers)
@@ -449,7 +443,7 @@ export default {
             let reg = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
             let is_email = reg.test(email)
             if (is_email) {
-                return true;
+                return true
             }
             this.validate_failed.email = !is_email ? true : false
             this.swalToast('Email không hợp lệ!', 'error')
@@ -529,7 +523,6 @@ export default {
                 //     return
                 // }
                 // Ngăn spam "Tạo đơn hàng"
-                this.prevent_click = true
                 if (this.order_option == 1) {
                     this.is_cod = true
                     this.is_gateway = false
@@ -543,6 +536,7 @@ export default {
                 let path = `${APICMS}/v1/selling-page/order/order_create`
                 let body = {
                     "customer_id": this.payload.customer_id,
+                    "fb_client_id": this.payload.psid,
                     "fb_page_id": this.payload.fb_page_id,
                     "is_cod": this.is_cod,
                     "is_gateway": this.is_gateway,
@@ -596,6 +590,10 @@ export default {
                     body["customer_ward_name"] = this.ward.meta_data.haravan.name
                     body["customer_ward_code"] = this.ward.meta_data.haravan.code
                     body["customer_address"] = this.address
+                }
+                if (this.platform_type === 'ONLINECRM') {
+                    delete body['customer_city_name']
+                    delete body['customer_city_code']
                 }
                 if (this.is_update_order) {
                     return this.updateOrder(body)
@@ -652,7 +650,7 @@ export default {
                         this.sendMessage(order_id, null, null, time)
                     }
                     setTimeout(() => {
-                        this.DelAllCart()
+                        this.delAllCart()
                     }, 1000)
                     setTimeout(() => {
                         EventBus.$emit("call-order")
@@ -663,13 +661,11 @@ export default {
                         icon: "error",
                         title: "Lỗi khi tạo đơn, Vui lòng thử lại!",
                     });
-                    this.prevent_click = false
                 }
                 this.is_loading = false
             } catch (e) {
                 this.is_loading = false
                 console.log("eeeeeeeeeeeeeeee", e);
-                this.prevent_click = false
                 if (
                     e.data &&
                     e.data.error_message &&
@@ -716,7 +712,7 @@ export default {
                 });
             }
         },
-        async DelAllCart() {
+        async delAllCart() {
             try {
                 // Xóa giỏ hàng sau khi tạo thành cong đơn hàng
                 let path = `${APICMS}/v1/selling-page/cart/cart_delete`
@@ -732,7 +728,7 @@ export default {
                 this.note = ''
 
                 // Bỏ chặn click nút 'Xác nhận'
-                this.prevent_click = false
+                // this.prevent_click = false
 
                 this.getCart()
 
@@ -910,7 +906,7 @@ export default {
                         }
                     });
                 }
-                return product.image;
+                return product.image
             };
 
             products.map((product, index) => {
@@ -1121,7 +1117,7 @@ export default {
                         this.sendMessage(order_id, null, null, time)
                     }
                     setTimeout(() => {
-                        this.DelAllCart()
+                        this.delAllCart()
                     }, 1000)
                     setTimeout(() => {
                         EventBus.$emit("call-order")

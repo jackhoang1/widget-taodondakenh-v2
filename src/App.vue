@@ -89,16 +89,11 @@ import EventBus from "./EventBus.js";
 import Restful from "@/services/resful.js";
 import CreateOrder from "@/components/order/Order.vue";
 import ListOrder from "@/components/order/ListOrder.vue";
+import { APICMS, APIBASE, secretKey } from "@/services/domain.js";
 
 let urlString = location.href;
 let url = new URL(urlString);
 let access_token = url.searchParams.get("access_token");
-
-const APICMS = "https://devbbh.tk"; //dev
-// const APICMS = "https://ext.botup.io"; //product
-
-// const ApiBase = "https://app.devchatbox.tk"; //dev
-const ApiBase = "https://chatbox-app.botbanhang.vn"; //product
 
 const Toast = Swal.mixin({
   toast: true,
@@ -134,10 +129,7 @@ export default {
     return {
       is_oauth: false,
       is_warning: false,
-      // secretKey: '2dd3816056a04c70ad154d3943bb16bd', //product
-      secretKey: "2218ef13a45c4fd9ade2d049db2ef6f1", //demo-product
-      //   secretKey: "f5ca4cd874a6427e83ed0441e61355ab", //demo-product-local
-      // secretKey: "6e6d71d51a234aec9cde5f7748dd9e78", //dev-local
+      secretKey: secretKey,
       access_token: access_token,
       is_select: "list",
 
@@ -191,7 +183,7 @@ export default {
         };
 
         let get_customer_info = await Restful.post(
-          `${ApiBase}/v1/service/partner-authenticate`,
+          `${APIBASE}/v1/service/partner-authenticate`,
           body
         );
         if (
@@ -230,8 +222,6 @@ export default {
             customer.conversation_contact.client_phone
           ) {
             this.payload.phone = customer.conversation_contact.client_phone
-              //   .split("+84")
-              //   .join("0")
               .split(".")
               .join("")
               .split(" ")
@@ -241,7 +231,6 @@ export default {
           this.handleLocalStorage();
         }
       } catch (error) {
-        // Chạy vào SignIn
         this.overlaySign = false;
         this.is_oauth = false;
         console.log("info err", error);
@@ -391,7 +380,7 @@ export default {
         };
         // Xác thực Widget
         let oauth = await Restful.post(
-          `${ApiBase}/v1/app/app-installed/update`,
+          `${APIBASE}/v1/app/app-installed/update`,
           body
         );
         Toast2.fire({
@@ -432,7 +421,7 @@ export default {
 <style lang="scss">
 @mixin tooltip-position {
   visibility: hidden;
-  width: 12rem;
+  min-width: 6rem;
   background-color: #555;
   color: #fff;
   text-align: center;
@@ -440,7 +429,6 @@ export default {
   padding: 0.3rem 0.3rem;
   position: absolute;
   z-index: 1;
-  margin-left: -6rem;
   opacity: 0;
   transition: opacity 0.3s;
 }
@@ -460,22 +448,10 @@ export default {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  // input,
-  // textarea,
-  // select {
-  //   border: none !important;
-  //   border-radius: 1rem !important;
-  //   padding: 0.25rem 1rem !important;
-  // }
   hr {
     opacity: 0.5;
     margin: 1rem 0 1rem 0;
   }
-  //   input,
-  //   textarea {
-  //     border-radius: 1rem;
-  //     padding: 0 1rem;
-  //   }
   &::-webkit-scrollbar {
     display: none;
   }
@@ -491,26 +467,6 @@ body {
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
-
-// .disable-scroll {
-//   overflow: hidden;
-//   height: 100vh;
-// }
-// p {
-//   margin-top: 0;
-//   margin-bottom: 1rem;
-// }
-// button {
-//   border-radius: 0;
-// }
-// hr {
-//   opacity: 0.5;
-// }
-// button:focus {
-//   outline: 1px dotted;
-//   outline: 5px auto -webkit-focus-ring-color;
-// }
-
 /* Auth ---- */
 .auth {
   position: absolute;
@@ -691,10 +647,17 @@ body {
   position: relative;
   display: inline-block;
   // border-bottom: 1px dotted black;
+  .tooltip-nowrap{
+    white-space:nowrap;
+  }
+  .tooltip-medium{
+    min-width:12rem !important;
+  }
   .tooltip-top {
     @include tooltip-position;
     bottom: 125%;
     left: 50%;
+        transform: translateX(-50%);
     &::after {
       @include tooltip-position-after;
       top: 100%;
@@ -705,8 +668,9 @@ body {
   }
   .tooltip-bottom {
     @include tooltip-position;
-    top: 135%;
+    top: 100%;
     left: 50%;
+        transform: translateX(-50%);
     &::after {
       @include tooltip-position-after;
       bottom: 100%;
@@ -717,7 +681,7 @@ body {
   }
   .tooltip-right {
     @include tooltip-position;
-    top: -5px;
+    top: 0;
     left: 125%;
     &::after {
       top: 50%;
@@ -728,7 +692,7 @@ body {
   }
   .tooltip-left {
     @include tooltip-position;
-    top: -5px;
+    top: 0;
     bottom: auto;
     right: 128%;
     &::after {

@@ -1,9 +1,6 @@
 import EventBus from "@/EventBus.js";
 import Restful from "@/services/resful.js";
-
-// const APICMS = "https://ext.botup.io"; //productc
-// const APICMS = "http://localhost:1337"; //dev local
-const APICMS = "https://devbbh.tk"; //dev
+import { APICMS } from "@/services/domain.js"
 
 const Toast = Swal.mixin({
     toast: true,
@@ -34,7 +31,6 @@ export default {
     props: ["store_token", "payload", "handleEditOrder"],
     data() {
         return {
-            //   basePath: "https://ext.botup.io/v1/selling-page/",
             list_order: [],
             skip: 0,
             order_filter: "",
@@ -176,39 +172,39 @@ export default {
         },
         isActiveConfirm(item) {
             if (item.status != "draft_order")
-                return item.status === "new_order";
+                return item.status === "new_order"
         },
         isUnconfirm(item) {
-            return item.status == "unconfirmed";
+            return item.status == "unconfirmed"
         },
         isCancelled(item) {
             if (item.status == "draft_order")
-                return item.status === "cancel_order";
+                return item.status === "cancel_order"
         },
         async handleGetMoreOrder() {
             try {
                 this.skip = this.skip + 20;
-                let path = `${APICMS}/v1/selling-page/order/order_read`;
+                let path = `${APICMS}/v1/selling-page/order/order_read`
                 let params = {
                     sort: "createdAt DESC",
                     skip: this.skip,
                 };
-                let headers = { Authorization: this.store_token };
+                let headers = { Authorization: this.store_token }
 
-                let get_list_order = await Restful.get(path, params, headers);
+                let get_list_order = await Restful.get(path, params, headers)
 
                 if (get_list_order.data && get_list_order.data.data && get_list_order.data.data.orders) {
                     if (get_list_order.data.data.orders.length == 0) {
                         Toast2.fire({
                             icon: "success",
                             title: "Đã hiển thị tất cả đơn hàng",
-                        });
-                        return;
+                        })
+                        return
                     }
-                    this.list_order = this.list_order.concat(get_list_order.data.data.orders);
-                    console.log('111111111111', this.list_order);
+                    this.list_order = this.list_order.concat(get_list_order.data.data.orders)
+                    console.log('111111111111', this.list_order)
                 } else {
-                    throw "Lỗi lấy danh sách Đơn hàng";
+                    throw "Lỗi lấy danh sách Đơn hàng"
                 }
             } catch (e) {
                 if (e.data && e.data.error_message) {
@@ -216,12 +212,12 @@ export default {
                         icon: "error",
                         title: e.data.error_message,
                     });
-                    return;
+                    return
                 }
                 Toast2.fire({
                     icon: "error",
                     title: e,
-                });
+                })
             }
         },
         checkPhone() {

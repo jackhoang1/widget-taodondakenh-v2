@@ -1,9 +1,7 @@
 import Restful from '@/services/resful.js'
 import orderTypeVnpay from "@/components/payment/orderTypeVnpay.json"
 import SearchBankVnpay from "@/components/SearchAddress.vue"
-// const APICMS = "https://ext.botup.io"  //product
-// const APICMS = "http://localhost:1337" //dev
-const APICMS = "https://devbbh.tk" //dev
+import { APICMS } from "@/services/domain.js"
 
 export default {
     components: {

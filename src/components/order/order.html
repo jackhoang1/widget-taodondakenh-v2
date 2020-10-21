@@ -9,7 +9,7 @@
                 <div class="order__msg--edit">
                     <div class="order__msg--edit-icon tooltip">
                         <img @click="handleModalEditMsg" src="@/assets/message.png" />
-                        <span class="tooltip-left">Chỉnh sửa mẫu tin nhắn</span>
+                        <span class="tooltip-left tooltip-medium">Chỉnh sửa mẫu tin nhắn</span>
                     </div>
                 </div>
                 <!-- Forrm điền thông tin khách hàng -->
@@ -80,7 +80,7 @@
                             <label for="order__option--order-shipcod">Ship COD</label>
                             <div class="order__option--icon-shipcod tooltip">
                                 <img src="@/assets/question.png" alt="">
-                                <span class="tooltip-top">Hình thức tạo đơn và giao vận với bên thứ 3</span>
+                                <span class="tooltip-top tooltip-medium">Hình thức tạo đơn và giao vận với bên thứ 3</span>
                             </div>
                         </div>
                         <div>
@@ -89,7 +89,7 @@
                             <label for="order__option--order-payment">Thanh toán và giao vận</label>
                             <div class="order__option--icon-payment tooltip">
                                 <img class="" src="@/assets/question.png" alt="">
-                                <span class="tooltip-top">Sau khi khách hàng thanh toán, giao vận sẽ được hệ thống tự
+                                <span class="tooltip-top tooltip-medium">Sau khi khách hàng thanh toán, giao vận sẽ được hệ thống tự
                                     động kích hoạt</span>
                             </div>
 
@@ -268,7 +268,7 @@
                         <p>Tổng giá trị đơn hàng</p>
                         <p>{{total_payment | toCurrency}}</p>
                     </div>
-                    <button :class="['btn-pill', 'mt-3', 'mb-4', 'w-100', {'prevent-click': prevent_click}]"
+                    <button class="btn-pill mt-3 mb-4 w-100"
                         @click="handleCallApiOrder" :disabled="handle_api">Xác
                         nhận</button>
                 </div>

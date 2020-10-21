@@ -1,10 +1,7 @@
 import Restful from "@/services/resful.js"
 import Autocomplete from "@/components/SearchAddress.vue"
 import EventBus from "@/EventBus.js"
-
-// const APICMS = "https://ext.botup.io" //product
-const APICMS = "https://devbbh.tk"; //dev
-
+import { APICMS } from "@/services/domain.js"
 
 export default {
     components: { Autocomplete },
@@ -43,10 +40,10 @@ export default {
                 receiver_ward: this.prop_receiver_ward,
                 receiver_district: this.prop_receiver_district,
                 receiver_city: this.prop_receiver_city,
-                weight: "",
-                length: "",
-                width: "",
-                height: "",
+                weight: 500,
+                length: 20,
+                width: 20,
+                height: 20,
                 product_type: "",
                 order_payment: "",
                 order_service: "",
@@ -549,7 +546,6 @@ export default {
                 }
                 this.option_save_info = false
             }
-
         },
         handleShowNote() {
             this.is_show_note = !this.is_show_note

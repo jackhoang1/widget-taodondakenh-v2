@@ -7,5 +7,6 @@ module.exports = {
     },
     publicPath: process.env.NODE_ENV === 'production'
     ? '/demo-widget-order-3rd/'
+    // ? '/widget-order-3rd-v2/'
     : '/'
 }

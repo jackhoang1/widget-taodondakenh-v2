@@ -221,9 +221,6 @@ option {
 .order button {
     font-weight: bold;
 }
-.prevent-click {
-    pointer-events: none;
-}
 .popup {
     position: fixed;
     z-index: 999;
