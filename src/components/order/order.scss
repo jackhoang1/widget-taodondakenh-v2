@@ -1,25 +1,6 @@
 * {
     font-size: 0.9rem;
 }
-input,
-textarea,
-select {
-    width: 100%;
-    border: none;
-    background: #eee;
-    // border-radius: 1rem;
-    // padding:0 10px 0 10px
-}
-input:focus,
-textarea:focus,
-select:focus {
-    box-shadow: none;
-    background: #eee;
-}
-option {
-    background: #fff;
-}
-
 .app {
     overflow: hidden;
     position: relative;
@@ -94,6 +75,13 @@ option {
         p {
             cursor: pointer;
         }
+        .product__add,.product__note{
+            &:hover{
+                .icon__add{
+                    transform:scale(1.1)
+                }
+            }
+        }
     }
     .option,
     .form-group {
@@ -121,7 +109,7 @@ option {
         }
     }
     .list-product {
-        // margin-bottom: 150px;
+        padding-top: 0.5rem;
         font-size: 0.9rem;
         opacity: 0.9;
         .product-detail {
@@ -189,14 +177,6 @@ option {
                 white-space: nowrap;
                 cursor: pointer;
             }
-            // p {
-            //     margin: 0;
-            //     overflow: hidden;
-            //     text-overflow: ellipsis;
-            //     white-space: nowrap;
-            //     opacity: 0.6;
-            //     cursor: pointer;
-            // }
             img {
                 width: 35px;
                 height: 35px;
@@ -221,6 +201,7 @@ option {
 .order button {
     font-weight: bold;
 }
+
 .popup {
     position: fixed;
     z-index: 999;
@@ -229,73 +210,60 @@ option {
     top: 100%;
     left: 0;
     background: #fff;
-    transition: all 0.3s ease;
+    .search {
+        input {
+            border: none;
+            padding: 0 2.5rem;
+            margin: 0 1rem;
+            &:focus {
+                outline: none;
+            }
+        }
+        img {
+            position: absolute;
+            width: 17px;
+            height: 17px;
+            left: 32px;
+            filter: invert(48%) sepia(0%) saturate(21%) hue-rotate(179deg) brightness(108%) contrast(100%);
+        }
+    }
+    .list-product {
+        padding: 0 0.5rem;
+        max-height: calc(100% - 50px);
+        overflow-y: scroll;
+        position: relative;
+        font-size: 0.9rem;
+        .product {
+            position: relative;
+            cursor: pointer;
+            background: #fff;
+            margin: 0.5rem 0;
+            &:hover{
+                transition: transform 0.1s, background 0.1s;
+                background: #f3f3f3;
+                -webkit-transform: scale(1.03);
+                transform: scale(1.03);
+                -webkit-box-shadow: 0px 0px 3px rgba(126, 142, 177, 0.2);
+                box-shadow: 0px 0px 3px rgba(126, 142, 177, 0.2);
+            }
+            img {
+                width: 35px;
+                height: 35px;
+            }
+        }
+    }
 }
 .show-popup {
+    transition:  top 0.5s ease-out;
     height: 100vh;
     top: 0;
 }
 .popup > div:first-child {
     padding: 1rem;
 }
-.popup .hidden-search {
-    display: none !important;
-}
-.popup .search {
-    input {
-        border: none;
-        padding: 0 2.5rem;
-    }
-    img {
-        position: absolute;
-        width: 17px;
-        height: 17px;
-        left: 20px;
-        filter: invert(48%) sepia(0%) saturate(21%) hue-rotate(179deg) brightness(108%) contrast(100%);
-    }
-}
-.popup .search input:focus {
-    outline: none;
-}
-.popup div > button {
-    width: 30px;
-    height: 30px;
-    background: #0000;
-    border: none;
-    padding: 0;
-    position: relative;
-    left: 5px;
-}
-.popup div > button:focus {
-    outline: none;
-}
-.popup div > button img {
-    width: 100%;
-    height: 100%;
-    filter: invert(30%) sepia(96%) saturate(2052%) hue-rotate(198deg) brightness(99%) contrast(108%);
-}
-.popup .list-product {
-    padding: 1rem;
-    max-height: calc(100% - 50px);
-    overflow-y: scroll;
-    position: relative;
-    font-size: 0.9rem;
-}
+
 .popup .list-product::-webkit-scrollbar {
     display: none;
-}
-.popup .list-product .product {
-    position: relative;
-    cursor: pointer;
-    background: #fff;
-}
-.popup .list-product .product:hover {
-    transition: transform 0.1s, background 0.1s;
-    background: #ddd;
-    -webkit-transform: scale(1.03);
-    transform: scale(1.03);
-    -webkit-box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
-    box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
 }
 .popup .list-product .product:last-child::after {
     content: "";
@@ -306,10 +274,6 @@ option {
     left: 0;
     transform: translateY(100%);
     background: #fff;
-}
-.popup .product img {
-    width: 35px;
-    height: 35px;
 }
 .popup .product p:first-child {
     margin: 0;
@@ -399,10 +363,6 @@ option {
 .config button {
     font-weight: bold;
 }
-.main div:first-child > button {
-    font-weight: bold;
-}
-
 .order__option {
     input {
         width: auto;
@@ -455,21 +415,5 @@ option {
         textarea {
             height: 3rem;
         }
-    }
-}
-.modal-transition {
-    animation: modal 2s 2s cubic-bezier(0.075, 0.82, 0.165, 0.5);
-}
-@keyframes modal {
-    25% {
-        opacity: 0.4;
-        scale: 0.4;
-    }
-}
-
-@keyframes modal {
-    100% {
-        opacity: 1;
-        scale: 1;
     }
 }

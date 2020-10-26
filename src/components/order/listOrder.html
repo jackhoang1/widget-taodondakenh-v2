@@ -1,4 +1,4 @@
-<div class="list">
+<div class="list__order">
     <div class="order mt-3 mb-5">
         <div class="order__text">Đơn hàng</div>
 
@@ -29,7 +29,7 @@
                         src="@/assets/review.png" alt="" title="Đã xem giao dịch">
                 </div>
                 <div class="order__title--icon-status" v-if="item.status=='draft_order'">
-                    <img style="transform: none;height:15px;width:15px" src="@/assets/draft1.png" alt=""
+                    <img src="@/assets/draft1.png" alt=""
                         title="Cập nhật đơn nháp" @click.stop="handleClickEdit(item)">
                 </div>
             </div>
@@ -55,7 +55,7 @@
                     <p v-if="item.status=='return_order'" class="m-0">Hoàn hàng</p>
                     <p v-if="item.status=='success_order'" class="m-0">Đã nhận hàng</p>
                     <p v-if="item.status=='returned_order'" class="m-0">Đã hoàn hàng</p>
-                    <p v-if="item.status=='cancel_order'" class="m-0">Đơn huỷ</p>
+                    <p v-if="item.status=='cancel_order'" class="m-0 text-danger">Đơn huỷ</p>
                     <p v-if="item.status=='remove_order'" class="m-0">Đơn xoá</p>
 
                 </div>

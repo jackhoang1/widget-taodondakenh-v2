@@ -2,213 +2,212 @@
     <!-- Widget -->
     <div v-if="show_form=='order'"
         :class="{ 'app': true, 'disable-scroll': is_show_popup, 'disable-scroll': is_show_order_info}">
-        <div class="main">
-            <!-- thông tin khách hàng -->
-            <div class="order__customer">
-                <p class="order__title">Đơn {{ platform_type }}</p>
-                <div class="order__msg--edit">
-                    <div class="order__msg--edit-icon tooltip">
-                        <img @click="handleModalEditMsg" src="@/assets/message.png" />
-                        <span class="tooltip-left tooltip-medium">Chỉnh sửa mẫu tin nhắn</span>
-                    </div>
+        <!-- thông tin khách hàng -->
+        <div class="order__customer">
+            <p class="order__title">Đơn {{ platform_type }}</p>
+            <div class="order__msg--edit">
+                <div class="order__msg--edit-icon tooltip">
+                    <img @click="handleModalEditMsg" src="@/assets/message.png" />
+                    <span class="tooltip-left tooltip-medium">Chỉnh sửa mẫu tin nhắn</span>
                 </div>
-                <!-- Forrm điền thông tin khách hàng -->
-                <div class="form-row">
-                    <div class="col">
-                        <input v-model="name" type="text" class="form-control-sm"
-                            :class="{'validate-failed':validate_failed.name}" placeholder="Họ tên" />
-                    </div>
-                    <div class="col">
-                        <input v-model="phone" type="text" class="form-control-sm"
-                            :class="{'validate-failed':validate_failed.phone}" placeholder="Số điện thoại" />
-                    </div>
+            </div>
+            <!-- Forrm điền thông tin khách hàng -->
+            <div class="form-row">
+                <div class="col">
+                    <input v-model="name" type="text" class="form-control-sm"
+                        :class="{'validate-failed':validate_failed.name}" placeholder="Họ tên" />
                 </div>
-                <input v-model="email" type="email" class="form-control-sm"
-                    :class="{'validate-failed':validate_failed.email}" placeholder="Email" />
-                <div class="form-row">
-                    <div class="order__address col" :class="{'validate-failed-address':validate_failed.country}">
-                        <select v-model="country" class="form-control-sm m-0">
-                            <option value>Quốc Gia</option>
-                            <option selected value="Việt Nam">Việt Nam</option>
-                        </select>
-                    </div>
-                    <!-- Search address -->
-                    <div class="order__address col" :class="{'validate-failed-address':validate_failed.city}">
-                        <SearchAddress :list_data_input="list_city" :placeholder="'Tỉnh/TP'" @data_output="city=$event"
-                            :getData="getListDistrict" :clearInput="resetChangeCity" :prop_name="'name'" />
-                    </div>
+                <div class="col">
+                    <input v-model="phone" type="text" class="form-control-sm"
+                        :class="{'validate-failed':validate_failed.phone}" placeholder="Số điện thoại" />
                 </div>
-                <div class="form-row">
-                    <div class="col" :class="{'validate-failed-address':validate_failed.district}"
-                        style="margin-bottom:10px">
-                        <SearchAddress :list_data_input="list_district" :placeholder="'Quận/Huyện'"
-                            @data_output="district=$event" :getData="getListWard" :clearInput="resetChangeDistrict"
-                            :prop_name="'name'" :watch_data="city" />
-                    </div>
-                    <div class="col" :class="{'validate-failed-address':validate_failed.ward}"
-                        style="margin-bottom:10px">
-                        <SearchAddress :list_data_input="list_ward" :placeholder="'Phường/Xã'"
-                            @data_output="ward=$event" :getData="false" :clearInput="false" :prop_name="'name'"
-                            :watch_data="district" />
-                    </div>
-                </div>
-                <input v-model="street" type="text" class="form-control-sm"
-                    :class="{'validate-failed':validate_failed.street}" placeholder="Địa chỉ cụ thể" />
-                <div v-if="has_branch">
-                    <select v-model="branch" class="form-control-sm"
-                        :class="{'validate-failed':validate_failed.branch}">
-                        <option selected :value="{}">Chi Nhánh</option>
-                        <option v-for="(branch, index) in list_branch" :value="branch" :key="index">
-                            {{branch.branchName}}
-                        </option>
+            </div>
+            <input v-model="email" type="email" class="form-control-sm"
+                :class="{'validate-failed':validate_failed.email}" placeholder="Email" />
+            <div class="form-row">
+                <div class="order__address col" :class="{'validate-failed-address':validate_failed.country}">
+                    <select v-model="country" class="form-control-sm m-0">
+                        <option value>Quốc Gia</option>
+                        <option selected value="Việt Nam">Việt Nam</option>
                     </select>
                 </div>
-                <!------------------------------------- -->
-                <!-- Tuỳ chọn thanh toán hoặc ship code -->
-                <div class="order__option">
-                    <div class="order__option--main">
-                        <div>
-                            <hr>
-                            <p class="order__option--title all__text--decoration">Tuỳ chọn</p>
-                            <input id="order__option--order-only" type="radio" value="0" v-model="order_option">
-                            <label for="order__option--order-only">Chỉ tạo đơn</label>
-                            <!-- <img src="@/assets/question.png" alt=""> -->
+                <!-- Search address -->
+                <div class="order__address col" :class="{'validate-failed-address':validate_failed.city}">
+                    <SearchAddress :list_data_input="list_city" :placeholder="'Tỉnh/TP'" @data_output="city=$event"
+                        :getData="getListDistrict" :clearInput="resetChangeCity" :prop_name="'name'" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col" :class="{'validate-failed-address':validate_failed.district}"
+                    style="margin-bottom:10px">
+                    <SearchAddress :list_data_input="list_district" :placeholder="'Quận/Huyện'"
+                        @data_output="district=$event" :getData="getListWard" :clearInput="resetChangeDistrict"
+                        :prop_name="'name'" :watch_data="city" />
+                </div>
+                <div class="col" :class="{'validate-failed-address':validate_failed.ward}" style="margin-bottom:10px">
+                    <SearchAddress :list_data_input="list_ward" :placeholder="'Phường/Xã'" @data_output="ward=$event"
+                        :getData="false" :clearInput="false" :prop_name="'name'" :watch_data="district" />
+                </div>
+            </div>
+            <input v-model="street" type="text" class="form-control-sm"
+                :class="{'validate-failed':validate_failed.street}" placeholder="Địa chỉ cụ thể" />
+            <div v-if="has_branch">
+                <select v-model="branch" class="form-control-sm" :class="{'validate-failed':validate_failed.branch}">
+                    <option selected :value="{}">Chi Nhánh</option>
+                    <option v-for="(branch, index) in list_branch" :value="branch" :key="index">
+                        {{branch.branchName}}
+                    </option>
+                </select>
+            </div>
+            <!------------------------------------- -->
+            <!-- Tuỳ chọn thanh toán hoặc ship code -->
+            <div class="order__option">
+                <div class="order__option--main">
+                    <div>
+                        <hr>
+                        <p class="order__option--title all__text--decoration">Tuỳ chọn</p>
+                        <input id="order__option--order-only" type="radio" value="0" v-model="order_option">
+                        <label for="order__option--order-only">Chỉ tạo đơn</label>
+                        <!-- <img src="@/assets/question.png" alt=""> -->
+                    </div>
+                    <div>
+                        <input id="order__option--order-shipcod" type="radio" value="1" v-model="order_option"
+                            @click="checkDelivery">
+                        <label for="order__option--order-shipcod">Ship COD</label>
+                        <div class="order__option--icon-shipcod tooltip">
+                            <img src="@/assets/question.png" alt="">
+                            <span class="tooltip-top tooltip-medium">Hình thức tạo đơn và giao vận với bên thứ
+                                3</span>
                         </div>
-                        <div>
-                            <input id="order__option--order-shipcod" type="radio" value="1" v-model="order_option"
-                                @click="checkDelivery">
-                            <label for="order__option--order-shipcod">Ship COD</label>
-                            <div class="order__option--icon-shipcod tooltip">
-                                <img src="@/assets/question.png" alt="">
-                                <span class="tooltip-top tooltip-medium">Hình thức tạo đơn và giao vận với bên thứ 3</span>
-                            </div>
-                        </div>
-                        <div>
-                            <input id="order__option--order-payment" type="radio" value="2" v-model="order_option"
-                                @click="checkPayment">
-                            <label for="order__option--order-payment">Thanh toán và giao vận</label>
-                            <div class="order__option--icon-payment tooltip">
-                                <img class="" src="@/assets/question.png" alt="">
-                                <span class="tooltip-top tooltip-medium">Sau khi khách hàng thanh toán, giao vận sẽ được hệ thống tự
-                                    động kích hoạt</span>
-                            </div>
-
+                    </div>
+                    <div>
+                        <input id="order__option--order-payment" type="radio" value="2" v-model="order_option"
+                            @click="checkPayment">
+                        <label for="order__option--order-payment">Thanh toán và giao vận</label>
+                        <div class="order__option--icon-payment tooltip">
+                            <img class="" src="@/assets/question.png" alt="">
+                            <span class="tooltip-top tooltip-medium">Sau khi khách hàng thanh toán, giao vận sẽ được
+                                hệ thống tự
+                                động kích hoạt</span>
                         </div>
 
                     </div>
+
                 </div>
-                <!-- --------------- -->
+            </div>
+            <!-- --------------- -->
+        </div>
+
+        <div class="order__product">
+            <!-- Tìm sản phẩm và Tạo ghi chú -->
+            <div class="option d-flex">
+                <div class="product__add d-flex align-items-center flex-grow-1">
+                    <img class="icon__add mr-2" src="@/assets/add.png" alt="add product" />
+                    <p class="text-primary m-0" @click="handleShowPopup()">Thêm sản phẩm</p>
+                </div>
+                <div class="product__note d-flex align-items-center flex-grow-1" @click="handleShowNote()">
+                    <img class="icon__add mr-2" src="@/assets/note.png" alt="add note" />
+                    <p class="text-primary m-0">Thêm ghi chú</p>
+                </div>
+            </div>
+            <div :class="['form-group', { 'show-note': is_show_note }]">
+                <textarea rows="2" v-model="note" ref="note" class="form-control-sm"
+                    :class="{'hide': !is_show_note}"></textarea>
+                <button @click="handleShowNote()" class="btn-pill w-100 mb-4 "
+                    :class="{'hide': !is_show_note}">Xong</button>
+            </div>
+            <!-- End Tìm sản phẩm và Tạo ghi chú -->
+
+            <!-- Giỏ hàng -->
+            <div class="list-product">
+                <div class="product-detail d-flex align-items-center border-bottom" v-for="(item, index) in cart"
+                    :key="index">
+                    <img class="border rounded mr-1"
+                        :src="item.product_image || 'https://img.icons8.com/officexs/80/000000/spinner-frame-6.png'"
+                        alt="product" />
+                    <div class="product-detail-name align-self-start">
+                        <p class="name m-0" :title="item.product_name">{{ item.product_name }}</p>
+                        <p class="m-0" :title="item.other_info" v-if="platform_type!='MISA'">{{ item.other_info }}
+                        </p>
+                    </div>
+                    <div class="quantity d-flex align-items-center border rounded ml-1">
+                        <p class="flex-grow-1 text-center">{{ item.product_quantity }}</p>
+                        <div class="ml-auto mr-1 d-flex flex-column justify-content-between">
+                            <button @click="handleAddQuantity(item)" class="btn p-0">
+                                <img src="https://img.icons8.com/ios-glyphs/24/000000/chevron-up.png" />
+                            </button>
+                            <button @click="handleSubQuantity(item)" class="btn p-0">
+                                <img src="https://img.icons8.com/ios-glyphs/24/000000/chevron-up.png" />
+                            </button>
+                        </div>
+                    </div>
+                    <div class="ml-auto price">
+                        <p class="price text-right">{{ item.product_price | toCurrency }}</p>
+                    </div>
+                    <div class="edit ml-1 d-flex flex-column justify-content-between">
+                        <img @click="delProductCart(item)" src="@/assets/del-icon.png" alt="delete" title="xoá" />
+                    </div>
+                </div>
+            </div>
+            <!-- tổng phí đơn hàng -->
+            <div v-if="order_option!=0">
+                <div class="font-weight-bold text-right mt-3">
+                    <p>Tổng giá sản phẩm: {{ total_price | toCurrency }}</p>
+                </div>
             </div>
 
-            <div class="order__product">
-                <!-- Tìm sản phẩm và Tạo ghi chú -->
-                <div class="option d-flex">
-                    <div class="d-flex align-items-center flex-grow-1">
-                        <img class="mr-2" src="@/assets/add.png" alt="add product" />
-                        <p class="text-primary m-0" @click="handleShowPopup()">Thêm sản phẩm</p>
-                    </div>
-                    <div class="d-flex align-items-center flex-grow-1" @click="handleShowNote()">
-                        <img class="mr-2" src="@/assets/note.png" alt="add note" />
-                        <p class="text-primary m-0">Thêm ghi chú</p>
-                    </div>
-                </div>
-                <div :class="['form-group', { 'show-note': is_show_note }]">
-                    <textarea rows="2" v-model="note" ref="note" class="form-control-sm"
-                        :class="{'hide': !is_show_note}"></textarea>
-                    <button @click="handleShowNote()" class="btn-pill w-100 mb-4 "
-                        :class="{'hide': !is_show_note}">Xong</button>
-                </div>
-                <!-- End Tìm sản phẩm và Tạo ghi chú -->
-
-                <!-- Giỏ hàng -->
-                <div class="list-product">
-                    <div class="product-detail d-flex align-items-center border-bottom" v-for="(item, index) in cart"
-                        :key="index">
-                        <img class="border rounded mr-1"
-                            :src="item.product_image || 'https://img.icons8.com/officexs/80/000000/spinner-frame-6.png'"
-                            alt="product" />
-                        <div class="product-detail-name align-self-start">
-                            <p class="name m-0" :title="item.product_name">{{ item.product_name }}</p>
-                            <p class="m-0" :title="item.other_info" v-if="platform_type!='MISA'">{{ item.other_info }}
-                            </p>
-                        </div>
-                        <div class="quantity d-flex align-items-center border rounded ml-1">
-                            <p class="flex-grow-1 text-center">{{ item.product_quantity }}</p>
-                            <div class="ml-auto mr-1 d-flex flex-column justify-content-between">
-                                <button @click="handleAddQuantity(item)" class="btn p-0">
-                                    <img src="https://img.icons8.com/ios-glyphs/24/000000/chevron-up.png" />
-                                </button>
-                                <button @click="handleSubQuantity(item)" class="btn p-0">
-                                    <img src="https://img.icons8.com/ios-glyphs/24/000000/chevron-up.png" />
-                                </button>
-                            </div>
-                        </div>
-                        <div class="ml-auto price">
-                            <p class="price text-right">{{ item.product_price | toCurrency }}</p>
-                        </div>
-                        <div class="edit ml-1 d-flex flex-column justify-content-between">
-                            <img @click="delProductCart(item)" src="@/assets/del-icon.png" alt="delete" title="xoá" />
-                        </div>
-                    </div>
-                </div>
-                <!-- tổng phí đơn hàng -->
-                <div v-if="order_option!=0">
-                    <div class="font-weight-bold text-right mt-3">
-                        <p>Tổng giá sản phẩm: {{ total_price | toCurrency }}</p>
-                    </div>
+            <!-- Giao vận -->
+            <div v-if="order_option!=0&&payload.delivery_platform">
+                <div>
+                    <Delivery ref="delivery" :store_token="store_token" :payload="payload"
+                        :is_update_order="is_update_order" :prop_receiver_name="name" :prop_receiver_phone="phone"
+                        :prop_receiver_email="email" :prop_receiver_address="address" :prop_receiver_city="city"
+                        :prop_receiver_district="district" :prop_receiver_ward="ward" :prop_receiver_street="street"
+                        :prop_total_price="total_price" @shipping_fee="shipping_fee=$event"
+                        :propSendMessage="sendMessage" />
                 </div>
 
-                <!-- Giao vận -->
-                <div v-if="order_option!=0&&payload.delivery_platform">
-                    <div>
-                        <Delivery ref="delivery" :store_token="store_token" :payload="payload"
-                            :is_update_order="is_update_order" :prop_receiver_name="name" :prop_receiver_phone="phone"
-                            :prop_receiver_email="email" :prop_receiver_address="address" :prop_receiver_city="city"
-                            :prop_receiver_district="district" :prop_receiver_ward="ward" :prop_receiver_street="street"
-                            :prop_total_price="total_price" @shipping_fee="shipping_fee=$event"
-                            :propSendMessage="sendMessage" />
-                    </div>
-
-                </div>
-                <!-- Thanh toán -->
-                <div v-if="order_option==2&&payload.payment_platform">
-                    <div>
-                        <Payment ref="payment" :store_token="store_token" :payload="payload"
-                            :is_update_order="is_update_order" :prop_receiver_name="name" :prop_receiver_phone="phone"
-                            :prop_receiver_email="email" :prop_receiver_address="address" :prop_receiver_city="city"
-                            :prop_receiver_district="district" :prop_receiver_ward="ward"
-                            :prop_product_info="product_info" :total_price="total_price"
-                            @shipping_fee="shipping_fee=$event" :prop_total_payment="total_payment"
-                            :order_option="order_option" :propSendMessage="sendMessage" />
-                    </div>
-                </div>
-                <!-- Tổng tiền và tạo đơn hàng -->
-                <div class="order border-top">
-                    <div class="total-price d-flex justify-content-between my-2">
-                        <p>Tổng tiền</p>
-                        <p>{{ total_payment||0 | toCurrency }}</p>
-                    </div>
-                    <button class="btn-pill mb-4 w-100" @click="handleCreateOrder">Tạo đơn hàng</button>
-                </div>
-                <!-- End Tổng tiền và tạo đơn hàng -->
             </div>
+            <!-- Thanh toán -->
+            <div v-if="order_option==2&&payload.payment_platform">
+                <div>
+                    <Payment ref="payment" :store_token="store_token" :payload="payload"
+                        :is_update_order="is_update_order" :prop_receiver_name="name" :prop_receiver_phone="phone"
+                        :prop_receiver_email="email" :prop_receiver_address="address" :prop_receiver_city="city"
+                        :prop_receiver_district="district" :prop_receiver_ward="ward" :prop_product_info="product_info"
+                        :total_price="total_price" @shipping_fee="shipping_fee=$event"
+                        :prop_total_payment="total_payment" :order_option="order_option"
+                        :propSendMessage="sendMessage" />
+                </div>
+            </div>
+            <!-- Tổng tiền và tạo đơn hàng -->
+            <div class="order border-top">
+                <div class="total-price d-flex justify-content-between my-2">
+                    <p>Tổng tiền</p>
+                    <p>{{ total_payment||0 | toCurrency }}</p>
+                </div>
+                <button class="btn-pill mb-4 w-100" @click="handleCreateOrder">Tạo đơn hàng</button>
+            </div>
+            <!-- End Tổng tiền và tạo đơn hàng -->
+        </div>
 
-            <!-- Popup tìm sản phẩm-->
-            <div :class="{ 'popup': true, 'show-popup': is_show_popup}">
-                <div class="d-flex align-items-center" :class="{ 'hidden-search': !is_show_popup}">
-                    <div class="search rounded d-flex align-items-center flex-grow-1"
-                        :class="{ 'hidden-search': !is_show_popup}">
+        <!-- Search product-->
+        <div :class="{ 'popup': true, 'show-popup': is_show_popup}">
+            <div v-if="is_show_popup">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="search rounded d-flex align-items-center flex-grow-1">
                         <img src="https://img.icons8.com/ios-glyphs/48/000000/search.png" alt="">
-                        <input @keyup.enter="handleSearch" v-model="search_value" class="form-control-sm flex-grow-1" type="text"
-                            placeholder="Tìm sản phẩm" />
+                        <input @keyup.enter="handleSearch" v-model="search_value" class="form-control-sm flex-grow-1"
+                            type="text" placeholder="Tìm sản phẩm" />
                     </div>
-                    <button @click="handleClosePopup()">
-                        <img src="https://img.icons8.com/ios/48/000000/multiply.png" />
-                    </button>
+                    <div>
+                        <div class="close" @click="handleClosePopup">
+                            <img src="@/assets/close1.png" alt="">
+                        </div>
+                    </div>
                 </div>
-                <div v-show="is_show_popup" class="list-product">
-                    <div v-if="!filter_list_product.length"
-                        class="product d-flex align-items-center border-bottom border-top py-2"
+                <div class="list-product">
+                    <div v-if="!filter_list_product.length" class="product d-flex align-items-center border-bottom"
                         v-for="(item, index) in list_product" :key="index" @click="handleAddToCart(item)">
                         <img class="border rounded mr-2"
                             :src="item.image || 'https://img.icons8.com/officexs/80/000000/spinner-frame-6.png'"
@@ -217,11 +216,10 @@
                             <p class="m-0" :title="item.product_name">{{ item.product_name.substring(0, 60) + '...' }}
                             </p>
                             <p class="m-0">{{ item.product_option }}</p>
-                            <p class="text-right mt-1">{{ item.product_price ||0 | toCurrency }}</p>
+                            <p class="text-right">{{ item.product_price ||0 | toCurrency }}</p>
                         </div>
                     </div>
-                    <div v-if="filter_list_product.length"
-                        class="product d-flex align-items-center border-bottom border-top py-2"
+                    <div v-if="filter_list_product.length" class="product d-flex align-items-center border-bottom"
                         v-for="(item, index) in filter_list_product" :key="index" @click="handleAddToCart(item)">
                         <img class="border rounded mr-2"
                             :src="item.image || 'https://img.icons8.com/officexs/80/000000/spinner-frame-6.png'"
@@ -230,51 +228,51 @@
                             <p class="m-0" :title="item.product_name">{{ item.product_name.substring(0, 60) + '...' }}
                             </p>
                             <p class="m-0">{{ item.product_option }}</p>
-                            <p class="text-right mt-1">{{ item.product_price||0 | toCurrency }}</p>
+                            <p class="text-right">{{ item.product_price||0 | toCurrency }}</p>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- End Popup tìm sản phẩm-->
 
-            <!-- Thông tin đơn hàng -->
-            <div :class="[ 'order__info', { 'show-order-info': is_show_order_info }]">
-                <div>
-                    <div class="close" @click="closeOrderInfo()">
-                        <img src="@/assets/close1.png" alt="">
-                    </div>
-                </div>
-                <div v-if="is_show_order_info">
-                    <p class="order__info--title">Thông tin đơn hàng</p>
-                    <p>Khách hàng: {{name}}</p>
-                    <p>Số điện thoại: {{phone}}</p>
-                    <p>Email: {{email}}</p>
-                    <p>Địa chỉ: {{address}}</p>
-                    <p v-if="note">Ghi chú: {{note}}</p>
-                    <p>Danh sách sản phẩm:</p>
-                    <p v-for="(item, index) in cart" :key="index">{{`${item.product_quantity} ${item.product_name}`}}
-                    </p>
-                    <div v-if="order_option!=0">
-                        <div class="order__info--total-price d-flex justify-content-between">
-                            <p>Tổng giá sản phẩm</p>
-                            <p>{{total_price | toCurrency}}</p>
-                        </div>
-                        <div class="order__info--shipping-fee d-flex justify-content-between">
-                            <p>Phí giao vận</p>
-                            <p>{{shipping_fee | toCurrency}}</p>
-                        </div>
-                    </div>
-                    <div class="order__info--total-payment d-flex justify-content-between">
-                        <p>Tổng giá trị đơn hàng</p>
-                        <p>{{total_payment | toCurrency}}</p>
-                    </div>
-                    <button class="btn-pill mt-3 mb-4 w-100"
-                        @click="handleCallApiOrder" :disabled="handle_api">Xác
-                        nhận</button>
+        </div>
+        <!-- End Popup tìm sản phẩm-->
+
+        <!-- Thông tin đơn hàng -->
+        <div :class="[ 'order__info', { 'show-order-info': is_show_order_info }]">
+            <div>
+                <div class="close" @click="closeOrderInfo()">
+                    <img src="@/assets/close1.png" alt="">
                 </div>
             </div>
-            <!-- End Thông tin đơn hàng -->
+            <div v-if="is_show_order_info">
+                <p class="order__info--title">Thông tin đơn hàng</p>
+                <p>Khách hàng: {{name}}</p>
+                <p>Số điện thoại: {{phone}}</p>
+                <p>Email: {{email}}</p>
+                <p>Địa chỉ: {{address}}</p>
+                <p v-if="note">Ghi chú: {{note}}</p>
+                <p>Danh sách sản phẩm:</p>
+                <p v-for="(item, index) in cart" :key="index">{{`${item.product_quantity} ${item.product_name}`}}
+                </p>
+                <div v-if="order_option!=0">
+                    <div class="order__info--total-price d-flex justify-content-between">
+                        <p>Tổng giá sản phẩm</p>
+                        <p>{{total_price | toCurrency}}</p>
+                    </div>
+                    <div class="order__info--shipping-fee d-flex justify-content-between">
+                        <p>Phí giao vận</p>
+                        <p>{{shipping_fee | toCurrency}}</p>
+                    </div>
+                </div>
+                <div class="order__info--total-payment d-flex justify-content-between">
+                    <p>Tổng giá trị đơn hàng</p>
+                    <p>{{total_payment | toCurrency}}</p>
+                </div>
+                <button class="btn-pill mt-3 mb-4 w-100" @click="handleCallApiOrder" :disabled="handle_api">Xác
+                    nhận</button>
+            </div>
         </div>
+        <!-- End Thông tin đơn hàng -->
     </div>
     <!-- modal loading -->
     <div class="modal" v-if="is_loading">
@@ -377,7 +375,8 @@
             </div>
             <div>
                 <p>Đơn hàng</p>
-                <textarea rows="1" v-model="msg_content.order" class="form-control-sm mt-1 mb-3"></textarea>
+                <textarea ref="msg_order" rows="1" v-model="msg_content.order"
+                    class="form-control-sm mt-1 mb-3"></textarea>
                 <p>Giao vận</p>
                 <textarea rows="3" v-model="msg_content.delivery" class="form-control-sm mt-1 mb-3"></textarea>
                 <p>Thanh toán</p>

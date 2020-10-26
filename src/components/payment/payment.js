@@ -1,5 +1,5 @@
 import Restful from '@/services/resful.js'
-import orderTypeVnpay from "@/components/payment/orderTypeVnpay.json"
+import orderTypeVnpay from "@/services/orderTypeVnpay.json"
 import SearchBankVnpay from "@/components/SearchAddress.vue"
 import { APICMS } from "@/services/domain.js"
 
@@ -98,7 +98,6 @@ export default {
                         this.propSendMessage(order_id, url_payment, null, time)
                     }
                 }
-                console.log('this.url_payment', this.url_payment);
                 this.swalToast('Tạo Thanh toán thành công', 'success')
             } catch (e) {
                 console.log(e);

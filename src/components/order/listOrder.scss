@@ -1,4 +1,4 @@
-.list {
+.list__order {
     padding: 1rem;
 }
 .note {
@@ -44,6 +44,9 @@
             float: right;
             vertical-align: inherit;
             transform: rotate(0deg);
+            &:hover{
+                transform: scale(1.2);
+            }
         }
     }
     .order__title-arrow {
@@ -53,8 +56,8 @@
         filter: invert(92%) sepia(40%) saturate(6%) hue-rotate(148deg) brightness(100%) contrast(98%);
     }
     img {
-        width: 17px;
-        height: 17px;
+        width: 15px;
+        height: 15px;
         transform: rotate(-90deg);
         margin-right: 7px;
         transition: transform 0.4s ease-out;
@@ -96,6 +99,7 @@
                 padding-right: 1rem;
                 &:hover {
                     cursor: pointer;
+                    transform: scale(1.05);
                 }
             }
         }

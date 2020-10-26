@@ -140,7 +140,6 @@ export default {
     },
     methods: {
         getEmailLocal() {
-            console.log('store_email', this.payload.store_email);
             if (this.email || !this.payload.store_email) return
             this.email = this.payload.store_email
         },
@@ -224,7 +223,6 @@ export default {
                     await this.getListProduct(params)
                     if (this.list_product.length > 0) return
                     if (this.list_product.length == 0 && (this.platform_type == 'SAPO' || this.platform_type == 'HARAVAN')) {
-                        console.log('runnnnnnnnnnnnnnnnnnnnnnnn')
                         await this.getListProduct()
                         this.searchByFilter()
                         if (this.filter_list_product.length == 0) {
@@ -255,8 +253,6 @@ export default {
             this.filter_list_product = products.filter((item) => {
                 return item.product_name.toLowerCase().includes(search)
             })
-            console.log('searchByFilter sapo', this.filter_list_product);
-
         },
         handleClosePopup() {
             // Close Popup tìm sản phẩm
@@ -269,7 +265,8 @@ export default {
             this.is_show_note = !this.is_show_note
             if (this.is_show_note) {
                 setTimeout(() => {
-                    this.$refs.note.focus()
+                    if (this.$refs.note)
+                        this.$refs.note.focus()
                 })
             }
         },
@@ -500,7 +497,6 @@ export default {
         },
         handleCreateOrder() {
             if (this.cart.length == 0) {
-                console.log('check gio hang 0000000000000000');
                 return this.swalToast('Giỏ hàng trống', 'error')
             }
             if (!this.validateAll() || this.validateAll() == 'failed') { return }
@@ -726,12 +722,7 @@ export default {
                 let postDeleteAllCart = await Restful.post(path, body, null, headers)
 
                 this.note = ''
-
-                // Bỏ chặn click nút 'Xác nhận'
-                // this.prevent_click = false
-
                 this.getCart()
-
                 // Đóng chi tiết đơn hàng
                 this.closeOrderInfo()
             } catch (e) {
@@ -1176,6 +1167,12 @@ export default {
         },
         handleModalEditMsg() {
             this.is_edit_msg = !this.is_edit_msg
+            if (this.is_edit_msg) {
+                setTimeout(() => {
+                    if (this.$refs.msg_order)
+                        this.$refs.msg_order.focus()
+                })
+            }
         },
         handleSaveMsg() {
             localStorage.setItem('order_3rd_msg_content', JSON.stringify(this.msg_content))

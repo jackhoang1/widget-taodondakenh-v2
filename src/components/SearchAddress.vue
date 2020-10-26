@@ -219,7 +219,7 @@ $colorHover: #007bff;
     @include imageSelect;
     width: 100%;
     &:focus {
-      box-shadow: none;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
       background: #eee;
     }
   }
@@ -238,9 +238,8 @@ $colorHover: #007bff;
       width: 90%;
       margin: 10px 5% 5px;
       background-color: #fff;
-      border-color: #8bbafe;
       outline: 0;
-      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
     }
     .autocomplete-result {
       list-style: none;

@@ -62,6 +62,7 @@ export default {
             timer: "",
             validate_failed: {
                 inventory: false,
+                sender_email: false,
                 order_payment: false,
                 weight: false,
                 order_service: false,
@@ -249,6 +250,7 @@ export default {
                     get_shipping_fee.data.data.data
                 ) {
                     this.coupon_real_ghn = true
+                    this.order_info.shipping_fee = 0
                     return this.order_info.shipping_fee = get_shipping_fee.data.data.data.total || get_shipping_fee.data.data.data.fee     //GHN||GHTK
                 }
                 this.order_info.shipping_fee = 0
@@ -330,7 +332,6 @@ export default {
                 this.timer = null;
             }
             this.timer = setTimeout(() => {
-                this.order_info.shipping_fee = 0
                 this.handleChangeWeight()
             }, 1000);
         },
@@ -340,7 +341,6 @@ export default {
                 this.timer = null;
             }
             this.timer = setTimeout(() => {
-                this.order_info.shipping_fee = 0
                 this.handleChangeSize()
             }, 1000);
         },
@@ -428,6 +428,15 @@ export default {
             let info_delivery = { ...body, ...other }
             return info_delivery
         },
+        validateEmail(email) {
+            let reg = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
+            let is_email = reg.test(email)
+            if (is_email) {
+                return true
+            }
+            this.validate_failed.sender_email = !is_email ? true : false
+            this.swalToast('Email không hợp lệ!', 'error')
+        },
         // call in component order
         validateCreateDelivery() {
             //handle border red when failed
@@ -442,6 +451,7 @@ export default {
             }
             if (this.payload.delivery_platform == 'VIETTEL_POST') {
                 this.validate_failed.product_type = !this.order_info.product_type ? true : false
+                this.validate_failed.sender_email = !this.order_info.sender_email ? true : false
             }
             if (this.payload.delivery_platform == 'GHN') {
                 this.validate_failed.required_note = !this.order_info.required_note ? true : false
@@ -458,7 +468,14 @@ export default {
             if (this.payload.delivery_platform == 'VIETTEL_POST' || this.payload.delivery_platform == 'GHN') {
                 if (!this.order_info.order_service || this.order_info["length"] <= 0 || this.order_info["width"] <= 0 || this.order_info["height"] <= 0) { return false }
             }
-            if (this.payload.delivery_platform == 'VIETTEL_POST' && !this.order_info.product_type) { return false }
+            if (this.payload.delivery_platform == 'VIETTEL_POST') {
+                if (!this.order_info.product_type || !this.order_info.sender_email) {
+                    return false
+                }
+                if (!this.validateEmail(this.order_info.sender_email)) {
+                    return 'failed'
+                }
+            }
             if (this.payload.delivery_platform == 'GHN') {
                 if (!this.order_info.required_note || !this.coupon_real_ghn == true) { return false }
             }
@@ -549,6 +566,12 @@ export default {
         },
         handleShowNote() {
             this.is_show_note = !this.is_show_note
+            if (this.is_show_note) {
+                setTimeout(() => {
+                    if (this.$refs.note)
+                        this.$refs.note.focus()
+                })
+            }
         },
         async checkKeyBoard(event, string) {
             if (
@@ -578,7 +601,6 @@ export default {
                     } else input.focus()
                 }
             }
-
             if (event.keyCode == 8) {
             }
         },
@@ -657,7 +679,6 @@ export default {
             }
         },
         'order_info.shipping_fee': function () {
-            console.log('emit shipping fee');
             this.$emit('shipping_fee', this.order_info.shipping_fee)
         },
         'order_info.order_service': function () {

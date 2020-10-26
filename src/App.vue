@@ -42,7 +42,7 @@
     <div v-if="is_oauth && !is_warning" class="widget">
       <div class="d-flex header border-bottom">
         <div
-          class="list-order flex-grow-1 text-center py-2"
+          class="flex-grow-1 text-center py-2"
           :class="{ select: isSelectList }"
           @click="handleClickHeader('list')"
         >
@@ -168,7 +168,6 @@ export default {
   },
   methods: {
     testAndroid(toast) {
-      console.log("test android run");
       var ua = navigator.userAgent.toLowerCase();
       var isAndroid = ua.indexOf("android") > -1; //&& ua.indexOf("mobile");
       if (isAndroid) {
@@ -321,11 +320,11 @@ export default {
       });
     },
     handleLocalStorage() {
-      let order_3d_platform = JSON.parse(
+      let data = JSON.parse(
         localStorage.getItem("order_3d_platform")
       );
-      if (order_3d_platform && order_3d_platform.store_email) {
-        this.payload.store_email = order_3d_platform.store_email;
+      if (data && data.store_email) {
+        this.payload.store_email = data.store_email;
       }
     },
     handleChooseStore(item) {
@@ -618,6 +617,14 @@ body {
     -webkit-box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
     box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
   }
+  &:focus {
+    background: #0167ff;
+    transition: transform 0.15s, background 0.15s;
+    -webkit-transform: scale(1.03);
+    transform: scale(1.03);
+    -webkit-box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
+    box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
+  }
 }
 .form-control-sm {
   height: calc(1.5em + 0.5rem + 2px);
@@ -637,7 +644,7 @@ body {
     background: #ffffff;
   }
   &:focus {
-    box-shadow: none;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
     background: #eee;
     outline: none;
     border: none;
@@ -647,17 +654,17 @@ body {
   position: relative;
   display: inline-block;
   // border-bottom: 1px dotted black;
-  .tooltip-nowrap{
-    white-space:nowrap;
+  .tooltip-nowrap {
+    white-space: nowrap;
   }
-  .tooltip-medium{
-    min-width:12rem !important;
+  .tooltip-medium {
+    min-width: 12rem !important;
   }
   .tooltip-top {
     @include tooltip-position;
     bottom: 125%;
     left: 50%;
-        transform: translateX(-50%);
+    transform: translateX(-50%);
     &::after {
       @include tooltip-position-after;
       top: 100%;
@@ -670,7 +677,7 @@ body {
     @include tooltip-position;
     top: 100%;
     left: 50%;
-        transform: translateX(-50%);
+    transform: translateX(-50%);
     &::after {
       @include tooltip-position-after;
       bottom: 100%;
