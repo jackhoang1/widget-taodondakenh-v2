@@ -47,6 +47,7 @@ export default {
                 total_item: 0,
                 list_product: ''
             },
+            skip: 20,
             platform_type: this.payload.platform_type,
             name: "",
             phone: "",
@@ -70,6 +71,7 @@ export default {
             filter_list_product: [],
             is_show_popup: false,
             search_value: "",
+            search_value_old: "",
             note: "",
             is_show_note: false,
             cart: [],
@@ -217,6 +219,7 @@ export default {
         async handleSearch() {
             try {
                 if (this.search_value) {
+                    this.skip = 20
                     let params = {
                         search: this.search_value,
                     }
@@ -258,6 +261,8 @@ export default {
             // Close Popup tìm sản phẩm
             this.is_show_popup = !this.is_show_popup
             this.search_value = ''
+            this.search_value_old = ''
+            this.skip = 20
             this.filter_list_product = []
             this.getCart()
         },
@@ -900,6 +905,73 @@ export default {
                 return product.image
             };
 
+            products.map((product, index) => {
+                let map_variant = product.variants.map((variant) => {
+                    variant.image = findImage(product, variant.image_id)
+                    return {
+                        product_id: variant.id,
+                        product_name: product.product_name,
+                        product_price: variant.price,
+                        product_option: variant.title,
+                        image: variant.image,
+                    }
+                })
+                this.list_product = this.list_product.concat(map_variant)
+            });
+        },
+        async getMoreProduct() {
+            try {
+                let path = `${APICMS}/v1/selling-page/product/product_read`
+                let headers = {
+                    Authorization: this.store_token
+                }
+                let params = {
+                    skip: this.skip,
+                    search: this.search_value
+                }
+                if (this.search_value) {
+                    if (this.search_value != this.search_value_old) {
+                        this.skip = 20
+                    }
+                    this.search_value_old = this.search_value
+                }
+                // Load danh sách sản phẩm
+                let get_list_product = await Restful.get(path, params, headers)
+
+                if (
+                    get_list_product.data &&
+                    get_list_product.data.data
+                ) {
+                    let list_product = get_list_product.data.data
+                    if (list_product.length == 0) {
+                        return this.swalToast('Đã hiện hết sản phẩm', 'success')
+                    }
+                    this.skip = this.skip + 20
+                    if (this.platform_type === "HARAVAN" || this.platform_type === "SAPO") {
+                        return this.convertMoreProduct(list_product)
+                    }
+                    this.list_product = this.list_product.concat(list_product)
+
+
+                }
+                // Convert data theo variant nếu là Haravan và Sapo
+
+            } catch (e) {
+                console.log("get product err", e)
+            }
+        },
+        convertMoreProduct(products) {
+            if (products.length == 0) return
+            let findImage = (product, imageId) => {
+                if (product.images) {
+                    product.images.map((image) => {
+                        if (image.id === imageId) {
+                            return image.src
+                        }
+                    });
+                }
+                return product.image
+            };
             products.map((product, index) => {
                 let map_variant = product.variants.map((variant) => {
                     variant.image = findImage(product, variant.image_id)
