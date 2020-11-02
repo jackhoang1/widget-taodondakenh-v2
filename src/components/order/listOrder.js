@@ -28,7 +28,7 @@ const Toast2 = Swal.mixin({
 });
 
 export default {
-    props: ["store_token", "payload", "handleEditOrder"],
+    props: ["store_token", "payload", "handleShowCreateOrder"],
     data() {
         return {
             list_order: [],
@@ -71,37 +71,52 @@ export default {
             let day = `${date.getDate()}/${date.getMonth() + 1}`
             return time + " " + day
         },
-        handleClickOrder(ind, expand) {
+        handleClickOrder(index, expand, order_status) {
             // Thay đổi class của order-title
-            let el = this.$el.getElementsByClassName("order__title")
-            let classList = this.$el.getElementsByClassName("order__title")[ind]
-                .classList;
+            let arr_tag_expand = this.$el.getElementsByClassName("order__expand")
+            let arr_tag_title = this.$el.getElementsByClassName("order__title")
+            let class_tag_expand =
+                this.$el.getElementsByClassName("order__expand")[index].classList
+            let class_tag_title =
+                this.$el.getElementsByClassName("order__title")[index].classList
             if (expand) {
-                classList.add("expand")
-                return;
+                class_tag_expand.remove("expand__hide")
+                class_tag_title.add("expand__border")
+                if (order_status === 'draft_order')
+                    class_tag_expand.add("expand__show--large")
+                else
+                    class_tag_expand.add("expand__show--medium")
+                return
             }
-            for (let i = 0; i < el.length; ++i) {
-                if (i !== ind) {
-                    el[i].classList.remove("expand");
+            for (let i = 0; i < arr_tag_expand.length; ++i) {
+                if (i !== index) {
+                    arr_tag_title[i].classList.remove("expand__border")
+                    arr_tag_expand[i].classList.remove("expand__show--large")
+                    arr_tag_expand[i].classList.remove("expand__show--medium")
+                    arr_tag_expand[i].classList.add("expand__hide")
                 }
             }
-            for (let i = 0; i < classList.length; ++i) {
-                if (classList[i] === "expand") {
-                    classList.remove("expand")
-                    return;
+            for (let i = 0; i < class_tag_expand.length; ++i) {
+                if (class_tag_expand[i] === "expand__show--large" || class_tag_expand[i] === "expand__show--medium") {
+                    class_tag_expand.remove("expand__show--large")
+                    class_tag_expand.remove("expand__show--medium")
+                    class_tag_expand.add("expand__hide")
+                    class_tag_title.remove("expand__border")
+                    return
                 }
             }
-            classList.add("expand");
+            if (order_status === 'draft_order')
+                class_tag_expand.add("expand__show--large")
+            else
+                class_tag_expand.add("expand__show--medium")
+            class_tag_title.add("expand__border")
         },
-        handleClickEdit(item) {
-            // this.$emit("click-edit");
-            this.handleEditOrder("create")
-            // Emit event để CreateOrder.vue call order detail
+        async handleClickEdit(item) {
+            await this.handleShowCreateOrder()
             EventBus.$emit("get-order", item)
         },
         async readOrder() {
             try {
-                console.log('read order ........................');
                 let path = `${APICMS}/v1/selling-page/order/order_read`
                 let params = { sort: "createdAt DESC" }
                 let headers = { Authorization: this.store_token }
@@ -148,7 +163,6 @@ export default {
                 await this.readOrder()
                 this.handleClickOrder(index, true)
             }
-
         },
         handleClassLabel(item) {
             if (item.status == 'draft_order')
@@ -202,7 +216,6 @@ export default {
                         return
                     }
                     this.list_order = this.list_order.concat(get_list_order.data.data.orders)
-                    console.log('111111111111', this.list_order)
                 } else {
                     throw "Lỗi lấy danh sách Đơn hàng"
                 }

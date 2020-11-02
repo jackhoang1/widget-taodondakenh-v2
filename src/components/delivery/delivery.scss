@@ -1,9 +1,6 @@
 body::-webkit-scrollbar {
     display: none;
 }
-* {
-    font-size: 0.9rem;
-}
 .disable-scroll {
     overflow: hidden;
     height: 100vh;
@@ -15,15 +12,11 @@ body > div {
 
 .delivery__main {
     background: #fff;
-    padding: 1rem;
     .delivery__title {
-        font-weight: bold;
-        padding-bottom: 1rem;
         text-align: center;
     }
     .delivery__inventory {
         position: relative;
-        // padding-bottom: 1rem;
     }
     .delivery__product--size,
     .delivery__service,
@@ -34,12 +27,6 @@ body > div {
 .delivery__ghn--cod {
     input {
         text-align: right;
-    }
-}
-.delivery__fee--total {
-    padding: 0 1rem;
-    .delivery__fee--total-note{
-        height: 3rem;
     }
 }
 .delivery__fee--total .option img {
@@ -56,20 +43,7 @@ body > div {
     margin: 0;
     transition: all 0.3s ease;
 }
-.delivery__fee--total .option + .form-group button {
-    font-weight: bold;
-}
 .delivery__fee--total .option + .show-note {
     height: initial;
     opacity: 1;
-}
-
-.delivery {
-    input,
-    select {
-        margin-bottom: 1rem;
-    }
-}
-textarea {
-    height: 3rem;
 }

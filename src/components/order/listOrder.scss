@@ -1,5 +1,22 @@
-.list__order {
-    padding: 1rem;
+$colorSecond: #140f2d;
+$colorAccent110: #f55600;
+$colorAccent: #ff5f0b;
+$colorAccent70: #ff8f54;
+$colorAccent30: #ffcfb6;
+$colorAccent10: #fff7f3;
+$colorNeutral: #4f596a;
+$colorNeutral70: #848b97;
+$colorNeutral38: #bcc0c6;
+$colorNeutral18: #dfe1e4;
+$colorNeutral5: #f6f7f8;
+@mixin orderStatus {
+    height: 40px;
+    width: 40px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 12px;
 }
 .note {
     min-height: 100px;
@@ -13,9 +30,7 @@
     }
 }
 .order {
-    border-top: 2px solid #eee;
     position: relative;
-    padding-top: 1rem;
     .order__text {
         // content: 'Đơn hàng';
         text-align: center;
@@ -33,11 +48,14 @@
     background: #fff;
 }
 .order__title {
+    border: 1px solid #fff;
+    border-radius: 8px;
     user-select: none;
-    padding: 2px;
     cursor: pointer;
-    border: 2px solid #dee2e6 !important;
     transition: all 0.3s ease-out, background 0.1s;
+    .order__title--status{
+        margin: 3px;
+    }
     .order__title--icon-status {
         width: 100vmin;
         img {
@@ -62,10 +80,6 @@
         margin-right: 7px;
         transition: transform 0.4s ease-out;
     }
-    p {
-        font-size: 0.9rem;
-        font-weight: 500;
-    }
     .edit {
         width: 17px;
         height: 17px;
@@ -74,144 +88,88 @@
         transition: all 0.2s;
     }
     &:hover {
-        background: #eeec;
+        background: rgba(240, 240, 240, 0.865);
         transition: transform 0.15s, background 0.15s;
         -webkit-transform: scale(1.03);
         transform: scale(1.03);
-        -webkit-box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
-        box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
+        border-radius: 8px;
+        // -webkit-box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
+        // box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
     }
     &:hover .edit {
         opacity: 1;
     }
 }
 .order__detail {
-    margin-top: 0.5rem;
-    font-size: 0.9rem;
+    margin-bottom: 10px;
+    padding: 0 16px;
     .order__expand {
-        height: 0;
-        transition: height 0.25s ease-out;
+        margin: 0 4px;
         background: #fff;
         overflow: hidden;
-        .order__status--draft{
-            width: 100%;
-            .order__status--draft-edit {
-                padding-right: 1rem;
-                &:hover {
-                    cursor: pointer;
-                    transform: scale(1.05);
-                }
-            }
+        filter: drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.15));
+        .order__expand--icon-new{
+            margin-right: 8px;
         }
-        
-        > div {
-            display: none !important;
+        .order__expand--icon-confirm,.order__expand--icon-cancel{
+            margin: 0 8px;
         }
+        .order__expand--icon-info{
+            margin-right: 14px;
+        }
+        // > div {
+        //     display: none !important;
+        // }
+    }
+    .expand__border{
+        border: 1px solid #DFE1E4;
+        border-radius: 8px;
+        .order__status--icon-arrow {
+            transition: transform 0.25s ease-out !important;
+            transform: rotate(-180deg) !important;
+        }
+    }
+    .expand__hide{
+        transition: height 0.25s ease-out;
+        height: 0;
+    }
+    .expand__show--medium{
+        transition: height 0.25s ease-out;
+        height: 190px;
+    }
+    .expand__show--large{
+        transition: height 0.25s ease-out;
+        height: 222px;
     }
 }
 
-.label-draft-order {
-    background: #a3a3a3;
-    border: 2px solid #a3a3a3 !important;
-    &:hover {
-        background: #a3a3a3;
-    }
-}
-.label-new-order {
-    background: rgb(0, 162, 174);
-    border: 2px solid rgb(0, 162, 174) !important;
-    &:hover {
-        background: rgb(0, 162, 174);
-    }
-}
-.label-out-stock {
-    background: rgb(180, 159, 9);
-    border: 2px solid rgb(180, 159, 9) !important;
-    &:hover {
-        background: rgb(180, 159, 9);
-    }
-}
-.label-confirm-order {
-    background: rgb(16, 142, 233);
-    border: 2px solid rgb(16, 142, 233) !important;
-    &:hover {
-        background: rgb(16, 142, 233);
-    }
-}
-.label-deliver-order {
-    background: rgb(247, 142, 61);
-    border: 2px solid rgb(247, 142, 61) !important;
-    &:hover {
-        background: rgb(247, 142, 61);
-    }
-}
-.label-return-order {
-    background: rgb(254, 76, 76);
-    border: 2px solid rgb(254, 76, 76) !important;
-    &:hover {
-        background: rgb(254, 76, 76);
-    }
-}
-.label-success-order {
-    background: rgb(61, 189, 125);
-    border: 2px solid rgb(61, 189, 125) !important;
-    &:hover {
-        background: rgb(61, 189, 125);
-    }
-}
-.label-returned-order {
-    background: rgb(215, 19, 0);
-    border: 2px solid rgb(215, 19, 0) !important;
-    &:hover {
-        background: rgb(215, 19, 0);
-    }
-}
-.label-cancel-order {
-    background: rgb(50, 47, 47);
-    border: 2px solid rgb(50, 47, 47) !important;
-    &:hover {
-        background: rgb(50, 47, 47);
-    }
-}
-.label-remove-order {
-    background: #000000;
-    border: 2px solid #000000 !important;
-    &:hover {
-        background: #000000;
-    }
-}
-
-.order__title.expand p {
-    color: #f8f9fa !important;
-}
-.order__title.expand img:not(.edit) {
+// .order__title.expand p {
+//     color: #f8f9fa !important;
+// }
+.order__status--icon-arrow{
+    transition: transform 0.25s ease-out;
     transform: rotate(0);
 }
-.order__title.expand img {
-    filter: invert(92%) sepia(40%) saturate(6%) hue-rotate(148deg) brightness(100%) contrast(98%);
-}
-.order__title.expand + .order__expand {
-    height: 150px;
-    font-size: 0.9rem;
-    border: 2px solid #dee2e6;
-    border-top: none;
-    border-radius: 0 0 0.35rem 0.35rem;
-    padding: 5px 10px 5px 25px;
-    > div {
-        margin-bottom: 5px;
-        display: flex !important;
-    }
-}
-.order__title.expand .edit {
-    opacity: 1;
-}
-.order__list--filter {
-    text-align: right;
+// .order__title.expand .order__status--icon-arrow {
+//     transition: transform 0.25s ease-out !important;
+//     transform: rotate(-180deg) !important;
+// }
+// .order__title.expand + .order__expand {
+//     height: 190px;
+//     border: 1px solid $colorNeutral18;
+//     border-top: none;
+//     border-radius: 0 0 4px 4px;
+// }
+// .order__title.expand .edit {
+//     opacity: 1;
+// }
+// .order__list--filter {
+//     text-align: right;
 
-    select {
-        outline: none;
-    }
-}
+//     select {
+//         outline: none;
+//     }
+// }
 .order__expand {
     .order__detail--gateway {
         .order__detail--gateway-delivery {
@@ -237,18 +195,10 @@
         position: relative;
         // left: -2.5px;
     }
-    .phone img {
-        width: 18px;
-        height: 18px;
-    }
-    .create img,
-    .update img {
-        width: 15px;
-        height: 15px;
-    }
     .process {
         user-select: none;
         pointer-events: none;
+        padding: 12px 16px 8px 16px;
         img,
         p {
             cursor: pointer;
@@ -272,9 +222,12 @@
             filter: none;
         }
     }
+    .order__expand--content{
+        padding: 16px 0 0 18px;
+    }
 }
 .more {
-    position: fixed;
+    // position: fixed;
     bottom: 0;
     padding-bottom: 10px;
     background: #fff;
@@ -286,4 +239,46 @@
         height: 20px;
         opacity: 0.6;
     }
+}
+
+
+.order__status--icon-draft{
+    @include orderStatus;
+    background: $colorNeutral18;
+}
+.order__status--icon-new{
+    @include orderStatus;
+    background: rgba(242, 201, 76, 0.1);
+}
+.order__status--icon-out_stock{
+    @include orderStatus;
+    background: rgba(86, 204, 242, 0.1);
+}
+.order__status--icon-confirmed{
+    @include orderStatus;
+    background: rgba(39, 174, 96, 0.1);
+}
+.order__status--icon-deliver{
+    @include orderStatus;
+    background: rgba(47, 128, 237, 0.1);
+}
+.order__status--icon-return{
+    @include orderStatus;
+    background: rgba(187, 107, 217, 0.1);
+}
+.order__status--icon-success{
+    @include orderStatus;
+    background: rgba(33, 150, 83, 0.1);
+}
+.order__status--icon-returned{
+    @include orderStatus;
+    background: rgba(155, 81, 224, 0.1);
+}
+.order__status--icon-cancel{
+    @include orderStatus;
+    background:rgba(235, 87, 87, 0.1);
+}
+.order__status--icon-remove{
+    @include orderStatus;
+    background: $colorNeutral;
 }

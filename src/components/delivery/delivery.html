@@ -1,12 +1,10 @@
 <div class="delivery">
     <div class="delivery__main">
         <hr>
-        <p class="delivery__title">Tạo vận đơn {{payload.delivery_platform}}</p>
+        <p class="text__second--large margin__bottom--12">Vận đơn {{payload.delivery_platform}}</p>
         <!-- address customer -->
         <div class="delivery__inventory">
-            <hr>
-            <div class="all__text--decoration mb-0">Kho hàng</div>
-            <div class="form-row">
+            <div class="margin__bottom--12 form-row">
                 <div class="col">
                     <select class="form-control-sm input-group input-group-sm"
                         :class="{'validate-failed':validate_failed.inventory}" v-model="order_info.inventory">
@@ -18,7 +16,7 @@
                 </div>
             </div>
             <!-- VTP sender email -->
-            <div class="form-row" v-if="!payload.store_email&&payload.delivery_platform=='VIETTEL_POST'">
+            <div class="margin__bottom--12 form-row" v-if="!payload.store_email&&payload.delivery_platform=='VIETTEL_POST'">
                 <div class="col">
                     <input class="form-control-sm" :class="{'validate-failed':validate_failed.sender_email}" type="text"
                         placeholder="Email bên gửi..." v-model="order_info.sender_email" @change="handleSaveInfo">
@@ -33,9 +31,7 @@
         </div>
 
         <div class="delivery__product--size">
-            <hr>
-            <p class="all__text--decoration mb-0">Kích thước</p>
-            <div class="form-row">
+            <div class="margin__bottom--12 form-row">
                 <div class="col tooltip">
                     <input v-model="order_info.weight" type="number" min="0" class="form-control-sm text-center"
                         :class="{'validate-failed':validate_failed.weight}" placeholder="Cân nặng (gram)"
@@ -50,7 +46,7 @@
                     <span class="tooltip-top tooltip-nowrap">Chiều dài (cm)</span>
                 </div>
             </div>
-            <div class="form-row" v-if="payload.delivery_platform=='VIETTEL_POST'||payload.delivery_platform=='GHN'">
+            <div class="margin__bottom--12 form-row" v-if="payload.delivery_platform=='VIETTEL_POST'||payload.delivery_platform=='GHN'">
                 <div class="col tooltip">
                     <input v-model="order_info.width" type="number" min="0" class="form-control-sm text-center"
                         :class="{'validate-failed':validate_failed.width}" placeholder="Chiều rộng (cm)"
@@ -66,11 +62,9 @@
             </div>
         </div>
         <div class="delivery__service">
-            <hr>
-            <p class="all__text--decoration mb-0">Dịch vụ</p>
             <!-- VTP loại sản phẩm -->
             <div v-if="payload.delivery_platform=='VIETTEL_POST'">
-                <div class="form-row">
+                <div class="margin__bottom--12 form-row">
                     <div class="col">
                         <select v-model="order_info.product_type" class="form-control-sm"
                             :class="{'validate-failed':validate_failed.product_type}" @change="getPricingServices">
@@ -83,7 +77,7 @@
             </div>
         </div>
         <!-- Hinh thức thanh toán -->
-        <div class="form-row">
+        <div class="margin__bottom--12 form-row">
             <div class="col">
                 <select v-model="order_info.order_payment" class="form-control-sm"
                     :class="{'validate-failed':validate_failed.order_payment}">
@@ -101,7 +95,7 @@
             </div>
         </div>
         <!--VTP GHN Danh sách dịch vụ -->
-        <div class="form-row" v-if="payload.delivery_platform=='VIETTEL_POST'||payload.delivery_platform=='GHN'">
+        <div class="margin__bottom--12 form-row" v-if="payload.delivery_platform=='VIETTEL_POST'||payload.delivery_platform=='GHN'">
             <div class="col">
                 <select v-model="order_info.order_service" class="form-control-sm"
                     :class="{'validate-failed':validate_failed.order_service}" @change="getShippingFee">
@@ -112,7 +106,7 @@
             </div>
         </div>
         <!-- GHTK đường vận chuyển -->
-        <div class="form-row" v-if="payload.delivery_platform=='GHTK'">
+        <div class="margin__bottom--12 form-row" v-if="payload.delivery_platform=='GHTK'">
             <div class="col">
                 <select v-model="order_info.other_info.transport" class="form-control-sm"
                     :class="{'validate-failed':validate_failed.other_info.transport}" @change="getShippingFee">
@@ -124,7 +118,7 @@
         </div>
         <!-- GHN mã ghi chú bắt buộc, mã khuyễn mãi -->
         <div v-if="payload.delivery_platform=='GHN'">
-            <div class="form-row">
+            <div class="margin__bottom--12 form-row">
                 <div class="col">
                     <select v-model="order_info.required_note" class="form-control-sm"
                         :class="{'validate-failed':validate_failed.required_note}">
@@ -135,7 +129,7 @@
                     </select>
                 </div>
             </div>
-            <div class="form-row">
+            <div class="margin__bottom--12 form-row">
                 <div class="col">
                     <input v-model="order_info.coupon" type="text" class="form-control-sm"
                         :class="{'validate-failed':validate_failed.coupon_real_ghn}" placeholder="Mã khuyễn mãi"
@@ -145,31 +139,38 @@
         </div>
         <!-- GHN GHTK tiền thu hộ cod -->
         <div class="delivery__ghn--cod" v-if="payload.delivery_platform=='GHN'||payload.delivery_platform=='GHTK'">
-            <hr>
-            <p class="all__text--decoration mb-0">Tiền thu hộ COD</p>
-            <div class="form-row">
-                <div class="col">
+            <div class="margin__bottom--12 form-row">
+                <div class="col tooltip">
                     <input v-model="order_info.cod_amount" type="text" class="form-control-sm"
                         placeholder="Tiền thu hộ COD" title="Tiền thu hộ COD"
                         @change="checkKeyBoard($event,$event.target.value)"
                         @keyup="checkKeyBoard($event,$event.target.value)" />
+                        <span class="tooltip-top">Tiền thu hộ COD</span>
                 </div>
             </div>
         </div>
     </div>
     <div class="delivery__fee--total">
         <div v-if="payload.delivery_platform!='GHN'">
-            <div class="option mb-3 d-flex justify-content-end">
-                <div class="d-flex align-items-center" @click="handleShowNote()">
-                    <img class="mr-2" src="@/assets/note.png" alt="add note" />
-                    <p class="text-primary m-0">Thêm ghi chú</p>
+            <div class="d-flex justify-content-between align-items-center">
+                <p class="text__second--medium margin__y--8 font__weight--600">Thêm ghi chú</p>
+                <div class="icon__add--cursor" @click="handleShowNote">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 4.1665V15.8332" stroke="#FF5F0B" stroke-width="1.5" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path d="M4.16675 10H15.8334" stroke="#FF5F0B" stroke-width="1.5" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
                 </div>
+
+
             </div>
-            <div v-if="is_show_note">
-                <textarea ref="note" v-model="order_info.note" rows="2"
-                    class="form-control-sm delivery__fee--total-note"></textarea>
-            </div>
+            <input class="form-control-sm" ref="note" v-model="order_info.note" v-if="is_show_note"></input>
         </div>
-        <p class="font-weight-bold text-right">Phí giao vận: {{order_info.shipping_fee||0|toCurrency}}</p>
+        <hr>
+        <div class="text__second--medium d-flex justify-content-between align-items-center">
+            <span class="">Phí giao vận</span>
+            <span class="font__weight--600">{{order_info.shipping_fee||0|toCurrency}}</span>
+        </div>
     </div>
 </div>

@@ -39,47 +39,112 @@
     </div>
     <!--End Xác thực App -->
 
-    <div v-if="is_oauth && !is_warning" class="widget">
-      <div class="d-flex header border-bottom">
+    <div v-if="is_oauth" class="widget">
+      <section class="header">
+        <div class="d-flex justify-content-between">
+          <p class="header__title text__second--large">Đơn hàng</p>
+          <div class="cursor__pointer" @click="handleHideCreateOrder">
+            <svg
+              class="header__title--icon-arrow"
+              :class="{ 'arrow-rorate': show_order }"
+              width="14"
+              height="8"
+              viewBox="0 0 14 8"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M13 7L7 1L1 7"
+                stroke="#140F2D"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="margin__bottom--8 d-flex justify-content-between align-items-center"
+        >
+          <div class="d-flex align-items-center">
+            <div
+              class="margin__right--12 icon__add--cursor d-flex align-items-center"
+              @click="handleShowCreateOrder"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12 5V19"
+                  stroke="#FF5F0B"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M5 12H19"
+                  stroke="#FF5F0B"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+            <p
+              class="text__accent--medium cursor__pointer"
+              @click="handleShowCreateOrder"
+            >
+              Tạo đơn hàng mới
+            </p>
+          </div>
+
+          <div tag="_blank">
+            <a
+              class="text__accent--medium text__decoration--none"
+              href="https://cms.botup.io/"
+              target="_blank"
+              >[Mở CMS]</a
+            >
+          </div>
+        </div>
+      </section>
+      <section>
+        <div style="position: relative">
+          <div class="create__order" v-show="show_order">
+            <create-order
+              :store_token="store_token"
+              :payload="payload"
+              :handleShowCreateOrder="handleShowCreateOrder"
+              @platform_type="payload.platform_type = $event"
+              @msg-info="getMsgInfoDraft"
+            />
+          </div>
+        </div>
+      </section>
+      <!-- <div class="d-flex header border-bottom">
         <div
           class="flex-grow-1 text-center py-2"
           :class="{ select: isSelectList }"
-          @click="handleClickHeader('list')"
         >
           Thông tin
         </div>
         <div
           class="create-order flex-grow-1 text-center py-2"
           :class="[isSelectList ? '' : 'select']"
-          @click="handleClickHeader('create')"
         >
           Tạo đơn
         </div>
-      </div>
+      </div> -->
       <list-order
-        v-show="is_select === 'list'"
         :store_token="store_token"
         :payload="payload"
-        :handleEditOrder="handleClickHeader"
+        :handleShowCreateOrder="handleShowCreateOrder"
         @platform="getPlatform"
       />
-      <create-order
-        v-show="is_select === 'create'"
-        :store_token="store_token"
-        :payload="payload"
-        @switch-header="handleClickHeader('list')"
-        @platform_type="payload.platform_type = $event"
-        @msg-info="getMsgInfoDraft"
-      />
-    </div>
-    <!-- warning -->
-    <div v-if="is_oauth && is_warning" class="auth__warning">
-      <div class="auth__activate">
-        <div class="text-center">
-          <img src="@/assets/error.png" alt />
-        </div>
-        <p class="mb-0">Xin vui lòng kích hoạt lại ứng dụng</p>
-      </div>
     </div>
   </div>
 </template>
@@ -128,7 +193,6 @@ export default {
   data() {
     return {
       is_oauth: false,
-      is_warning: false,
       secretKey: secretKey,
       access_token: access_token,
       is_select: "list",
@@ -154,6 +218,7 @@ export default {
         customer_id: "",
         store_email: "",
       },
+      show_order: false,
     };
   },
   async created() {
@@ -320,9 +385,7 @@ export default {
       });
     },
     handleLocalStorage() {
-      let data = JSON.parse(
-        localStorage.getItem("order_3d_platform")
-      );
+      let data = JSON.parse(localStorage.getItem("order_3d_platform"));
       if (data && data.store_email) {
         this.payload.store_email = data.store_email;
       }
@@ -407,17 +470,28 @@ export default {
         });
       }
     },
-    handleClickHeader(ele) {
-      this.is_select = ele;
-      if (ele === "list") {
-        EventBus.$emit("disable-update-order");
-      }
+    async handleShowCreateOrder() {
+      this.show_order = !this.show_order;
+    },
+    handleHideCreateOrder() {
+      this.show_order = false;
     },
   },
 };
 </script>
 
 <style lang="scss">
+$colorSecond: #140f2d;
+$colorAccent110: #f55600;
+$colorAccent: #ff5f0b;
+$colorAccent70: #ff8f54;
+$colorAccent30: #ffcfb6;
+$colorAccent10: #fff7f3;
+$colorNeutral: #4f596a;
+$colorNeutral70: #848b97;
+$colorNeutral38: #bcc0c6;
+$colorNeutral18: #dfe1e4;
+$colorNeutral5: #f6f7f8;
 @mixin tooltip-position {
   visibility: hidden;
   min-width: 6rem;
@@ -439,32 +513,25 @@ export default {
 }
 @mixin imageSelect {
   background: url("data:image/svg+xml;utf8,<svg fill='black' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>")
-    no-repeat right #eee !important;
+    no-repeat right #fff !important;
   background-size: 20px;
 }
+
 * {
-  font-size: 13px;
+  font-size: 14px;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
+    Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji,
+    Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
   hr {
-    opacity: 0.5;
+    opacity: 0.3;
     margin: 1rem 0 1rem 0;
   }
   &::-webkit-scrollbar {
     display: none;
   }
-}
-body {
-  margin: 0;
-  font-family: var(--bs-font-sans-serif);
-  font-size: 1rem;
-  font-weight: 400;
-  line-height: 1.5;
-  color: #212529;
-  background-color: #fff;
-  -webkit-text-size-adjust: 100%;
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 /* Auth ---- */
 .auth {
@@ -484,10 +551,6 @@ body {
     padding: 5% 10%;
     -webkit-box-shadow: 0px 1px 5px rgba(126, 142, 177, 0.2);
     box-shadow: 0 1px 5px rgba(126, 142, 177, 0.2);
-  }
-  p {
-    font-size: 1.3rem;
-    font-weight: bold;
   }
   .sign {
     width: 100%;
@@ -554,39 +617,33 @@ body {
     background: #fff;
   }
 }
-
-@media screen and (min-width: 400px) {
-  .auth {
-    width: 70%;
-  }
-  .auth p {
-    font-size: 1.3rem;
-  }
-}
-
 /* --------------- */
-
-.widget .header {
-  cursor: pointer;
-  user-select: none;
-}
-.widget .header > div {
-  font-weight: 500;
-  font-size: 1rem;
-}
-.widget .header .select {
-  border-bottom: 2px solid #0d6efd;
-}
-
-.auth__warning {
-  padding: 0 1.5rem 0 1.5rem;
-  .auth__activate {
-    position: relative;
-    background: #f6f6f6;
-    border: 2px solid rgba(0, 0, 0, 0.125);
-    border-radius: 10px;
-    margin-top: 20%;
-    padding: 10% 10% 5% 10%;
+.widget {
+  padding: 18px 0;
+  .header {
+    padding: 0 25px 0 20px;
+    user-select: none;
+    .header__title {
+      margin-bottom: 8px;
+    }
+    .header__title--icon-arrow {
+      transition: transform 0.25s ease-out;
+      transform: rotate(0);
+    }
+    .arrow-rorate {
+      transition: transform 0.25s ease-out !important;
+      transform: rotate(180deg) !important;
+    }
+  }
+  .create__order {
+    position: absolute;
+    z-index: 2;
+    background: #fff;
+    top: 0;
+    border: 1px solid #f6f7f8;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    margin: 0 10px;
   }
 }
 .all__text--decoration {
@@ -600,44 +657,44 @@ body {
   color: #777777;
 }
 .btn-pill {
-  font-size: 0.9rem;
-  background: #0d6efd;
+  font-size: 12px;
+  line-height: 20px;
+  background: #ff5f0b;
   color: #ffffff;
   height: 2rem;
   outline: none;
   border: none;
-  border-radius: 1rem;
-  -webkit-box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
-  box-shadow: 0 1px 3px rgba(126, 142, 177, 0.2);
+  border-radius: 16px;
+  -webkit-box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
+  box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
   &:hover {
-    background: #0167ff;
+    background: #ff5f0b;
     transition: transform 0.15s, background 0.15s;
     -webkit-transform: scale(1.03);
     transform: scale(1.03);
-    -webkit-box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
-    box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
+    -webkit-box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
+    box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
   }
   &:focus {
-    background: #0167ff;
+    background: #ff5f0b;
     transition: transform 0.15s, background 0.15s;
     -webkit-transform: scale(1.03);
     transform: scale(1.03);
-    -webkit-box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
-    box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
+    -webkit-box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
+    box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
   }
 }
 .form-control-sm {
-  height: calc(1.5em + 0.5rem + 2px);
+  height: 32px;
   width: 100%;
-  padding: 0.25rem 1rem;
+  padding: 4px 12px;
   color: #000000;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  border-radius: 1rem;
-  /* border: 1px solid #ced4da; */
-  border: none;
+  font-size: 14px;
+  line-height: 22px;
+  border: 1px solid #dfe1e4;
+  border-radius: 4px;
   appearance: none;
-  background: #eee;
+  background: #fff;
   background-clip: padding-box;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
   option {
@@ -645,9 +702,9 @@ body {
   }
   &:focus {
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
-    background: #eee;
+    background: #fff;
     outline: none;
-    border: none;
+    // border: none;
   }
 }
 .tooltip {
@@ -728,10 +785,155 @@ body {
   padding: 0 !important;
   margin-left: 5px !important;
   margin-right: 5px !important;
-  border-radius: 1rem !important;
+  border-radius: 4px !important;
   border: 1px solid red !important;
 }
 select {
   @include imageSelect;
+}
+.text__accent--medium {
+  font-size: 14px;
+  line-height: 22px;
+  color: $colorAccent;
+}
+.text__second--large {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: $colorSecond;
+}
+.text__second--medium {
+  color: $colorSecond;
+  font-size: 14px;
+  line-height: 22px;
+}
+.text__neutral--medium {
+  color: $colorNeutral;
+  font-size: 14px;
+  line-height: 22px;
+}
+.text__neutral38--medium {
+  color: $colorNeutral38;
+  font-size: 14px;
+  line-height: 22px;
+}
+.text__neutral {
+  color: $colorNeutral70;
+  font-size: 12px;
+  line-height: 20px;
+}
+.icon__add--cursor {
+  cursor: pointer;
+  &:hover {
+    // transform: scale(1.1);
+    border-radius: 50%;
+    background: $colorNeutral18;
+  }
+}
+.cursor__pointer {
+  cursor: pointer;
+}
+.padding__left--8 {
+  padding-left: 8px;
+}
+.padding__right--18 {
+  padding-right: 18px;
+}
+.padding__right--12 {
+  padding-right: 12px;
+}
+.margin__left--8 {
+  margin-left: 8px;
+}
+.margin__left--12 {
+  margin-left: 12px;
+}
+.margin__right--5 {
+  margin-right: 5px;
+}
+.margin__right--12 {
+  margin-right: 12px;
+}
+.margin__right--18 {
+  margin-right: 18px;
+}
+.margin__bottom--8 {
+  margin-bottom: 8px;
+}
+.margin__bottom--12 {
+  margin-bottom: 12px;
+}
+.margin__bottom--13 {
+  margin-bottom: 13px;
+}
+.font__weight--600 {
+  font-weight: 600;
+}
+.margin__top--17 {
+  margin-top: 17px;
+}
+.margin__top--15 {
+  margin-top: 15px;
+}
+.margin__top--11 {
+  margin-top: 11px;
+}
+.margin__top--9 {
+  margin-top: 9px;
+}
+.margin__y--8 {
+  margin: 8px 0;
+}
+.margin__y--15 {
+  margin: 15px 0;
+}
+.text__decoration--none {
+  text-decoration: none;
+}
+input[type=checkbox] + label {
+  display: block;
+  margin: 0.2em;
+  cursor: pointer;
+  padding: 0.2em;
+}
+
+input[type=checkbox] {
+  display: none;
+}
+
+input[type=checkbox] + label:before {
+  content: "\2714";
+  border: 0.1em solid #000;
+  border-radius: 0.2em;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  padding-left: 0.2em;
+  padding-bottom: 0.3em;
+  margin-right: 0.2em;
+  vertical-align: bottom;
+  color: transparent;
+  transition: .2s;
+}
+
+input[type=checkbox] + label:active:before {
+  transform: scale(0);
+}
+
+input[type=checkbox]:checked + label:before {
+  background-color: #FF5F0B;
+  border-color: #FF5F0B;
+  color: #fff;
+}
+
+input[type=checkbox]:disabled + label:before {
+  transform: scale(1);
+  border-color: #aaa;
+}
+
+input[type=checkbox]:checked:disabled + label:before {
+  transform: scale(1);
+  background-color: #bfb;
+  border-color: #bfb;
 }
 </style>

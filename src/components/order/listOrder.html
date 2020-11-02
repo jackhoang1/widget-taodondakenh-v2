@@ -1,107 +1,337 @@
 <div class="list__order">
-    <div class="order mt-3 mb-5">
-        <div class="order__text">Đơn hàng</div>
+    <div class="order">
 
-        <!-- Lọc đơn -->
-        <!-- <div class="order__list--filter">
-            <select v-model="order_filter">
-                <option value="">Lọc đơn</option>
-                <option value="">Order</option>
-                <option value="">ShipCod</option>
-                <option value="">Gateway</option>
-            </select>
-        </div> -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         <!-- Danh sách đơn hàng -->
         <div v-if="list_order.length == 0" style="text-align:center;padding-top:10%;">Bạn chưa có đơn hàng!</div>
         <div class="order__detail" v-for="(item, index) in list_order" :key="index">
-            <div class="order__title d-flex align-items-center border rounded" :class="handleClassLabel(item)"
-                @click="handleClickOrder(index)">
-                <img class="order__title-arrow" src="https://img.icons8.com/ios-filled/50/000000/expand-arrow.png" />
-                <p class="text-light m-0">{{item.order_id}}</p>
-                <div class="order__title--icon-status"
-                    v-if="(item.is_cod&&item.delivery_status=='Đã chọn giao vận. Chưa tạo đơn.')||(item.is_gateway&&item.payment_status=='Đã chọn cổng thanh toán. Chưa tạo đơn.')||(item.is_gateway&&item.is_cod&&item.delivery_status!='Đã tạo đơn giao vận.')">
-                    <img class="" src="@/assets/error.png" title="Đơn lỗi" />
-                </div>
-                <div class="order__title--icon-status"
-                    v-if="item.is_gateway&&!item.is_cod&&(item.payment_status=='Đã tạo đơn. Đang chờ thanh toán'||item.payment_status== 'Đang chờ thanh toán. Giao dịch thanh toán bị Review!')">
-                    <img class="" src="@/assets/timer.png" title="Chưa thanh toán" />
-                    <img v-if="item.payment_status== 'Đang chờ thanh toán. Giao dịch thanh toán bị Review!'"
-                        src="@/assets/review.png" alt="" title="Đã xem giao dịch">
-                </div>
-                <div class="order__title--icon-status" v-if="item.status=='draft_order'">
-                    <img src="@/assets/draft1.png" alt=""
-                        title="Cập nhật đơn nháp" @click.stop="handleClickEdit(item)">
+            <div class="order__title d-flex align-items-center" @click="handleClickOrder(index,null,item.status)">
+                <!-- ///////////////////////////////////////Trạng thái đơn hàng //////////////////////////////////////// -->
+                <div class="order__title--status d-flex justify-content-between align-items-center w-100">
+                    <div class="d-flex">
+                        <div class="order__status--icon-draft" v-if="item.status=='draft_order'">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M23.9735 5.93632C23.9735 5.91095 23.9735 5.91095 23.9735 5.88558C23.947 5.83485 23.947 5.78411 23.9205 5.73337V5.708C23.894 5.65726 23.8411 5.60653 23.8146 5.58116L23.7881 5.55579C23.7616 5.53042 23.7086 5.50505 23.6821 5.47968L23.6556 5.45431H23.6291L23.6026 5.42894L12.3444 0.0761067C12.1325 -0.0253689 11.8675 -0.0253689 11.6291 0.0761067L7.84106 1.8773L19.1523 7.43309L19.1788 7.45845C19.2053 7.45845 19.2053 7.48382 19.2318 7.48382C19.2583 7.50919 19.2583 7.53456 19.2848 7.55993C19.2848 7.5853 19.2848 7.5853 19.2848 7.61067V7.63604V13.5216C19.2848 13.6231 19.2318 13.6992 19.1523 13.7499L16.8742 14.8915C16.7417 14.9676 16.5828 14.9169 16.5033 14.7901C16.4768 14.7647 16.4768 14.714 16.4768 14.6632V8.90448L5.03311 3.24722L5.00662 3.22185L0.423841 5.40357L0.397351 5.42894H0.370861L0.344371 5.45431C0.317881 5.47968 0.264901 5.50505 0.238411 5.53042L0.211921 5.55579C0.15894 5.60653 0.13245 5.65726 0.0794702 5.708V5.73337C0.0529801 5.78411 0.0264901 5.83485 0.0264901 5.88558C0.0264901 5.91095 0.0264901 5.91095 0.0264901 5.93632C0.0264901 5.98706 0 6.01243 0 6.06317V6.08853V17.9104C0 18.1895 0.15894 18.4686 0.450331 18.5954L11.6026 23.9229C11.7616 23.999 11.947 24.0243 12.1325 23.9736L12.1854 23.9482C12.2384 23.9482 12.2649 23.9229 12.3179 23.8975L23.5497 18.57C23.8146 18.4432 24 18.1895 24 17.8851V6.08853V6.06317C23.9735 6.01243 23.9735 5.98706 23.9735 5.93632Z"
+                                    fill="#848B97" />
+                            </svg>
+                        </div>
+                        <div class="order__status--icon-new" v-if="item.status=='new_order'">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M19.2836 7.27559L13.3328 6.41075L10.6726 1.01778C10.6 0.870126 10.4805 0.750595 10.3328 0.677938C9.96248 0.495126 9.51248 0.64747 9.32733 1.01778L6.66717 6.41075L0.716389 7.27559C0.552327 7.29903 0.402327 7.37638 0.287483 7.49356C0.148643 7.63627 0.0721362 7.82825 0.074773 8.02733C0.0774098 8.22642 0.158975 8.41631 0.301545 8.55528L4.60701 12.7529L3.58983 18.6803C3.56597 18.8182 3.58123 18.96 3.63387 19.0896C3.68651 19.2193 3.77442 19.3316 3.88764 19.4138C4.00086 19.496 4.13486 19.5449 4.27444 19.5549C4.41401 19.5648 4.55358 19.5355 4.67733 19.4701L9.99998 16.6717L15.3226 19.4701C15.468 19.5475 15.6367 19.5732 15.7984 19.5451C16.2062 19.4748 16.4805 19.0881 16.4101 18.6803L15.393 12.7529L19.6984 8.55528C19.8156 8.44044 19.893 8.29044 19.9164 8.12638C19.9797 7.71622 19.6937 7.33653 19.2836 7.27559Z"
+                                    fill="#F2C94C" />
+                            </svg>
+
+                        </div>
+                        <div class="order__status--icon-out_stock" v-if="item.status=='out_stock'">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <g clip-path="url(#clip0)">
+                                    <path
+                                        d="M12.0764 1C5.96895 1 1 5.96895 1 12.0764C1 18.1838 5.96895 23.1528 12.0764 23.1528C18.1838 23.1528 23.1528 18.1838 23.1528 12.0764C23.1528 5.96895 18.1838 1 12.0764 1ZM14.5588 16.5167L10.6918 12.6496V6.53816H13.4609V11.5031L16.5167 14.5588C16.5167 14.5588 14.5588 16.5167 14.5588 16.5167Z"
+                                        fill="#56CCF2" />
+                                </g>
+                                <defs>
+                                    <clipPath id="clip0">
+                                        <rect width="22" height="22" fill="white" transform="translate(1 1)" />
+                                    </clipPath>
+                                </defs>
+                            </svg>
+
+                        </div>
+                        <div class="order__status--icon-confirmed" v-if="item.status=='confirmed_order'">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M11 0.5C5.20156 0.5 0.5 5.20156 0.5 11C0.5 16.7984 5.20156 21.5 11 21.5C16.7984 21.5 21.5 16.7984 21.5 11C21.5 5.20156 16.7984 0.5 11 0.5ZM15.5352 7.57109L10.5992 14.4148C10.5302 14.5111 10.4393 14.5896 10.3339 14.6437C10.2286 14.6978 10.1118 14.7261 9.99336 14.7261C9.87491 14.7261 9.75816 14.6978 9.6528 14.6437C9.54743 14.5896 9.45649 14.5111 9.3875 14.4148L6.46484 10.3648C6.37578 10.2406 6.46484 10.0672 6.61719 10.0672H7.71641C7.95547 10.0672 8.18281 10.182 8.32344 10.3789L9.99219 12.6945L13.6766 7.58516C13.8172 7.39062 14.0422 7.27344 14.2836 7.27344H15.3828C15.5352 7.27344 15.6242 7.44688 15.5352 7.57109Z"
+                                    fill="#52C41A" />
+                            </svg>
+                        </div>
+                        <div class="order__status--icon-deliver" v-if="item.status=='deliver_order'">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                    d="M16.6836 5.12958C18.591 5.57219 19.3206 6.68753 20.2354 8.22266H16.6836V5.12958ZM5.53656 8.35156C5.91002 8.35156 6.18109 8.53183 6.18109 8.95312C6.18109 9.30846 5.89357 9.59665 5.53841 9.59766H1.64453C1.28853 9.59766 1 9.88635 1 10.2422C1 10.5982 1.28853 10.8867 1.64453 10.8867H7.44531C7.80467 10.8867 8.09236 11.1751 8.09236 11.5312C8.09236 11.8873 7.80383 12.1758 7.44783 12.1758H1.64453C1.28853 12.1758 1 12.4643 1 12.8203C1 13.1763 1.28853 13.4648 1.64453 13.4648H3.0625V15.3984C3.0625 15.7544 3.35103 16.043 3.70703 16.043H5.00264C5.2336 17.1806 6.23883 18.0195 7.42383 18.0195C8.60883 18.0195 9.61406 17.1806 9.84502 16.043H16.3894C16.6203 17.1806 17.6255 18.0195 18.8105 18.0195C19.9955 18.0195 21.0008 17.1806 21.2317 16.043H22.3555C22.7115 16.043 23 15.7544 23 15.3984V11.5312C23 9.64012 21.0053 9.51457 21.0035 9.51172H16.0391C15.6831 9.51172 15.3945 9.22319 15.3945 8.86719V5H3.70703C3.35103 5 3.0625 5.28853 3.0625 5.64453V7.0625H2.28906C1.93306 7.0625 1.64453 7.35103 1.64453 7.70703C1.64453 8.06303 1.93306 8.35156 2.28906 8.35156H5.53656ZM19.6461 14.7133C20.1075 15.1747 20.1075 15.9231 19.6461 16.3845C18.9039 17.1268 17.6289 16.5987 17.6289 15.5488C17.6289 14.4991 18.9039 13.9711 19.6461 14.7133ZM8.25937 14.7133C8.72078 15.1747 8.72078 15.9231 8.25937 16.3845C7.51715 17.1268 6.24219 16.5987 6.24219 15.5488C6.24219 14.4991 7.51715 13.9711 8.25937 14.7133Z"
+                                    fill="#2F80ED" />
+                            </svg>
+
+                        </div>
+                        <div class="order__status--icon-return" v-if="item.status=='return_order'">
+                            <svg width="24" height="22" viewBox="0 0 24 22" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M13.1383 0.105516C7.34999 0.0886411 2.6092 4.58602 2.23561 10.2758H0.720044C0.166966 10.2758 -0.178737 10.8746 0.0978257 11.3536L1.78579 14.2772L3.47376 17.2008C3.75032 17.6798 4.44168 17.6798 4.71824 17.2008L6.40621 14.2772L8.09418 11.3536C8.37074 10.8746 8.02504 10.2758 7.47196 10.2758H5.6752C6.04452 6.45759 9.30168 3.47133 13.2295 3.53522C17.2045 3.59986 20.4552 6.80897 20.5687 10.7829C20.689 14.9984 17.2948 18.4661 13.1059 18.4661C12.0316 18.4661 11.0098 18.2379 10.0859 17.8276C9.28452 17.4716 8.34379 17.7787 7.90532 18.5381C7.39743 19.4178 7.75846 20.5485 8.68673 20.9611C10.0373 21.5613 11.5326 21.8948 13.1059 21.8948C19.1151 21.8948 23.9881 17.0296 24.0005 11.0232C24.0129 4.98999 19.1715 0.123141 13.1383 0.105516Z"
+                                    fill="#BB6BD9" />
+                                <path
+                                    d="M15.9375 10.5302H15.1134C14.9012 9.93196 14.4264 9.45745 13.8281 9.24524V8.38916C13.8281 8.00085 13.5133 7.68604 13.125 7.68604C12.7367 7.68604 12.4219 8.00085 12.4219 8.38916V9.24487C11.6035 9.53512 11.0156 10.3167 11.0156 11.2333C11.0156 12.3964 11.9618 13.3427 13.125 13.3427C13.1293 13.3427 13.1335 13.3421 13.1378 13.3419V13.3424C14.0489 13.3369 14.8245 12.7509 15.1134 11.9364H15.9375C16.3258 11.9364 16.6406 11.6216 16.6406 11.2333C16.6406 10.8449 16.3258 10.5302 15.9375 10.5302ZM13.1378 11.9358C13.1335 11.9359 13.1293 11.9364 13.125 11.9364C12.7372 11.9364 12.4219 11.621 12.4219 11.2333C12.4219 10.8456 12.7372 10.5302 13.125 10.5302C13.1293 10.5302 13.1335 10.5307 13.1378 10.5308C13.5196 10.5378 13.8281 10.8499 13.8281 11.2333C13.8281 11.6167 13.5196 11.9288 13.1378 11.9358Z"
+                                    fill="#BB6BD9" />
+                            </svg>
+                        </div>
+                        <div class="order__status--icon-success" v-if="item.status=='success_order'">
+                            <svg width="24" height="20" viewBox="0 0 24 20" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M9.50057 3.5791L8.35439 6.24376H1.94751V15.5887H9.50057V3.5791ZM5.13974 13.7864H3.73349V12.3802H5.13974V13.7864Z"
+                                    fill="#219653" />
+                                <path
+                                    d="M19.2606 9.65186C16.6463 9.65186 14.5195 11.7787 14.5195 14.3929C14.5195 17.0072 16.6463 19.134 19.2606 19.134C21.8749 19.134 24.0017 17.0072 24.0017 14.3929C24.0017 11.7787 21.8749 9.65186 19.2606 9.65186ZM18.5078 16.6983L16.2617 14.4522L17.256 13.4578L18.5078 14.7096L21.157 12.0604L22.1514 13.0548L18.5078 16.6983Z"
+                                    fill="#219653" />
+                                <path d="M9.13589 0.868164H1.70747L0 4.83744H7.42852L9.13589 0.868164Z"
+                                    fill="#219653" />
+                                <path
+                                    d="M18.4598 8.29787V6.2438H12.053L10.9067 3.5791V15.5888H13.2304C13.1538 15.2019 13.1133 14.8021 13.1133 14.3931C13.1133 11.2747 15.4472 8.69148 18.4598 8.29787Z"
+                                    fill="#219653" />
+                                <path d="M11.2715 0.868164L12.979 4.83744H20.4074L18.7 0.868164H11.2715Z"
+                                    fill="#219653" />
+                            </svg>
+                        </div>
+                        <div class="order__status--icon-returned" v-if="item.status=='returned_order'">
+                            <svg width="24" height="22" viewBox="0 0 24 22" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M13.1383 0.105516C7.34999 0.0886411 2.6092 4.58602 2.23561 10.2758H0.720044C0.166966 10.2758 -0.178737 10.8746 0.0978257 11.3536L1.78579 14.2772L3.47376 17.2008C3.75032 17.6798 4.44168 17.6798 4.71824 17.2008L6.40621 14.2772L8.09418 11.3536C8.37074 10.8746 8.02504 10.2758 7.47196 10.2758H5.6752C6.04452 6.45759 9.30168 3.47133 13.2295 3.53522C17.2045 3.59986 20.4552 6.80897 20.5687 10.7829C20.689 14.9984 17.2948 18.4661 13.1059 18.4661C12.0316 18.4661 11.0098 18.2379 10.0859 17.8276C9.28452 17.4716 8.34379 17.7787 7.90532 18.5381C7.39743 19.4178 7.75846 20.5485 8.68673 20.9611C10.0373 21.5613 11.5326 21.8948 13.1059 21.8948C19.1151 21.8948 23.9881 17.0296 24.0005 11.0232C24.0129 4.98999 19.1715 0.123141 13.1383 0.105516Z"
+                                    fill="#9B51E0" />
+                            </svg>
+                        </div>
+                        <div class="order__status--icon-cancel" v-if="item.status=='cancel_order'">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                                    fill="#EB5757" />
+                                <path d="M15 9L9 15" stroke="white" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path d="M9 9L15 15" stroke="white" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        <div class="order__status--icon-remove" v-if="item.status=='remove_order'">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18 6L6 18" stroke="white" stroke-width="3" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path d="M6 6L18 18" stroke="white" stroke-width="3" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        <!-- ///////// -->
+                        <div>
+                            <p class="text__second">{{item.order_id}}</p>
+                            <p class="text__neutral">Cập nhật TT: {{computeTime(item.updatedAt)}}</p>
+                        </div>
+                    </div>
+                    <div class="margin__right--5 d-flex align-items-center">
+                        <svg class="order__status--icon-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 1.5L6 6.5L11 1.5" stroke="#848B97" stroke-width="1.5" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </div>
                 </div>
             </div>
-            <!-- Đơn hàng mở rộng -->
-            <div class="order__expand">
-                <div class="order__status d-flex align-items-center text-primary">
-                    <img src="https://img.icons8.com/windows/26/000000/star.png" v-if="item.status!='cancel_order'" />
-                    <img v-if="item.status === 'cancel_order'" src="@/assets/cancel.png" />
-                    <div class="order__status--draft d-flex align-items-center"
-                        v-if="item.status=='draft_order'">
-                        <p class="m-0">Đơn nháp</p>
-                        <img src="https://img.icons8.com/ios-filled/24/000000/more-than.png" />
-                        <div class="order__status--draft-edit d-flex align-items-center" @click.stop="handleClickEdit(item)">
-                            <img src="@/assets/draft1.png" alt="">
-                            <span class="">Sửa</span>
+            <!--//////// Đơn hàng mở rộng ////////-->
+            <div class="order__expand expand__hide">
+                <!-- ////////        Trạng thái          ///////// -->
+                <div class="process d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="d-flex align-items-center" v-if="item.status=='new_order'">
+                            <div class="order__expand--icon-new d-flex align-items-center">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <rect width="24" height="24" rx="4" fill="#F2C94C" />
+                                    <path
+                                        d="M18.1891 9.5169L14.2219 8.94034L12.4485 5.34503C12.4001 5.24659 12.3204 5.1669 12.2219 5.11846C11.9751 4.99659 11.6751 5.09815 11.5516 5.34503L9.77818 8.94034L5.811 9.5169C5.70162 9.53253 5.60162 9.58409 5.52506 9.66221C5.4325 9.75735 5.3815 9.88534 5.38325 10.0181C5.38501 10.1508 5.43939 10.2774 5.53443 10.37L8.40475 13.1685L7.72662 17.12C7.71072 17.2119 7.72089 17.3065 7.75598 17.3929C7.79108 17.4794 7.84969 17.5542 7.92517 17.609C8.00065 17.6639 8.08998 17.6964 8.18303 17.7031C8.27608 17.7097 8.36913 17.6901 8.45162 17.6466L12.0001 15.781L15.5485 17.6466C15.6454 17.6981 15.7579 17.7153 15.8657 17.6966C16.1376 17.6497 16.3204 17.3919 16.2735 17.12L15.5954 13.1685L18.4657 10.37C18.5438 10.2935 18.5954 10.1935 18.611 10.0841C18.6532 9.81065 18.4626 9.55753 18.1891 9.5169Z"
+                                        fill="white" />
+                                </svg>
+                            </div>
+                            <p class="text__neutral--medium">Mới</p>
+                        </div>
+                        <div class="d-flex align-items-center" v-else>
+                            <div class="order__expand--icon-new d-flex align-items-center">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <rect width="24" height="24" rx="4" fill="#DFE1E4" />
+                                    <path
+                                        d="M4 8C4 5.79086 5.79086 4 8 4H16C18.2091 4 20 5.79086 20 8V16C20 18.2091 18.2091 20 16 20H8C5.79086 20 4 18.2091 4 16V8Z"
+                                        fill="#DFE1E4" />
+                                    <path
+                                        d="M18.1892 9.5169L14.222 8.94034L12.4486 5.34503C12.4002 5.24659 12.3205 5.1669 12.222 5.11846C11.9752 4.99659 11.6752 5.09815 11.5517 5.34503L9.77828 8.94034L5.81109 9.5169C5.70171 9.53253 5.60171 9.58409 5.52515 9.66221C5.43259 9.75735 5.38159 9.88534 5.38334 10.0181C5.3851 10.1508 5.43948 10.2774 5.53453 10.37L8.40484 13.1685L7.72671 17.12C7.71081 17.2119 7.72098 17.3065 7.75608 17.3929C7.79117 17.4794 7.84978 17.5542 7.92526 17.609C8.00074 17.6639 8.09007 17.6964 8.18312 17.7031C8.27617 17.7097 8.36922 17.6901 8.45171 17.6466L12.0002 15.781L15.5486 17.6466C15.6455 17.6981 15.758 17.7153 15.8658 17.6966C16.1377 17.6497 16.3205 17.3919 16.2736 17.12L15.5955 13.1685L18.4658 10.37C18.5439 10.2935 18.5955 10.1935 18.6111 10.0841C18.6533 9.81065 18.4627 9.55753 18.1892 9.5169Z"
+                                        fill="white" />
+                                </svg>
+                            </div>
+                            <p class="text__neutral38--medium">Mới</p>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center" v-if="item.status=='confirmed_order'">
+                            <div class="d-flex align-items-center">
+                                <div class="order__expand--icon-confirm d-flex align-items-center">
+                                    <div class="d-flex justify-content-center align-items-center"
+                                        style="width: 24px;height: 24px;background: #52C41A;border-radius: 4px;">
+                                        <svg style="filter: contrast(2);" width="14" height="10" viewBox="0 0 14 10"
+                                            fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12.3333 1L4.99999 8.33333L1.66666 5" stroke="#BCC0C6"
+                                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <p :class="{'process__poiter--events':item.status=='new_order'}"
+                                    @click="updateStatusOrder('confirmed_order', item, index)"
+                                    style="white-space:nowrap">
+                                    Xác nhận
+                                </p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center" v-else>
+                            <div class="d-flex align-items-center">
+                                <div class="order__expand--icon-confirm d-flex align-items-center">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <rect width="24" height="24" rx="4" fill="#F6F7F8" />
+                                        <path d="M17.3333 8L9.99999 15.3333L6.66666 12" stroke="#BCC0C6"
+                                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </div>
+                                <p :class="{'process__poiter--events':item.status=='new_order','text__neutral38--medium':item.status!='new_order'||'confirmed_order'}"
+                                    @click="updateStatusOrder('confirmed_order', item, index)"
+                                    style="white-space:nowrap">
+                                    Xác nhận
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center" v-if="item.status=='cancel_order'">
+                            <div class="order__expand--icon-cancel d-flex align-items-center">
+                                <div class="d-flex justify-content-center align-items-center"
+                                    style="width: 24px;height: 24px;background: #EB5757;border-radius: 4px;">
+                                    <svg style="filter: contrast(2);" width="16" height="16" viewBox="0 0 16 16"
+                                        fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 4L4 12" stroke="#BCC0C6" stroke-width="1.5" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <path d="M4 4L12 12" stroke="#BCC0C6" stroke-width="1.5" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <p :class="{'process__poiter--events':item.status=='draft_order'}"
+                                @click="updateStatusOrder('cancel_order', item, index)">Huỷ</p>
+                        </div>
+                        <div class="d-flex align-items-center" v-else>
+                            <div class="order__expand--icon-cancel d-flex align-items-center">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <rect width="24" height="24" rx="4" fill="#F6F7F8" />
+                                    <path d="M16 8L8 16" stroke="#BCC0C6" stroke-width="1.5" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                    <path d="M8 8L16 16" stroke="#BCC0C6" stroke-width="1.5" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                </svg>
+                            </div>
+                            <p :class="{'process__poiter--events':item.status=='draft_order'}"
+                                @click="updateStatusOrder('cancel_order', item, index)">Huỷ</p>
                         </div>
                     </div>
 
-                    <p v-if="item.status=='new_order'" class="m-0">Đơn Mới</p>
-                    <p v-if="item.status=='out_stock'" class="m-0">Chờ hàng về</p>
-                    <p v-if="item.status=='confirmed_order'" class="m-0">Đã xác nhận</p>
-                    <p v-if="item.status=='deliver_order'" class="m-0">Đang giao hàng</p>
-                    <p v-if="item.status=='return_order'" class="m-0">Hoàn hàng</p>
-                    <p v-if="item.status=='success_order'" class="m-0">Đã nhận hàng</p>
-                    <p v-if="item.status=='returned_order'" class="m-0">Đã hoàn hàng</p>
-                    <p v-if="item.status=='cancel_order'" class="m-0 text-danger">Đơn huỷ</p>
-                    <p v-if="item.status=='remove_order'" class="m-0">Đơn xoá</p>
+                </div>
+                <!-- //////////////////////////////////////////////////////// -->
+                <hr style="margin:0">
+                <div class="order__expand--content">
+                    <div class="margin__bottom--8 d-flex justify-content-between align-items-center" v-if="item.status=='draft_order'">
+                        <div class="d-flex align-items-center">
+                            <div class="order__expand--icon-info" style="filter: invert(62%) sepia(9%) saturate(461%) hue-rotate(179deg) brightness(88%) contrast(80%);">
+                                <svg width="14" height="14" viewBox="0 0 20 20" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M18.1775 0C17.8214 0 17.5323 0.314459 17.5323 0.702701C17.5323 1.0905 17.8214 1.4054 18.1775 1.4054C18.471 1.4054 18.7097 1.6654 18.7097 1.98469V18.0142C18.7097 18.3335 18.471 18.5934 18.1775 18.5934C17.8214 18.5934 17.5323 18.9083 17.5323 19.2961C17.5323 19.6844 17.8214 19.9988 18.1775 19.9988C19.1823 19.9988 20 19.1086 20 18.0142V1.98469C20 0.890234 19.1823 0 18.1775 0ZM15.1876 0C14.8316 0 14.5425 0.314459 14.5425 0.702701C14.5425 1.0905 14.8316 1.4054 15.1876 1.4054C15.4811 1.4054 15.7198 1.6654 15.7198 1.98469V18.0142C15.7198 18.3335 15.4811 18.5934 15.1876 18.5934C14.8316 18.5934 14.5425 18.9083 14.5425 19.2961C14.5425 19.6844 14.8316 19.9988 15.1876 19.9988C16.1928 19.9988 17.0101 19.1086 17.0101 18.0142V1.98469C17.0101 0.890234 16.1928 0 15.1876 0ZM14.0203 1.98469V18.0142C14.0203 19.1086 13.203 19.9988 12.1977 19.9988H6.15996C5.80312 19.9988 5.51441 19.6835 5.51482 19.2949C5.51643 18.6677 5.51401 17.4182 5.51401 14.874C5.51401 14.3878 5.15192 13.9938 4.70596 13.9938C2.37012 13.9938 1.22297 13.9912 0.646772 13.9929C0.289924 13.9934 0.000413999 13.679 0.000413999 13.2902V1.98469C0.000413999 0.888478 0.816123 0 1.82255 0H12.1977C13.203 0 14.0203 0.890234 14.0203 1.98469ZM4.89628 15.3694V19.2962C4.89628 19.9099 4.21525 20.2407 3.79469 19.7933C-0.099584 15.5512 0.0639207 15.7965 0.0125105 15.5047C-0.0662782 15.0754 0.236901 14.6667 0.645562 14.6667H4.25113C4.60717 14.6667 4.89628 14.9811 4.89628 15.3694Z"
+                                        fill="black" />
+                                </svg>
 
-                </div>
-                <div>
-                    <img src="@/assets/user.png" alt="">
-                    <p class="text-primary m-0">{{item.customer_name}}</p>
-                </div>
-                <div class="phone d-flex align-items-center">
-                    <img src="https://img.icons8.com/windows/32/000000/phone.png" />
-                    <p class="text-primary m-0">{{item.customer_phone}}</p>
-                </div>
-                <div class="create d-flex align-items-center">
-                    <img src="https://img.icons8.com/android/24/000000/clock.png" />
-                    <p class="m-0">Tạo lúc: {{computeTime(item.createdAt)}}</p>
-                </div>
-                <div class="update d-flex align-items-center">
-                    <img src="https://img.icons8.com/android/24/000000/clock.png" />
-                    <p class="m-0">Cập nhật TT: {{computeTime(item.updatedAt)}}</p>
-                </div>
-                <div class="process d-flex align-items-center">
-                    <img src="https://img.icons8.com/windows/26/000000/star.png" v-if="item.status=='draft_order'" />
-                    <img src="https://img.icons8.com/windows/26/000000/star.png" v-if="item.status!='draft_order'" />
-                    <p :class="{'process__poiter--events':item.status=='draft_order'}"
-                        @click.stop="handleClickEdit(item)">Mới
-                    </p>
-                    <img src="https://img.icons8.com/ios-filled/24/000000/more-than.png" />
-                    <img :class="{ active: isActiveConfirm(item) }"
-                        src="https://img.icons8.com/windows/32/000000/checked.png"
-                        v-if="item.status!='confirmed_order'" />
-                    <img src="@/assets/tick.png" alt="" v-if="item.status=='confirmed_order'">
-                    <p :class="{'process__poiter--events':item.status=='new_order'}"
-                        @click="updateStatusOrder('confirmed_order', item, index)">Xác nhận</p>
-                    <img src="https://img.icons8.com/ios-filled/24/000000/more-than.png" />
-                    <img src="https://img.icons8.com/windows/32/000000/cancel.png"
-                        v-if="item.status != 'cancel_order'" />
-                    <img src="@/assets/cancel.png" v-if="item.status == 'cancel_order'" />
-
-                    <p :class="{'process__poiter--events':item.status=='draft_order'}"
-                        @click="updateStatusOrder('cancel_order', item, index)">Huỷ</p>
+                            </div>
+                            <p class="text__neutral--medium">Đơn nháp</p>
+                        </div>
+                        <div class="tooltip cursor__pointer padding__right--18 d-flex align-items-center" @click="handleClickEdit(item)">
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M16.9452 1.0549C16.2649 0.374625 15.3605 0 14.3986 0C13.4366 0 12.5321 0.374625 11.8519 1.05486L1.78684 11.12C1.7012 11.2056 1.63915 11.3119 1.60667 11.4286L0.0257606 17.1083C-0.0424074 17.3533 0.0269559 17.616 0.207272 17.7954C0.340866 17.9282 0.519882 18 0.703187 18C0.767242 18 0.831859 17.9912 0.895245 17.9732L6.57499 16.3599C6.81461 16.2918 7.00038 16.102 7.06324 15.8609C7.1261 15.6199 7.0567 15.3635 6.88081 15.1871L3.30008 11.5955L11.6432 3.25234L14.746 6.35516L8.35903 12.7247C8.08407 12.999 8.08347 13.4441 8.35769 13.7191C8.63187 13.9941 9.07713 13.9946 9.35205 13.7205L16.9451 6.14809C17.6254 5.46785 18 4.56346 18 3.60148C18 2.6395 17.6254 1.7351 16.9452 1.0549ZM5.04122 15.3337L1.71657 16.278L2.64768 12.9329L5.04122 15.3337ZM15.9514 5.15303L15.7417 5.36217L12.6376 2.25798L12.8463 2.04922C13.2609 1.63459 13.8122 1.40625 14.3986 1.40625C14.9849 1.40625 15.5361 1.63459 15.9508 2.04926C16.3654 2.46386 16.5938 3.01511 16.5938 3.60148C16.5938 4.18785 16.3654 4.7391 15.9514 5.15303Z"
+                                    fill="#4F596A" />
+                            </svg>
+                            <span class="tooltip-left">Sửa đơn nháp</span>
+                        </div>
+                    </div>
+                    <div class="margin__bottom--8 d-flex align-items-center">
+                        <div class="order__expand--icon-info">
+                            <svg class="d-flex" width="12" height="13" viewBox="0 0 12 13" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M11.2891 10.15C10.9944 9.45183 10.5666 8.81766 10.0297 8.28281C9.49447 7.74642 8.8604 7.31876 8.16254 7.02344C8.15629 7.02031 8.15004 7.01875 8.14379 7.01562C9.11723 6.3125 9.75004 5.16719 9.75004 3.875C9.75004 1.73438 8.01567 0 5.87504 0C3.73441 0 2.00004 1.73438 2.00004 3.875C2.00004 5.16719 2.63285 6.3125 3.60629 7.01719C3.60004 7.02031 3.59379 7.02187 3.58754 7.025C2.88754 7.32031 2.25941 7.74375 1.72035 8.28438C1.18396 8.81964 0.756296 9.4537 0.460977 10.1516C0.170855 10.8348 0.0143858 11.5673 3.90719e-05 12.3094C-0.000377967 12.3261 0.00254708 12.3426 0.00864193 12.3582C0.0147368 12.3737 0.0238781 12.3879 0.0355272 12.3998C0.0471763 12.4117 0.0610975 12.4212 0.0764706 12.4277C0.0918436 12.4342 0.108358 12.4375 0.125039 12.4375H1.06254C1.13129 12.4375 1.18598 12.3828 1.18754 12.3156C1.21879 11.1094 1.70316 9.97969 2.55941 9.12344C3.44535 8.2375 4.62191 7.75 5.87504 7.75C7.12816 7.75 8.30473 8.2375 9.19067 9.12344C10.0469 9.97969 10.5313 11.1094 10.5625 12.3156C10.5641 12.3844 10.6188 12.4375 10.6875 12.4375H11.625C11.6417 12.4375 11.6582 12.4342 11.6736 12.4277C11.689 12.4212 11.7029 12.4117 11.7146 12.3998C11.7262 12.3879 11.7353 12.3737 11.7414 12.3582C11.7475 12.3426 11.7505 12.3261 11.75 12.3094C11.7344 11.5625 11.5797 10.8359 11.2891 10.15ZM5.87504 6.5625C5.15785 6.5625 4.48285 6.28281 3.97504 5.775C3.46723 5.26719 3.18754 4.59219 3.18754 3.875C3.18754 3.15781 3.46723 2.48281 3.97504 1.975C4.48285 1.46719 5.15785 1.1875 5.87504 1.1875C6.59223 1.1875 7.26723 1.46719 7.77504 1.975C8.28285 2.48281 8.56254 3.15781 8.56254 3.875C8.56254 4.59219 8.28285 5.26719 7.77504 5.775C7.26723 6.28281 6.59223 6.5625 5.87504 6.5625Z"
+                                    fill="#848B97" />
+                            </svg>
+                        </div>
+                        <p class="text__accent--medium">{{item.customer_name}}</p>
+                    </div>
+                    <div class="margin__bottom--8 d-flex align-items-center">
+                        <div class="order__expand--icon-info">
+                            <svg class="d-flex" width="14" height="14" viewBox="0 0 14 14" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M12.7047 2.72969L11.0406 1.06719C10.8375 0.864063 10.5656 0.75 10.2781 0.75C9.99062 0.75 9.71875 0.8625 9.51562 1.06719L7.72344 2.85625C7.52031 3.05937 7.40625 3.33281 7.40625 3.62031C7.40625 3.90937 7.51875 4.17969 7.72344 4.38437L9.12344 5.78594C8.80451 6.52904 8.34626 7.20421 7.77344 7.775C7.2 8.35156 6.52969 8.80625 5.78594 9.12812L4.38594 7.72656C4.18281 7.52344 3.91094 7.40937 3.62344 7.40937C3.48163 7.40885 3.34114 7.43663 3.21021 7.4911C3.07928 7.54557 2.96054 7.62562 2.86094 7.72656L1.06719 9.51562C0.864063 9.71875 0.75 9.99219 0.75 10.2797C0.75 10.5687 0.8625 10.8391 1.06719 11.0437L2.72969 12.7062C3.07656 13.0531 3.55469 13.2516 4.04531 13.2516C4.14687 13.2516 4.24531 13.2437 4.34531 13.2266C6.41406 12.8859 8.46719 11.7844 10.125 10.1281C11.7812 8.46875 12.8813 6.41562 13.225 4.34531C13.3234 3.75781 13.1266 3.15312 12.7047 2.72969ZM12.1172 4.15937C11.8125 6.00156 10.8219 7.83906 9.32969 9.33125C7.8375 10.8234 6.00156 11.8141 4.15938 12.1187C3.92813 12.1578 3.69062 12.0797 3.52187 11.9125L1.88906 10.2797L3.62031 8.54687L5.49219 10.4219L5.50625 10.4359L5.84375 10.3109C6.86707 9.9347 7.79635 9.34044 8.56717 8.56934C9.338 7.79825 9.93193 6.86877 10.3078 5.84531L10.4328 5.50781L8.54531 3.62187L10.2766 1.88906L11.9094 3.52187C12.0781 3.69062 12.1562 3.92812 12.1172 4.15937Z"
+                                    fill="#848B97" />
+                            </svg>
+                        </div>
+                        <p class="text__neutral--medium">{{item.customer_phone}}</p>
+                    </div>
+                    <div class="margin__bottom--8 d-flex align-items-center">
+                        <div class="order__expand--icon-info">
+                            <svg class="d-flex" width="14" height="14" viewBox="0 0 14 14" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M13.45 5.025C13.0986 4.1933 12.5892 3.43767 11.95 2.8C11.3123 2.16079 10.5567 1.65138 9.725 1.3C8.86094 0.934375 7.94531 0.75 7 0.75C6.05469 0.75 5.13906 0.934375 4.275 1.3C3.4433 1.65138 2.68767 2.16079 2.05 2.8C1.41079 3.43767 0.901382 4.1933 0.55 5.025C0.184375 5.88906 0 6.80469 0 7.75C0 9.82344 0.910937 11.7766 2.49844 13.1109L2.525 13.1328C2.61563 13.2078 2.72969 13.25 2.84687 13.25H11.1547C11.2719 13.25 11.3859 13.2078 11.4766 13.1328L11.5031 13.1109C13.0891 11.7766 14 9.82344 14 7.75C14 6.80469 13.8141 5.88906 13.45 5.025ZM10.8969 12.0625H3.10313C2.49937 11.5181 2.01682 10.8529 1.68681 10.1099C1.35679 9.36698 1.18667 8.56294 1.1875 7.75C1.1875 6.19688 1.79219 4.7375 2.89062 3.64062C3.98906 2.54219 5.44844 1.9375 7 1.9375C8.55313 1.9375 10.0125 2.54219 11.1094 3.64062C12.2078 4.73906 12.8125 6.19844 12.8125 7.75C12.8125 9.4 12.1172 10.9609 10.8969 12.0625ZM8.74219 5.58594C8.71869 5.56267 8.68697 5.54962 8.65391 5.54962C8.62084 5.54962 8.58912 5.56267 8.56563 5.58594L7.24531 6.90625C6.95312 6.82812 6.62969 6.90312 6.4 7.13281C6.31865 7.21401 6.2541 7.31046 6.21007 7.41663C6.16603 7.5228 6.14336 7.63662 6.14336 7.75156C6.14336 7.86651 6.16603 7.98032 6.21007 8.08649C6.2541 8.19267 6.31865 8.28911 6.4 8.37031C6.4812 8.45167 6.57765 8.51621 6.68382 8.56025C6.78999 8.60428 6.90381 8.62695 7.01875 8.62695C7.13369 8.62695 7.24751 8.60428 7.35368 8.56025C7.45985 8.51621 7.5563 8.45167 7.6375 8.37031C7.74632 8.26182 7.82458 8.12652 7.86436 7.9781C7.90414 7.82967 7.90404 7.67337 7.86406 7.525L9.18437 6.20469C9.23281 6.15625 9.23281 6.07656 9.18437 6.02812L8.74219 5.58594ZM6.65625 4H7.34375C7.4125 4 7.46875 3.94375 7.46875 3.875V2.625C7.46875 2.55625 7.4125 2.5 7.34375 2.5H6.65625C6.5875 2.5 6.53125 2.55625 6.53125 2.625V3.875C6.53125 3.94375 6.5875 4 6.65625 4ZM10.7188 7.40625V8.09375C10.7188 8.1625 10.775 8.21875 10.8438 8.21875H12.0938C12.1625 8.21875 12.2188 8.1625 12.2188 8.09375V7.40625C12.2188 7.3375 12.1625 7.28125 12.0938 7.28125H10.8438C10.775 7.28125 10.7188 7.3375 10.7188 7.40625ZM10.9172 4.325L10.4312 3.83906C10.4078 3.8158 10.376 3.80275 10.343 3.80275C10.3099 3.80275 10.2782 3.8158 10.2547 3.83906L9.37031 4.72344C9.34705 4.74693 9.334 4.77866 9.334 4.81172C9.334 4.84478 9.34705 4.87651 9.37031 4.9L9.85625 5.38594C9.90469 5.43438 9.98438 5.43438 10.0328 5.38594L10.9172 4.50156C10.9656 4.45312 10.9656 4.37344 10.9172 4.325ZM3.75156 3.83906C3.72807 3.8158 3.69634 3.80275 3.66328 3.80275C3.63022 3.80275 3.59849 3.8158 3.575 3.83906L3.08906 4.325C3.0658 4.34849 3.05275 4.38022 3.05275 4.41328C3.05275 4.44634 3.0658 4.47807 3.08906 4.50156L3.97344 5.38594C4.02187 5.43438 4.10156 5.43438 4.15 5.38594L4.63594 4.9C4.68438 4.85156 4.68438 4.77187 4.63594 4.72344L3.75156 3.83906ZM3.09375 7.28125H1.84375C1.775 7.28125 1.71875 7.3375 1.71875 7.40625V8.09375C1.71875 8.1625 1.775 8.21875 1.84375 8.21875H3.09375C3.1625 8.21875 3.21875 8.1625 3.21875 8.09375V7.40625C3.21875 7.3375 3.1625 7.28125 3.09375 7.28125Z"
+                                    fill="#848B97" />
+                            </svg>
+                        </div>
+                        <p class="text__neutral--medium">Tạo lúc: {{computeTime(item.createdAt)}}</p>
+                    </div>
+                    <div class="margin__bottom--8 d-flex align-items-center">
+                        <div class="order__expand--icon-info">
+                            <svg class="d-flex" width="14" height="14" viewBox="0 0 14 14" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M13.45 5.025C13.0986 4.1933 12.5892 3.43767 11.95 2.8C11.3123 2.16079 10.5567 1.65138 9.725 1.3C8.86094 0.934375 7.94531 0.75 7 0.75C6.05469 0.75 5.13906 0.934375 4.275 1.3C3.4433 1.65138 2.68767 2.16079 2.05 2.8C1.41079 3.43767 0.901382 4.1933 0.55 5.025C0.184375 5.88906 0 6.80469 0 7.75C0 9.82344 0.910937 11.7766 2.49844 13.1109L2.525 13.1328C2.61563 13.2078 2.72969 13.25 2.84687 13.25H11.1547C11.2719 13.25 11.3859 13.2078 11.4766 13.1328L11.5031 13.1109C13.0891 11.7766 14 9.82344 14 7.75C14 6.80469 13.8141 5.88906 13.45 5.025ZM10.8969 12.0625H3.10313C2.49937 11.5181 2.01682 10.8529 1.68681 10.1099C1.35679 9.36698 1.18667 8.56294 1.1875 7.75C1.1875 6.19688 1.79219 4.7375 2.89062 3.64062C3.98906 2.54219 5.44844 1.9375 7 1.9375C8.55313 1.9375 10.0125 2.54219 11.1094 3.64062C12.2078 4.73906 12.8125 6.19844 12.8125 7.75C12.8125 9.4 12.1172 10.9609 10.8969 12.0625ZM8.74219 5.58594C8.71869 5.56267 8.68697 5.54962 8.65391 5.54962C8.62084 5.54962 8.58912 5.56267 8.56563 5.58594L7.24531 6.90625C6.95312 6.82812 6.62969 6.90312 6.4 7.13281C6.31865 7.21401 6.2541 7.31046 6.21007 7.41663C6.16603 7.5228 6.14336 7.63662 6.14336 7.75156C6.14336 7.86651 6.16603 7.98032 6.21007 8.08649C6.2541 8.19267 6.31865 8.28911 6.4 8.37031C6.4812 8.45167 6.57765 8.51621 6.68382 8.56025C6.78999 8.60428 6.90381 8.62695 7.01875 8.62695C7.13369 8.62695 7.24751 8.60428 7.35368 8.56025C7.45985 8.51621 7.5563 8.45167 7.6375 8.37031C7.74632 8.26182 7.82458 8.12652 7.86436 7.9781C7.90414 7.82967 7.90404 7.67337 7.86406 7.525L9.18437 6.20469C9.23281 6.15625 9.23281 6.07656 9.18437 6.02812L8.74219 5.58594ZM6.65625 4H7.34375C7.4125 4 7.46875 3.94375 7.46875 3.875V2.625C7.46875 2.55625 7.4125 2.5 7.34375 2.5H6.65625C6.5875 2.5 6.53125 2.55625 6.53125 2.625V3.875C6.53125 3.94375 6.5875 4 6.65625 4ZM10.7188 7.40625V8.09375C10.7188 8.1625 10.775 8.21875 10.8438 8.21875H12.0938C12.1625 8.21875 12.2188 8.1625 12.2188 8.09375V7.40625C12.2188 7.3375 12.1625 7.28125 12.0938 7.28125H10.8438C10.775 7.28125 10.7188 7.3375 10.7188 7.40625ZM10.9172 4.325L10.4312 3.83906C10.4078 3.8158 10.376 3.80275 10.343 3.80275C10.3099 3.80275 10.2782 3.8158 10.2547 3.83906L9.37031 4.72344C9.34705 4.74693 9.334 4.77866 9.334 4.81172C9.334 4.84478 9.34705 4.87651 9.37031 4.9L9.85625 5.38594C9.90469 5.43438 9.98438 5.43438 10.0328 5.38594L10.9172 4.50156C10.9656 4.45312 10.9656 4.37344 10.9172 4.325ZM3.75156 3.83906C3.72807 3.8158 3.69634 3.80275 3.66328 3.80275C3.63022 3.80275 3.59849 3.8158 3.575 3.83906L3.08906 4.325C3.0658 4.34849 3.05275 4.38022 3.05275 4.41328C3.05275 4.44634 3.0658 4.47807 3.08906 4.50156L3.97344 5.38594C4.02187 5.43438 4.10156 5.43438 4.15 5.38594L4.63594 4.9C4.68438 4.85156 4.68438 4.77187 4.63594 4.72344L3.75156 3.83906ZM3.09375 7.28125H1.84375C1.775 7.28125 1.71875 7.3375 1.71875 7.40625V8.09375C1.71875 8.1625 1.775 8.21875 1.84375 8.21875H3.09375C3.1625 8.21875 3.21875 8.1625 3.21875 8.09375V7.40625C3.21875 7.3375 3.1625 7.28125 3.09375 7.28125Z"
+                                    fill="#848B97" />
+                            </svg>
+                        </div>
+                        <p class="text__neutral--medium">Cập nhật trạng thái: {{computeTime(item.updatedAt)}}</p>
+                    </div>
                 </div>
             </div>
             <!-- -->
-
         </div>
         <!--  -->
-
     </div>
     <div class="more d-flex justify-content-center" @click="handleGetMoreOrder()">
         <img src="https://img.icons8.com/ios-filled/50/000000/expand-arrow.png" />

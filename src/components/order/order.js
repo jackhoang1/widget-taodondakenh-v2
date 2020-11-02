@@ -39,6 +39,7 @@ export default {
     props: [
         "store_token",
         "payload",
+        "handleShowCreateOrder"
     ],
     data() {
         return {
@@ -125,9 +126,9 @@ export default {
         };
     },
     created() {
-        EventBus.$on("disable-update-order", () => {
-            this.is_update_order = false
-        });
+        // EventBus.$on("disable-update-order", () => {
+        //     this.is_update_order = false
+        // });
         if (this.store_token) {
             this.getInitialData()
             this.name = this.payload.name
@@ -329,7 +330,7 @@ export default {
                     body.other_info.UnitId = item.other_info.UnitId
                     body["product_code"] = item.product_code
                 }
-                if (this.platform_type === 'ONLINECRM') {
+                if (this.platform_type === 'ONLINE_CRM') {
                     body['product_id'] = item.product_code
                     body['product_code'] = item.product_code
                 }
@@ -502,7 +503,7 @@ export default {
         },
         handleCreateOrder() {
             if (this.cart.length == 0) {
-                return this.swalToast('Giỏ hàng trống', 'error')
+                return this.swalToast('Giỏ hàng trống, hãy thêm sản phẩm!', 'error')
             }
             if (!this.validateAll() || this.validateAll() == 'failed') { return }
             if (this.order_option != 0 && !this.shipping_fee) {
@@ -592,7 +593,7 @@ export default {
                     body["customer_ward_code"] = this.ward.meta_data.haravan.code
                     body["customer_address"] = this.address
                 }
-                if (this.platform_type === 'ONLINECRM') {
+                if (this.platform_type === 'ONLINE_CRM') {
                     delete body['customer_city_name']
                     delete body['customer_city_code']
                 }
@@ -655,6 +656,7 @@ export default {
                     }, 1000)
                     setTimeout(() => {
                         EventBus.$emit("call-order")
+                        this.handleShowCreateOrder()
                     }, 1000)
 
                 } else {
@@ -1130,6 +1132,7 @@ export default {
 
         async getOrderInfo(item) {
             // Reset client_id tránh loạn giỏ hàng
+            console.log('getOrderInfo', item);
             this.client_id = ''
             localStorage.removeItem("order_3rd_client_id")
             this.cart = []
@@ -1185,6 +1188,7 @@ export default {
                     setTimeout(() => {
                         EventBus.$emit("call-order")
                         this.$emit("switch-header")
+                        this.handleShowCreateOrder()
                     }, 1000)
                     this.is_loading = false
                     // Xóa giỏ hàng sau khi tạo đơn

@@ -2,17 +2,32 @@
     <!-- Widget -->
     <div v-if="show_form=='order'"
         :class="{ 'app': true, 'disable-scroll': is_show_popup, 'disable-scroll': is_show_order_info}">
+        <div class="order__header d-flex justify-content-between align-items-center">
+            <p class="text__second--medium font__weight--600">Đơn {{ platform_type }}</p>
+            <div class="tooltip" @click="handleModalEditMsg">
+                <div class="cursor__pointer">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M10.7647 1.5H3.5C2.39543 1.5 1.5 2.39543 1.5 3.5V14.5C1.5 15.6046 2.39543 16.5 3.5 16.5H14.5C15.6046 16.5 16.5 15.6046 16.5 14.5V13.4118"
+                            stroke="#848B97" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M4 7.3335H8.16667" stroke="#848B97" stroke-width="1.5" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path d="M4 9.8335H6.5" stroke="#848B97" stroke-width="1.5" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path d="M4 12.3335H6.5" stroke="#848B97" stroke-width="1.5" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path
+                            d="M11.6303 11.6651L9 12.3332L9.75153 9.99509L14.2472 5.99898C14.4977 5.78342 14.8334 5.66403 15.1821 5.66654C15.5307 5.66906 15.8643 5.79329 16.1108 6.01243C16.3574 6.23157 16.4971 6.52807 16.5 6.83798C16.5028 7.14789 16.3685 7.44636 16.126 7.66904L11.6303 11.6651Z"
+                            stroke="#848B97" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <span class="tooltip-left tooltip-medium">Chỉnh sửa mẫu tin nhắn</span>
+            </div>
+        </div>
         <!-- thông tin khách hàng -->
         <div class="order__customer">
-            <p class="order__title">Đơn {{ platform_type }}</p>
-            <div class="order__msg--edit">
-                <div class="order__msg--edit-icon tooltip">
-                    <img @click="handleModalEditMsg" src="@/assets/message.png" />
-                    <span class="tooltip-left tooltip-medium">Chỉnh sửa mẫu tin nhắn</span>
-                </div>
-            </div>
             <!-- Forrm điền thông tin khách hàng -->
-            <div class="form-row">
+            <div class="margin__bottom--12 form-row">
                 <div class="col">
                     <input v-model="name" type="text" class="form-control-sm"
                         :class="{'validate-failed':validate_failed.name}" placeholder="Họ tên" />
@@ -22,9 +37,9 @@
                         :class="{'validate-failed':validate_failed.phone}" placeholder="Số điện thoại" />
                 </div>
             </div>
-            <input v-model="email" type="email" class="form-control-sm"
+            <input v-model="email" type="email" class="margin__bottom--12 form-control-sm"
                 :class="{'validate-failed':validate_failed.email}" placeholder="Email" />
-            <div class="form-row">
+            <div class="margin__bottom--12 form-row">
                 <div class="order__address col" :class="{'validate-failed-address':validate_failed.country}">
                     <select v-model="country" class="form-control-sm m-0">
                         <option value>Quốc Gia</option>
@@ -37,21 +52,20 @@
                         :getData="getListDistrict" :clearInput="resetChangeCity" :prop_name="'name'" />
                 </div>
             </div>
-            <div class="form-row">
-                <div class="col" :class="{'validate-failed-address':validate_failed.district}"
-                    style="margin-bottom:10px">
+            <div class="margin__bottom--12 form-row">
+                <div class="col" :class="{'validate-failed-address':validate_failed.district}">
                     <SearchAddress :list_data_input="list_district" :placeholder="'Quận/Huyện'"
                         @data_output="district=$event" :getData="getListWard" :clearInput="resetChangeDistrict"
                         :prop_name="'name'" :watch_data="city" />
                 </div>
-                <div class="col" :class="{'validate-failed-address':validate_failed.ward}" style="margin-bottom:10px">
+                <div class="col" :class="{'validate-failed-address':validate_failed.ward}">
                     <SearchAddress :list_data_input="list_ward" :placeholder="'Phường/Xã'" @data_output="ward=$event"
                         :getData="false" :clearInput="false" :prop_name="'name'" :watch_data="district" />
                 </div>
             </div>
-            <input v-model="street" type="text" class="form-control-sm"
-                :class="{'validate-failed':validate_failed.street}" placeholder="Địa chỉ cụ thể" />
-            <div v-if="has_branch">
+            <input v-model="street" type="text" class="margin__bottom--12 form-control-sm"
+                :class="{'validate-failed':validate_failed.street}" placeholder="Địa chỉ" />
+            <div class="margin__bottom--12" v-if="has_branch">
                 <select v-model="branch" class="form-control-sm" :class="{'validate-failed':validate_failed.branch}">
                     <option selected :value="{}">Chi Nhánh</option>
                     <option v-for="(branch, index) in list_branch" :value="branch" :key="index">
@@ -63,17 +77,15 @@
             <!-- Tuỳ chọn thanh toán hoặc ship code -->
             <div class="order__option">
                 <div class="order__option--main">
+                    <p class="text__second--medium margin__bottom--12">Tuỳ chọn</p>
                     <div>
-                        <hr>
-                        <p class="order__option--title all__text--decoration">Tuỳ chọn</p>
                         <input id="order__option--order-only" type="radio" value="0" v-model="order_option">
-                        <label for="order__option--order-only">Chỉ tạo đơn</label>
-                        <!-- <img src="@/assets/question.png" alt=""> -->
+                        <label class="margin__left--12" for="order__option--order-only">Chỉ tạo đơn</label>
                     </div>
                     <div>
                         <input id="order__option--order-shipcod" type="radio" value="1" v-model="order_option"
                             @click="checkDelivery">
-                        <label for="order__option--order-shipcod">Ship COD</label>
+                        <label class="margin__left--12" for="order__option--order-shipcod">Ship COD</label>
                         <div class="order__option--icon-shipcod tooltip">
                             <img src="@/assets/question.png" alt="">
                             <span class="tooltip-top tooltip-medium">Hình thức tạo đơn và giao vận với bên thứ
@@ -83,7 +95,8 @@
                     <div>
                         <input id="order__option--order-payment" type="radio" value="2" v-model="order_option"
                             @click="checkPayment">
-                        <label for="order__option--order-payment">Thanh toán và giao vận</label>
+                        <label class="margin__left--12" for="order__option--order-payment">Thanh toán và giao
+                            vận</label>
                         <div class="order__option--icon-payment tooltip">
                             <img class="" src="@/assets/question.png" alt="">
                             <span class="tooltip-top tooltip-medium">Sau khi khách hàng thanh toán, giao vận sẽ được
@@ -100,61 +113,111 @@
 
         <div class="order__product">
             <!-- Tìm sản phẩm và Tạo ghi chú -->
-            <div class="option d-flex">
-                <div class="product__add d-flex align-items-center flex-grow-1">
-                    <img class="icon__add mr-2" src="@/assets/add.png" alt="add product" />
-                    <p class="text-primary m-0" @click="handleShowPopup()">Thêm sản phẩm</p>
-                </div>
-                <div class="product__note d-flex align-items-center flex-grow-1" @click="handleShowNote()">
-                    <img class="icon__add mr-2" src="@/assets/note.png" alt="add note" />
-                    <p class="text-primary m-0">Thêm ghi chú</p>
-                </div>
-            </div>
-            <div :class="['form-group', { 'show-note': is_show_note }]">
-                <textarea rows="2" v-model="note" ref="note" class="form-control-sm"
-                    :class="{'hide': !is_show_note}"></textarea>
-                <button @click="handleShowNote()" class="btn-pill w-100 mb-4 "
-                    :class="{'hide': !is_show_note}">Xong</button>
-            </div>
-            <!-- End Tìm sản phẩm và Tạo ghi chú -->
-
-            <!-- Giỏ hàng -->
-            <div class="list-product">
-                <div class="product-detail d-flex align-items-center border-bottom" v-for="(item, index) in cart"
-                    :key="index">
-                    <img class="border rounded mr-1"
-                        :src="item.product_image || 'https://img.icons8.com/officexs/80/000000/spinner-frame-6.png'"
-                        alt="product" />
-                    <div class="product-detail-name align-self-start">
-                        <p class="name m-0" :title="item.product_name">{{ item.product_name }}</p>
-                        <p class="m-0" :title="item.other_info" v-if="platform_type!='MISA'">{{ item.other_info }}
-                        </p>
+            <div>
+                <div class="margin__y--8 d-flex justify-content-between align-items-center">
+                    <p class="text__second--medium font__weight--600">Thêm sản phẩm</p>
+                    <div @click="handleShowPopup">
+                        <svg class="icon__add--cursor" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 4.1665V15.8332" stroke="#FF5F0B" stroke-width="1.5" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <path d="M4.16675 10H15.8334" stroke="#FF5F0B" stroke-width="1.5" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
                     </div>
-                    <div class="quantity d-flex align-items-center border rounded ml-1">
-                        <p class="flex-grow-1 text-center">{{ item.product_quantity }}</p>
-                        <div class="ml-auto mr-1 d-flex flex-column justify-content-between">
-                            <button @click="handleAddQuantity(item)" class="btn p-0">
-                                <img src="https://img.icons8.com/ios-glyphs/24/000000/chevron-up.png" />
-                            </button>
-                            <button @click="handleSubQuantity(item)" class="btn p-0">
-                                <img src="https://img.icons8.com/ios-glyphs/24/000000/chevron-up.png" />
-                            </button>
+                </div>
+                <!-- Giỏ hàng -->
+                <div class="list-product">
+                    <div class="product-detail d-flex justify-content-between align-items-center"
+                        v-for="(item, index) in cart" :key="index">
+                        <div class="d-flex" style="width:50%">
+                            <img class="border rounded mr-1"
+                                :src="item.product_image || 'https://img.icons8.com/officexs/80/000000/spinner-frame-6.png'"
+                                alt="product" />
+                            <div class="product-detail-name align-self-start">
+                                <p class="name m-0" :title="item.product_name">{{ item.product_name }}</p>
+                                <p class="m-0" :title="item.other_info" v-if="platform_type!='MISA'">
+                                    {{ item.other_info }}
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="ml-auto price">
-                        <p class="price text-right">{{ item.product_price | toCurrency }}</p>
-                    </div>
-                    <div class="edit ml-1 d-flex flex-column justify-content-between">
-                        <img @click="delProductCart(item)" src="@/assets/del-icon.png" alt="delete" title="xoá" />
+                        <div class="d-flex justify-content-between align-items-center" style="width:50%">
+                            <div class="quantity d-flex align-items-center">
+                                <p class="text__neutral--medium padding__left--8">{{ item.product_quantity }}</p>
+                                <div class="padding__left--8 d-flex flex-column justify-content-around">
+                                    <button @click="handleAddQuantity(item)" class="btn p-0">
+                                        <div>
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                                                xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M4 10L8 6L12 10" stroke="#BCC0C6" stroke-width="1.5"
+                                                    stroke-linecap="round" stroke-linejoin="round" />
+                                                <path
+                                                    d="M15 4L15 12L17 12L17 4L15 4ZM12 15L4 15L4 17L12 17L12 15ZM0.999999 12L1 4L-1 4L-1 12L0.999999 12ZM4 0.999999L12 1L12 -1L4 -1L4 0.999999ZM1 4C1 2.34315 2.34315 0.999999 4 0.999999L4 -1C1.23858 -1 -1 1.23858 -1 4L1 4ZM4 15C2.34314 15 0.999999 13.6569 0.999999 12L-1 12C-1 14.7614 1.23858 17 4 17L4 15ZM15 12C15 13.6569 13.6569 15 12 15L12 17C14.7614 17 17 14.7614 17 12L15 12ZM17 4C17 1.23858 14.7614 -1 12 -1L12 1C13.6569 1 15 2.34315 15 4L17 4Z"
+                                                    fill="#F6F7F8" />
+                                            </svg>
+                                        </div>
+                                    </button>
+                                    <button @click="handleSubQuantity(item)" class="btn p-0">
+                                        <div>
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                                                xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M12 6L8 10L4 6" stroke="#BCC0C6" stroke-width="1.5"
+                                                    stroke-linecap="round" stroke-linejoin="round" />
+                                                <path
+                                                    d="M1 12L0.999999 4L-1 4L-1 12L1 12ZM4 1L12 0.999999L12 -1L4 -1L4 1ZM15 4L15 12L17 12L17 4L15 4ZM12 15L4 15L4 17L12 17L12 15ZM15 12C15 13.6569 13.6569 15 12 15L12 17C14.7614 17 17 14.7614 17 12L15 12ZM12 0.999999C13.6569 0.999999 15 2.34314 15 4L17 4C17 1.23858 14.7614 -1 12 -1L12 0.999999ZM0.999999 4C0.999999 2.34315 2.34315 1 4 1L4 -1C1.23858 -1 -1 1.23858 -1 4L0.999999 4ZM-1 12C-1 14.7614 1.23858 17 4 17L4 15C2.34315 15 1 13.6569 1 12L-1 12Z"
+                                                    fill="#F6F7F8" />
+                                            </svg>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="price">
+                                <p class="price text-right">{{ item.product_price | toCurrency }}</p>
+                            </div>
+                            <div class="edit d-flex flex-column justify-content-between">
+                                <div class="d-flex align-items-center" @click="delProductCart(item)">
+                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M15 5L5 15" stroke="#EB5757" stroke-width="1.5" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <path d="M5 5L15 15" stroke="#EB5757" stroke-width="1.5" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                    </svg>
+
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
+            </div>
+            <!-- ////////////////////// -->
+            <div>
+                <div class="margin__y--8 d-flex justify-content-between align-items-center">
+                    <p class="text__second--medium font__weight--600">Thêm ghi chú</p>
+                    <div @click="handleShowNote">
+                        <svg class="icon__add--cursor" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 4.1665V15.8332" stroke="#FF5F0B" stroke-width="1.5" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <path d="M4.16675 10H15.8334" stroke="#FF5F0B" stroke-width="1.5" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                </div>
+                <input class="form-control-sm" ref="note" v-model="note" v-if="is_show_note"></input>
+                <!-- <hr class="margin__top--15"> -->
             </div>
             <!-- tổng phí đơn hàng -->
             <div v-if="order_option!=0">
-                <div class="font-weight-bold text-right mt-3">
-                    <p>Tổng giá sản phẩm: {{ total_price | toCurrency }}</p>
+                <hr class="margin__y--15">
+                <div class="text__second--medium d-flex justify-content-between align-items-center">
+                    <span>Tổng giá sản phẩm</span><span class="font__weight--600">{{ total_price | toCurrency }}</span>
                 </div>
             </div>
+
+            <!-- End Tìm sản phẩm và Tạo ghi chú -->
+
+
+
 
             <!-- Giao vận -->
             <div v-if="order_option!=0&&payload.delivery_platform">
@@ -181,26 +244,29 @@
                 </div>
             </div>
             <!-- Tổng tiền và tạo đơn hàng -->
-            <div class="order border-top">
-                <div class="total-price d-flex justify-content-between my-2">
+            <div class="order">
+                <hr class="margin__top--15">
+                <div class="total-price text__second--medium d-flex justify-content-between my-2">
                     <p>Tổng tiền</p>
-                    <p>{{ total_payment||0 | toCurrency }}</p>
+                    <p class="font__weight--600">{{ total_payment||0 | toCurrency }}</p>
                 </div>
-                <button class="btn-pill mb-4 w-100" @click="handleCreateOrder">Tạo đơn hàng</button>
+                <button class="margin__top--11 btn-pill mb-4 w-100" @click="handleCreateOrder">Tạo đơn hàng</button>
             </div>
         </div>
 
         <!-- Search product-->
         <div :class="{ 'popup': true, 'show-popup': is_show_popup}">
             <div v-if="is_show_popup">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="search rounded d-flex align-items-center flex-grow-1">
-                        <img src="https://img.icons8.com/ios-glyphs/48/000000/search.png" alt="">
-                        <input @keyup.enter="handleSearch" v-model="search_value" class="form-control-sm flex-grow-1"
-                            type="text" placeholder="Tìm sản phẩm" />
+                <div>
+                    <div class="form-row">
+                        <div class="search col">
+                            <img src="https://img.icons8.com/ios-glyphs/48/000000/search.png" alt="">
+                            <input @keyup.enter="handleSearch" v-model="search_value"
+                                class="form-control-sm flex-grow-1" type="text" placeholder="Tìm sản phẩm" />
+                        </div>
                     </div>
                     <div>
-                        <div class="close" @click="handleClosePopup">
+                        <div class="close close__search" @click="handleClosePopup">
                             <img src="@/assets/close1.png" alt="">
                         </div>
                     </div>
@@ -244,7 +310,7 @@
         <!-- Thông tin đơn hàng -->
         <div :class="[ 'order__info', { 'show-order-info': is_show_order_info }]">
             <div>
-                <div class="close" @click="closeOrderInfo()">
+                <div class="close close__order--info" @click="closeOrderInfo()">
                     <img src="@/assets/close1.png" alt="">
                 </div>
             </div>
