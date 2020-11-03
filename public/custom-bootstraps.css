@@ -42,7 +42,12 @@ img {
 *::after {
     box-sizing: border-box;
 }
-
+.row {
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+}
 .d-flex {
     display: flex !important;
 }
@@ -59,16 +64,17 @@ img {
     -ms-flex-item-align: end !important;
     align-self: flex-end !important;
 }
-.align-self-center{
-    -ms-flex-item-align:center!important;
-    align-self:center!important
+.align-self-center {
+    -ms-flex-item-align: center !important;
+    align-self: center !important;
 }
 .flex-grow-1 {
     flex-grow: 1 !important;
 }
-.justify-content-around{
-    -ms-flex-pack:distribute!important;
-    justify-content:space-around!important}
+.justify-content-around {
+    -ms-flex-pack: distribute !important;
+    justify-content: space-around !important;
+}
 .justify-content-between {
     justify-content: space-between !important;
 }

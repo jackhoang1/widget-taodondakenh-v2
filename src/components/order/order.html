@@ -6,7 +6,8 @@
             <p class="text__second--medium font__weight--600">Đơn {{ platform_type }}</p>
             <div class="tooltip" @click="handleModalEditMsg">
                 <div class="cursor__pointer">
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="hover-scale" width="18" height="18" viewBox="0 0 18 18" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
                         <path
                             d="M10.7647 1.5H3.5C2.39543 1.5 1.5 2.39543 1.5 3.5V14.5C1.5 15.6046 2.39543 16.5 3.5 16.5H14.5C15.6046 16.5 16.5 15.6046 16.5 14.5V13.4118"
                             stroke="#848B97" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -78,24 +79,27 @@
             <div class="order__option">
                 <div class="order__option--main">
                     <p class="text__second--medium margin__bottom--12">Tuỳ chọn</p>
-                    <div>
+                    <div class="margin__bottom--12">
                         <input id="order__option--order-only" type="radio" value="0" v-model="order_option">
-                        <label class="margin__left--12" for="order__option--order-only">Chỉ tạo đơn</label>
+                        <label class="margin__left--12" for="order__option--order-only"><span class=""></span>Chỉ tạo
+                            đơn</label>
                     </div>
-                    <div>
+                    <div class="margin__bottom--12">
                         <input id="order__option--order-shipcod" type="radio" value="1" v-model="order_option"
                             @click="checkDelivery">
-                        <label class="margin__left--12" for="order__option--order-shipcod">Ship COD</label>
+                        <label class="margin__left--12" for="order__option--order-shipcod"><span class=""></span>Ship
+                            COD</label>
                         <div class="order__option--icon-shipcod tooltip">
                             <img src="@/assets/question.png" alt="">
                             <span class="tooltip-top tooltip-medium">Hình thức tạo đơn và giao vận với bên thứ
                                 3</span>
                         </div>
                     </div>
-                    <div>
+                    <div class="margin__bottom--12">
                         <input id="order__option--order-payment" type="radio" value="2" v-model="order_option"
                             @click="checkPayment">
-                        <label class="margin__left--12" for="order__option--order-payment">Thanh toán và giao
+                        <label class="margin__left--12" for="order__option--order-payment"><span class=""></span>Thanh
+                            toán và giao
                             vận</label>
                         <div class="order__option--icon-payment tooltip">
                             <img class="" src="@/assets/question.png" alt="">
@@ -117,7 +121,8 @@
                 <div class="margin__y--8 d-flex justify-content-between align-items-center">
                     <p class="text__second--medium font__weight--600">Thêm sản phẩm</p>
                     <div @click="handleShowPopup">
-                        <svg class="icon__add--cursor" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg class="icon__add--cursor" width="20" height="20" viewBox="0 0 20 20" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
                             <path d="M10 4.1665V15.8332" stroke="#FF5F0B" stroke-width="1.5" stroke-linecap="round"
                                 stroke-linejoin="round" />
                             <path d="M4.16675 10H15.8334" stroke="#FF5F0B" stroke-width="1.5" stroke-linecap="round"
@@ -195,7 +200,8 @@
                 <div class="margin__y--8 d-flex justify-content-between align-items-center">
                     <p class="text__second--medium font__weight--600">Thêm ghi chú</p>
                     <div @click="handleShowNote">
-                        <svg class="icon__add--cursor" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg class="icon__add--cursor" width="20" height="20" viewBox="0 0 20 20" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
                             <path d="M10 4.1665V15.8332" stroke="#FF5F0B" stroke-width="1.5" stroke-linecap="round"
                                 stroke-linejoin="round" />
                             <path d="M4.16675 10H15.8334" stroke="#FF5F0B" stroke-width="1.5" stroke-linecap="round"
@@ -314,29 +320,44 @@
                     <img src="@/assets/close1.png" alt="">
                 </div>
             </div>
-            <div v-if="is_show_order_info">
-                <p class="order__info--title">Thông tin đơn hàng</p>
-                <p>Khách hàng: {{name}}</p>
-                <p>Số điện thoại: {{phone}}</p>
-                <p>Email: {{email}}</p>
-                <p>Địa chỉ: {{address}}</p>
-                <p v-if="note">Ghi chú: {{note}}</p>
-                <p>Danh sách sản phẩm:</p>
-                <p v-for="(item, index) in cart" :key="index">{{`${item.product_quantity} ${item.product_name}`}}
-                </p>
+            <p class="text__second--large info-title">Thông tin đơn hàng</p>
+            <div class="info-content" v-if="is_show_order_info">
+                <div class="row text-left">
+                    <p class="text__neutral70--medium col-4">Khách hàng</p>
+                    <p class="col-8">{{name}}</p>
+                </div>
+                <div class="row text-left">
+                    <p class="text__neutral70--medium col-4">Số điện thoại</p>
+                    <p class="col-8">{{phone}}</p>
+                </div>
+                <div class="row text-left">
+                    <p class="text__neutral70--medium col-4">Email</p>
+                    <p class="col-8">{{email}}</p>
+                </div>
+                <div class="row text-left">
+                    <p class="text__neutral70--medium col-4">Địa chỉ</p>
+                    <p class="col-8">{{address}}</p>
+                </div>
+                <div class="row text-left">
+                    <p class="text__neutral70--medium col-4">DS sản phẩm</p>
+                    <p class="col-8" v-for="(item, index) in cart" :key="index">
+                        {{`${item.product_quantity} ${item.product_name}`}}
+                    </p>
+                </div>
+                <hr>
                 <div v-if="order_option!=0">
                     <div class="order__info--total-price d-flex justify-content-between">
-                        <p>Tổng giá sản phẩm</p>
-                        <p>{{total_price | toCurrency}}</p>
+                        <p class="text__neutral70--medium">Tổng giá trị sản phẩm</p>
+                        <p class="font__weight--600">{{total_price | toCurrency}}</p>
                     </div>
                     <div class="order__info--shipping-fee d-flex justify-content-between">
-                        <p>Phí giao vận</p>
-                        <p>{{shipping_fee | toCurrency}}</p>
+                        <p class="text__neutral70--medium ">Phí giao vận</p>
+                        <p class="font__weight--600">{{shipping_fee | toCurrency}}</p>
                     </div>
                 </div>
                 <div class="order__info--total-payment d-flex justify-content-between">
-                    <p>Tổng giá trị đơn hàng</p>
-                    <p>{{total_payment | toCurrency}}</p>
+                    <p class="text__second--medium font__weight--600">Tổng giá trị đơn hàng</p>
+                    <p class="info-order-price">{{total_payment | toCurrency}}</p>
                 </div>
                 <button class="btn-pill mt-3 mb-4 w-100" @click="handleCallApiOrder" :disabled="handle_api">Xác
                     nhận</button>

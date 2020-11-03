@@ -512,7 +512,7 @@ $colorNeutral5: #f6f7f8;
   border-style: solid;
 }
 @mixin imageSelect {
-  background: url("data:image/svg+xml;utf8,<svg fill='black' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>")
+  background: url(./assets/arrow.svg)
     no-repeat right #fff !important;
   background-size: 20px;
 }
@@ -812,6 +812,11 @@ select {
   font-size: 14px;
   line-height: 22px;
 }
+.text__neutral70--medium {
+  color: $colorNeutral70;
+  font-size: 14px;
+  line-height: 22px;
+}
 .text__neutral38--medium {
   color: $colorNeutral38;
   font-size: 14px;
@@ -890,50 +895,33 @@ select {
 .text__decoration--none {
   text-decoration: none;
 }
-input[type=checkbox] + label {
-  display: block;
-  margin: 0.2em;
-  cursor: pointer;
-  padding: 0.2em;
+.hover-scale {
+  &:hover {
+    transform: scale(1.1);
+  }
 }
 
-input[type=checkbox] {
+input[type="radio"] {
   display: none;
 }
 
-input[type=checkbox] + label:before {
-  content: "\2714";
-  border: 0.1em solid #000;
-  border-radius: 0.2em;
+input[type="radio"] + label {
+  // color:#f2f2f2;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+}
+
+input[type="radio"] + label span {
   display: inline-block;
-  width: 1em;
-  height: 1em;
-  padding-left: 0.2em;
-  padding-bottom: 0.3em;
-  margin-right: 0.2em;
-  vertical-align: bottom;
-  color: transparent;
-  transition: .2s;
+  width: 20px;
+  height: 20px;
+  margin: -1px 12px 0 0;
+  vertical-align: middle;
+  background: url(./assets/checkbox.svg) no-repeat;
+  cursor: pointer;
 }
 
-input[type=checkbox] + label:active:before {
-  transform: scale(0);
-}
-
-input[type=checkbox]:checked + label:before {
-  background-color: #FF5F0B;
-  border-color: #FF5F0B;
-  color: #fff;
-}
-
-input[type=checkbox]:disabled + label:before {
-  transform: scale(1);
-  border-color: #aaa;
-}
-
-input[type=checkbox]:checked:disabled + label:before {
-  transform: scale(1);
-  background-color: #bfb;
-  border-color: #bfb;
+input[type="radio"]:checked + label span {
+  background: url(./assets/checkbox_checked.svg) no-repeat;
 }
 </style>
