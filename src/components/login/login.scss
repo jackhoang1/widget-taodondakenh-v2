@@ -1,0 +1,11 @@
+$colorNeutral5: #f6f7f8;
+.list__store {
+    background: #fff;
+    height: 40vh;
+    overflow: scroll;
+    border-radius: 8px;
+    padding: 12px;
+    .store {
+        background: $colorNeutral5;
+    }
+}

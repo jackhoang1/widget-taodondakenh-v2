@@ -1,0 +1,25 @@
+<div class="auth">
+    <div class="auth__activate" v-if="!show_list_store">
+        <div style="margin-bottom: 1.5rem;" v-if="isLogin">
+            <div class="close" @click="hideFormLogin()">
+                <img src="@/assets/close1.png" alt="">
+            </div>
+        </div>
+        <div class="sign d-flex flex-column align-items-center">
+            <p class="text__second--large margin__bottom--12">Đăng Nhập CMS</p>
+            <input v-model="cms_account" type="text" class="form-control-sm mb-3" placeholder="Email" />
+            <input v-model="cms_password" type="password" class="form-control-sm mb-3" placeholder="Password" />
+            <button class="btn-pill w-100" @click="runSignIn()">
+                Đăng nhập
+            </button>
+        </div>
+    </div>
+    <div :class="['select-store', 'mb-5', { 'show-store': show_list_store }]">
+        <div class="list__store" v-if="show_list_store">
+            <p class="text__second--large margin__bottom--12">Danh sách Store</p>
+            <div v-for="(item, ind) in list_store" class="store margin__bottom--8" @click="handleChooseStore(item)" :key="ind">
+                {{ item.store_name }}
+            </div>
+        </div>
+    </div>
+</div>

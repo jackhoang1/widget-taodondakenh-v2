@@ -1,42 +1,17 @@
 <template>
   <div class>
     <!-- Xác thực App -->
-    <div v-if="!is_oauth" class="auth">
-      <div class="auth__activate" v-if="!show_list_store">
-        <div class="sign d-flex flex-column align-items-center">
-          <p class="text-dark mb-4">Đăng Nhập CMS</p>
-          <input
-            v-model="cms_account"
-            type="text"
-            class="form-control mb-3"
-            placeholder="Email"
-          />
-          <input
-            v-model="cms_password"
-            type="password"
-            class="form-control mb-3"
-            placeholder="Password"
-          />
-          <button class="btn btn-primary text-light" v-on:click="runSignIn()">
-            Sign In
-          </button>
-        </div>
-      </div>
-      <div :class="['select-store', 'mb-5', { 'show-store': show_list_store }]">
-        <div v-if="show_list_store">
-          <p class="text-center mb-5">Danh sách Store</p>
-          <div
-            v-for="(item, ind) in list_store"
-            class="store"
-            @click="handleChooseStore(item)"
-            :key="ind"
-          >
-            {{ item.store_name }}
-          </div>
-        </div>
-      </div>
-      <div v-if="overlaySign" class="overlay"></div>
-    </div>
+    <Login
+      v-if="isLogin || (!is_oauth && !overlaySign)"
+      :isLogin="isLogin"
+      :showLogin="showLogin"
+      :hideLogin="hideLogin"
+      :access_token="access_token"
+      :forceRerender="forceRerender"
+      @store-token="store_token = $event"
+      @store-email="payload.store_email = $event"
+    >
+    </Login>
     <!--End Xác thực App -->
 
     <div v-if="is_oauth" class="widget">
@@ -119,6 +94,9 @@
               :store_token="store_token"
               :payload="payload"
               :handleShowCreateOrder="handleShowCreateOrder"
+              :showLogin="showLogin"
+              :hideLogin="hideLogin"
+              :key="componentKey"
               @platform_type="payload.platform_type = $event"
               @msg-info="getMsgInfoDraft"
             />
@@ -154,6 +132,7 @@ import EventBus from "./EventBus.js";
 import Restful from "@/services/resful.js";
 import CreateOrder from "@/components/order/Order.vue";
 import ListOrder from "@/components/order/ListOrder.vue";
+import Login from "@/components/login/Login.vue";
 import { APICMS, APIBASE, secretKey } from "@/services/domain.js";
 
 let urlString = location.href;
@@ -189,9 +168,12 @@ export default {
   components: {
     ListOrder,
     CreateOrder,
+    Login,
   },
   data() {
     return {
+      componentKey: 0,
+      isLogin: false,
       is_oauth: false,
       secretKey: secretKey,
       access_token: access_token,
@@ -232,6 +214,10 @@ export default {
     },
   },
   methods: {
+    forceRerender() {
+      this.componentKey += 1;
+      this.isLogin = false;
+    },
     testAndroid(toast) {
       var ua = navigator.userAgent.toLowerCase();
       var isAndroid = ua.indexOf("android") > -1; //&& ua.indexOf("mobile");
@@ -300,75 +286,6 @@ export default {
         console.log("info err", error);
       }
     },
-    async runSignIn() {
-      try {
-        // Call Api Đăng nhập CMS
-        let path = "https://api.botup.io/v1/auth/sign-in";
-        let body = {
-          email: this.cms_account,
-          password: this.cms_password,
-        };
-
-        let sign_in = await Restful.post(path, body);
-
-        let user = {};
-        if (sign_in.data && sign_in.data.data && sign_in.data.data.user) {
-          user = sign_in.data.data.user;
-        } else {
-          throw "Đăng nhập thất bại";
-        }
-        let { email, first_name, last_name, id, role } = user;
-        path = `${APICMS}/v1/users/users/singinbotup`;
-        body = {
-          username: id,
-          email,
-          first_name,
-          last_name,
-          role,
-        };
-
-        // Call Api Đăng nhập Botup
-        let cms_signin = await Restful.post(path, body);
-
-        // Lấy danh sách Store
-        path = `${APICMS}/v1/selling-page/store/store_read`;
-        let params = {};
-        if (
-          cms_signin.data &&
-          cms_signin.data.data &&
-          cms_signin.data.data.user &&
-          cms_signin.data.data.user.id
-        ) {
-          params = {
-            owner_id: cms_signin.data.data.user.id,
-          };
-        } else {
-          throw "Đăng nhập thất bại";
-        }
-
-        let read_store = await Restful.get(path, params);
-
-        if (read_store.data && read_store.data.data) {
-          this.list_store = read_store.data.data;
-          this.show_list_store = true;
-        } else {
-          throw "Lỗi khi lấy danh sách Store";
-        }
-      } catch (e) {
-        console.log("error", e);
-        if (e.data.message) {
-          Toast2.fire({
-            icon: "error",
-            title: e.data.message,
-          });
-          return;
-        }
-        Toast2.fire({
-          icon: "error",
-          title: e,
-        });
-      }
-    },
     getPlatform(delivery_platform, payment_platform) {
       this.payload.delivery_platform = delivery_platform;
       this.payload.payment_platform = payment_platform;
@@ -390,20 +307,7 @@ export default {
         this.payload.store_email = data.store_email;
       }
     },
-    handleChooseStore(item) {
-      this.store_token = item.access_token;
-      localStorage.removeItem("order_3d_platform");
-      let order_3d_platform = {};
-      if (item.store_email) {
-        this.payload.store_email = item.store_email;
-        order_3d_platform["store_email"] = item.store_email;
-      }
-      localStorage.setItem(
-        "order_3d_platform",
-        JSON.stringify(order_3d_platform)
-      );
-      this.runOAuth();
-    },
+
     async createCustomer() {
       try {
         let path = `${APICMS}/v1/selling-page/customer/customer_find_or_create`;
@@ -432,43 +336,12 @@ export default {
         });
       }
     },
-    async runOAuth() {
-      try {
-        // Call Api xác thực khi chọn Store và lưu lại Token
-        let body = {
-          _type: "oauth-access-token",
-          access_token: this.access_token,
-          token_partner: this.store_token,
-        };
-        // Xác thực Widget
-        let oauth = await Restful.post(
-          `${APIBASE}/v1/app/app-installed/update`,
-          body
-        );
-        Toast2.fire({
-          icon: "success",
-          title: "Xác thực thành công",
-        });
-        setTimeout(() => {
-          window.close();
-        }, 1000);
-      } catch (e) {
-        console.log(e);
-        if (
-          e.data &&
-          e.data.message &&
-          e.data.message.message == "jwt expired"
-        ) {
-          return Toast2.fire({
-            icon: "error",
-            title: "Vui lòng tải lại trang và kích hoạt lại!",
-          });
-        }
-        Toast2.fire({
-          icon: "error",
-          title: "Xác thực không thành công",
-        });
-      }
+    showLogin() {
+      console.log("isLogin");
+      this.isLogin = true
+    },
+    hideLogin() {
+      this.isLogin = false;
     },
     async handleShowCreateOrder() {
       this.show_order = !this.show_order;
@@ -512,8 +385,7 @@ $colorNeutral5: #f6f7f8;
   border-style: solid;
 }
 @mixin imageSelect {
-  background: url(./assets/arrow.svg)
-    no-repeat right #fff !important;
+  background: url(./assets/arrow.svg) no-repeat right #fff !important;
   background-size: 20px;
 }
 
@@ -538,8 +410,8 @@ $colorNeutral5: #f6f7f8;
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  padding: 1rem;
-  top: 12%;
+  padding: 12px 20px;
+  top: 30%;
   width: 100%;
   z-index: 999;
   .auth__activate {
@@ -558,22 +430,6 @@ $colorNeutral5: #f6f7f8;
       width: 100%;
       height: 35px;
     }
-    button {
-      font-weight: bold;
-      box-shadow: 0 5px 15px 0 #007bff30;
-      transition: all 0.5s;
-      border-radius: 25px;
-      padding: 0.5rem 3.5rem;
-      margin-top: 1.5rem;
-      &:hover {
-        background: #007bff;
-        box-shadow: 0 5px 20px 0 #007bff30;
-      }
-      &:focus {
-        box-shadow: 0 5px 20px 0 #007bff30 !important;
-        background: #007bff !important;
-      }
-    }
   }
   .select-store {
     width: 100%;
@@ -582,22 +438,14 @@ $colorNeutral5: #f6f7f8;
     transition: all 0.4s ease-out 0.2s;
     .store {
       cursor: pointer;
-      text-align: center;
-      padding: 1rem 1rem;
-      border: 2px solid #0001;
-      border-radius: 5px;
-      font-weight: bold;
-      border-bottom: none;
-      background: #fff;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: $colorNeutral5;
       transition: transform 0.2s ease-out, border-bottom 0s,
         background 0.7s ease-out;
       &:hover {
-        transform: translateY(-5px) scale(1.03);
-        border-bottom: 2px solid #0001;
+        transform: scale(1.03);
         background: #ddd;
-      }
-      &:active {
-        transform: translateY(-3px);
       }
     }
     .store:last-child {
@@ -715,7 +563,7 @@ $colorNeutral5: #f6f7f8;
     white-space: nowrap;
   }
   .tooltip-medium {
-    min-width: 12rem !important;
+    min-width: 10rem !important;
   }
   .tooltip-top {
     @include tooltip-position;
@@ -900,7 +748,30 @@ select {
     transform: scale(1.1);
   }
 }
-
+.close {
+  position: absolute;
+  background: $colorNeutral38;
+  top: -10px;
+  right: -7px;
+  opacity: 1;
+  border-radius: 50%;
+  padding: 7px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  &:hover {
+    cursor: pointer;
+    opacity: 1 !important;
+    transform: scale(1.1);
+  }
+  &:focus {
+    outline: none;
+  }
+  img {
+    width: 6px;
+    height: 6px;
+  }
+}
 input[type="radio"] {
   display: none;
 }

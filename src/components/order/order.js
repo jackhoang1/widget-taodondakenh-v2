@@ -39,7 +39,9 @@ export default {
     props: [
         "store_token",
         "payload",
-        "handleShowCreateOrder"
+        "handleShowCreateOrder",
+        'showLogin',
+        'hideLogin'
     ],
     data() {
         return {
@@ -123,12 +125,12 @@ export default {
             validate_info: false,
             is_loading: false,
             is_edit_msg: false,
+            showSetting: false,
+            showSettingContent: true,
         };
     },
     created() {
-        // EventBus.$on("disable-update-order", () => {
-        //     this.is_update_order = false
-        // });
+        console.log('create component order');
         if (this.store_token) {
             this.getInitialData()
             this.name = this.payload.name
@@ -137,6 +139,12 @@ export default {
         }
         EventBus.$on("get-order", (item) => {
             this.getOrderInfo(item)
+        });
+        EventBus.$on("show-modal-setting", () => {
+            this.showFormLogin()
+        });
+        EventBus.$on("hide-modal-setting", () => {
+            this.hideFormLogin()
         });
     },
     mounted() {
@@ -275,6 +283,24 @@ export default {
                         this.$refs.note.focus()
                 })
             }
+        },
+        handleModalSetting() {
+            this.showSetting = !this.showSetting
+        },
+        showModalSettingContent() {
+            this.showSettingContent = true
+        },
+        hideModalSettingContent() {
+            this.showSettingContent = false
+        },
+        showFormLogin() {
+            console.log('close run');
+            this.showLogin()
+            this.hideModalSettingContent()
+        },
+        hideFormLogin() {
+            this.hideLogin()
+            this.showModalSettingContent()
         },
         async getCart() {
             try {
@@ -1317,9 +1343,12 @@ export default {
     destroyed() {
         EventBus.$off("get-order", (item) => {
             this.getOrderInfo(item)
-        });
-        EventBus.$off("disable-update-order", () => {
-            this.is_update_order = false
         })
+        EventBus.$off("show-modal-setting", () => {
+            this.showFormLogin()
+        });
+        EventBus.$off("hide-modal-setting", () => {
+            this.hideFormLogin()
+        });
     },
 };
