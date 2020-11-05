@@ -18,13 +18,13 @@ export default {
                 // { name: 'Thanh toán ngay với thẻ ATM, IB, QRCODE, thẻ quốc tế', value: 4 },
             ],
             list_order_type_vnpay: orderTypeVnpay,
-            order_type_vnpay: "",
-            bank_vnpay: "",
-            checkout_type: "",
+            order_type_vnpay: '',
+            bank_vnpay: '',
+            checkout_type: '',
             country: 'Việt Nam',
             order_description: 'Thanh toán đơn hàng {{order_id}}',
-            url_payment: "",
-            message_bbh: "",
+            url_payment: '',
+            message_bbh: '',
             handle_api: false,
             product_info: this.prop_product_info,
             validate_failed: {
@@ -53,27 +53,27 @@ export default {
     methods: {
         handleBodyCreatePayment(order_id) {
             let body = {
-                "order_id": order_id,
-                "order_amount": this.prop_total_payment,
-                "currency": 'VND',
-                "other_info": {
-                    "checkoutType": this.checkout_type.value
+                'order_id': order_id,
+                'order_amount': this.prop_total_payment,
+                'currency': 'VND',
+                'other_info': {
+                    'checkoutType': this.checkout_type.value
                 },
-                "order_description": this.order_description,
-                "total_item": this.product_info.total_item,
-                "return_url": `https://devbbh.tk/dev-cms/#/payment/?access_token=${this.store_token}&order_id=${order_id}`,
-                "cancel_url": `https://devbbh.tk/dev-cms/#/payment/?access_token=${this.store_token}&order_id=${order_id}`,
-                "customer_name": this.prop_receiver_name,
-                "customer_email": this.prop_receiver_email,
-                "customer_phone": this.prop_receiver_phone,
-                "customer_address": this.prop_receiver_address,
-                "customer_city": this.prop_receiver_city.name,
-                "customer_country": this.country,
+                'order_description': this.order_description,
+                'total_item': this.product_info.total_item,
+                'return_url': `https://devbbh.tk/dev-cms/#/payment/?access_token=${this.store_token}&order_id=${order_id}`,
+                'cancel_url': `https://devbbh.tk/dev-cms/#/payment/?access_token=${this.store_token}&order_id=${order_id}`,
+                'customer_name': this.prop_receiver_name,
+                'customer_email': this.prop_receiver_email,
+                'customer_phone': this.prop_receiver_phone,
+                'customer_address': this.prop_receiver_address,
+                'customer_city': this.prop_receiver_city.name,
+                'customer_country': this.country,
             }
 
-            if (this.payload.payment_platform == "VNPAY") {
-                body["order_type"] = this.order_type_vnpay.code
-                body["request_url"] = "http://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+            if (this.payload.payment_platform == 'VNPAY') {
+                body['order_type'] = this.order_type_vnpay.code
+                body['request_url'] = 'http://sandbox.vnpayment.vn/paymentv2/vpcpay.html'
             }
             return body
         },
@@ -81,17 +81,19 @@ export default {
             try {
                 let path = `${APICMS}/v1/selling-page/payment/payment_create`
                 let body = this.handleBodyCreatePayment(order_id)
-                body["order_description"] = body["order_description"].replace(/{{order_id}}/gi, order_id)
-                let params = {}
+                body['order_description'] = body['order_description'].replace(/{{order_id}}/gi, order_id)
                 let headers = { Authorization: this.store_token }
 
-                let create_payment = await Restful.post(path, body, params, headers)
+                let create_payment = await Restful.post(path, body, null, headers)
 
-                if (create_payment.data &&
+                if (
+                    create_payment &&
+                    create_payment.data &&
                     create_payment.data.data &&
                     create_payment.data.data.snap_payment
                 ) {
-                    let url_payment = create_payment.data.data.snap_payment.checkoutUrl || create_payment.data.data.snap_payment.data
+                    let snap_payment = create_payment.data.data.snap_payment
+                    let url_payment = snap_payment.checkoutUrl || snap_payment.data
                     // let message_bbh = []
                     if (url_payment) {
                         let time = create_payment.data.data.updatedAt
@@ -102,6 +104,7 @@ export default {
             } catch (e) {
                 console.log(e);
                 if (
+                    e &&
                     e.data &&
                     e.data.error_message &&
                     e.data.error_message.errorDescription
@@ -129,20 +132,20 @@ export default {
         swalToast(title, icon) {
             const Toast = Swal.mixin({
                 toast: true,
-                position: "center",
+                position: 'center',
                 showConfirmButton: false,
                 width: '80vw',
                 timer: 2000,
                 timerProgressBar: false,
                 onOpen: (toast) => {
-                    toast.addEventListener("mouseenter", Swal.stopTimer)
-                    toast.addEventListener("mouseleave", Swal.resumeTimer)
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
                 },
             });
             Toast.fire({
                 icon: icon,
                 title: title,
-                padding: "5px",
+                padding: '5px',
             })
         },
     },
@@ -153,13 +156,13 @@ export default {
     },
     filters: {
         toCurrency(value) {
-            if (typeof value !== "number") {
+            if (typeof value !== 'number') {
                 return value
             }
-            let formatter = new Intl.NumberFormat("de-DE", {
-                style: "currency",
+            let formatter = new Intl.NumberFormat('de-DE', {
+                style: 'currency',
                 minimumFractionDigits: 0,
-                currency: "VND",
+                currency: 'VND',
             });
             return formatter.format(value)
         },

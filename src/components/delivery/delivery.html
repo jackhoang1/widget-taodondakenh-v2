@@ -16,16 +16,17 @@
                 </div>
             </div>
             <!-- VTP sender email -->
-            <div class="margin__bottom--12 form-row" v-if="!payload.store_email&&payload.delivery_platform=='VIETTEL_POST'">
+            <div class="margin__bottom--12 form-row"
+                v-if="!payload.store_email&&payload.delivery_platform=='VIETTEL_POST'">
                 <div class="col">
                     <input class="form-control-sm" :class="{'validate-failed':validate_failed.sender_email}" type="text"
                         placeholder="Email bên gửi..." v-model="order_info.sender_email" @change="handleSaveInfo">
-                    <div class="d-flex justify-content-end align-items-center">
+                    <div class="margin__top--9 d-flex justify-content-end align-items-center">
                         <input id="checkbox__save--email" class="m-0 mr-1" type="checkbox" v-model="option_save_info"
                             @change="handleSaveInfo">
-                        <label for="checkbox__save--email">Lưu email</label>
+                        <label class="cursor__pointer" for="checkbox__save--email"><span class="align-items-center"></span>Lưu
+                            email</label>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -46,7 +47,8 @@
                     <span class="tooltip-top tooltip-nowrap">Chiều dài (cm)</span>
                 </div>
             </div>
-            <div class="margin__bottom--12 form-row" v-if="payload.delivery_platform=='VIETTEL_POST'||payload.delivery_platform=='GHN'">
+            <div class="margin__bottom--12 form-row"
+                v-if="payload.delivery_platform=='VIETTEL_POST'||payload.delivery_platform=='GHN'">
                 <div class="col tooltip">
                     <input v-model="order_info.width" type="number" min="0" class="form-control-sm text-center"
                         :class="{'validate-failed':validate_failed.width}" placeholder="Chiều rộng (cm)"
@@ -95,7 +97,8 @@
             </div>
         </div>
         <!--VTP GHN Danh sách dịch vụ -->
-        <div class="margin__bottom--12 form-row" v-if="payload.delivery_platform=='VIETTEL_POST'||payload.delivery_platform=='GHN'">
+        <div class="margin__bottom--12 form-row"
+            v-if="payload.delivery_platform=='VIETTEL_POST'||payload.delivery_platform=='GHN'">
             <div class="col">
                 <select v-model="order_info.order_service" class="form-control-sm"
                     :class="{'validate-failed':validate_failed.order_service}" @change="getShippingFee">
@@ -145,7 +148,7 @@
                         placeholder="Tiền thu hộ COD" title="Tiền thu hộ COD"
                         @change="checkKeyBoard($event,$event.target.value)"
                         @keyup="checkKeyBoard($event,$event.target.value)" />
-                        <span class="tooltip-top">Tiền thu hộ COD</span>
+                    <span class="tooltip-top">Tiền thu hộ COD</span>
                 </div>
             </div>
         </div>

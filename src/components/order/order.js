@@ -78,6 +78,7 @@ export default {
             note: "",
             is_show_note: false,
             cart: [],
+            id: "",
             order_id: "",
 
             total_payment: 0,
@@ -114,6 +115,7 @@ export default {
                 ward: false,
                 street: false,
                 branch: false,
+                product: false
             },
 
             order_option: 0,
@@ -315,6 +317,7 @@ export default {
                 let get_cart = await Restful.get(path, params, headers)
 
                 if (
+                    get_cart &&
                     get_cart.data &&
                     get_cart.data.data &&
                     get_cart.data.data.cart
@@ -363,7 +366,7 @@ export default {
                 // Thêm sản phẩm vào giỏ hàng
                 let add_cart = await Restful.post(path, body, null, headers)
                 // Lưu client_id và lưu vào localStorage
-                if (
+                if (add_cart &&
                     add_cart.data &&
                     add_cart.data.data &&
                     add_cart.data.data.client_id
@@ -640,6 +643,7 @@ export default {
                 let create_order = await Restful.post(path, body, null, headers)
 
                 if (
+                    create_order &&
                     create_order.data &&
                     create_order.data.data &&
                     create_order.data.data.order_info &&
@@ -689,13 +693,14 @@ export default {
                     Toast.fire({
                         icon: "error",
                         title: "Lỗi khi tạo đơn, Vui lòng thử lại!",
-                    });
+                    })
                 }
                 this.is_loading = false
             } catch (e) {
                 this.is_loading = false
-                console.log("eeeeeeeeeeeeeeee", e);
+                console.log("e", e)
                 if (
+                    e &&
                     e.data &&
                     e.data.error_message &&
                     e.data.error_message.errorCode
@@ -770,7 +775,7 @@ export default {
         },
         async sendMessage(order_id, url_payment, delivery_id, time = 1577840400000) {
             try {
-                let msg_sample = this.covertMsgContent(order_id, delivery_id, this.payload.payment_platform);
+                let msg_sample = this.covertMsgContent(order_id, delivery_id, this.payload.payment_platform)
                 let timestamp = Number(time.toString().slice(0, 10))
                 let address = {
                     "street_1": `${this.street}`,
@@ -887,14 +892,14 @@ export default {
                 }
                 // Load danh sách sản phẩm
                 let get_list_product = await Restful.get(path, params, headers)
-
                 if (
+                    get_list_product &&
                     get_list_product.data &&
                     get_list_product.data.data
                 ) {
                     this.list_product = get_list_product.data.data
                     if (
-                        get_list_product.data.data[0] &&
+                        get_list_product.data.data.length &&
                         get_list_product.data.data[0].platform_type
                     ) {
                         this.platform_type = get_list_product.data.data[0].platform_type
@@ -928,10 +933,10 @@ export default {
                         if (image.id === imageId) {
                             return image.src
                         }
-                    });
+                    })
                 }
                 return product.image
-            };
+            }
 
             products.map((product, index) => {
                 let map_variant = product.variants.map((variant) => {
@@ -945,14 +950,12 @@ export default {
                     }
                 })
                 this.list_product = this.list_product.concat(map_variant)
-            });
+            })
         },
         async getMoreProduct() {
             try {
                 let path = `${APICMS}/v1/selling-page/product/product_read`
-                let headers = {
-                    Authorization: this.store_token
-                }
+                let headers = { Authorization: this.store_token }
                 let params = {
                     skip: this.skip,
                     search: this.search_value
@@ -967,11 +970,12 @@ export default {
                 let get_list_product = await Restful.get(path, params, headers)
 
                 if (
+                    get_list_product &&
                     get_list_product.data &&
                     get_list_product.data.data
                 ) {
                     let list_product = get_list_product.data.data
-                    if (list_product.length == 0) {
+                    if (list_product.length === 0) {
                         return this.swalToast('Đã hiện hết sản phẩm', 'success')
                     }
                     this.skip = this.skip + 20
@@ -989,7 +993,7 @@ export default {
             }
         },
         convertMoreProduct(products) {
-            if (products.length == 0) return
+            if (products.length === 0) return
             let findImage = (product, imageId) => {
                 if (product.images) {
                     product.images.map((image) => {
@@ -1033,19 +1037,21 @@ export default {
                 let get_branch = await Restful.post(path, null, null, headers)
 
                 if (
+                    get_branch &&
                     get_branch.data &&
                     get_branch.data.data &&
                     get_branch.data.data.data
                 ) {
                     this.list_branch = get_branch.data.data.data
                     this.has_branch = true
-                    if (this.list_branch && this.list_branch.length > 0) {
+                    if (this.list_branch.length) {
                         this.branch = this.list_branch[0]   //default branch 1
                     }
                 }
             } catch (e) {
                 if (this.resetTokenKiotviet()) return
                 if (
+                    e &&
                     e.data &&
                     e.data.error_message &&
                     e.data.error_message.message
@@ -1065,13 +1071,14 @@ export default {
         },
         async resetTokenKiotviet() {
             try {
-                if (this.reset_token) return;
+                if (this.reset_token) return
                 let path = `${APICMS}/v1/selling-page/other/kiotviet_update_token`
                 let headers = { 'Authorization': this.store_token }
 
                 let reset_token_kiotviet = await Restful.post(path, null, null, headers)
 
                 if (
+                    reset_token_kiotviet &&
                     reset_token_kiotviet.data &&
                     reset_token_kiotviet.data.data
                 ) {
@@ -1093,6 +1100,7 @@ export default {
                 let reset_token_misa = await Restful.post(path, null, null, headers)
 
                 if (
+                    reset_token_misa &&
                     reset_token_misa.data &&
                     reset_token_misa.data.data
                 ) {
@@ -1114,12 +1122,13 @@ export default {
                 let get_branch = await Restful.post(path, null, null, headers)
 
                 if (
+                    get_branch &&
                     get_branch.data &&
                     get_branch.data.data
                 ) {
                     let branchs = get_branch.data.data
                     this.has_branch = true
-                    if (branchs && branchs.length > 0) {
+                    if (branchs.length) {
                         this.list_branch = branchs.map((branch) => {
                             return { id: branch.Id, branchName: branch.Name }
                         })
@@ -1127,6 +1136,7 @@ export default {
                     }
                 }
                 if (
+                    get_branch &&
                     get_branch.data &&
                     get_branch.data.code == 200 &&
                     !get_branch.data.data
@@ -1145,8 +1155,8 @@ export default {
                     Toast2.fire({
                         icon: "error",
                         title: e.data.error_message.message,
-                    });
-                    return;
+                    })
+                    return
                 }
                 Toast2.fire({
                     icon: "error",
@@ -1158,16 +1168,16 @@ export default {
 
         async getOrderInfo(item) {
             // Reset client_id tránh loạn giỏ hàng
-            console.log('getOrderInfo', item);
             this.client_id = ''
-            localStorage.removeItem("order_3rd_client_id")
+            localStorage.removeItem('order_3rd_client_id')
             this.cart = []
             this.is_update_order = true
             this.name = item.customer_name
             this.phone = item.customer_phone
             this.email = item.customer_email || this.payload.store_email  //customer không có email > email merchant
             this.platform_type = item.platform_type
-            this.order_id = item.id
+            this.id = item.id
+            this.order_id = item.order_id
             this.$emit('msg-info', item.other_info)
         },
         async updateOrder(data) {
@@ -1175,22 +1185,24 @@ export default {
                 this.is_loading = true
                 let path = `${APICMS}/v1/selling-page/order/order_update_3rd`
                 let headers = { Authorization: this.store_token }
-                let body = {
-                    ...data,
-                    id: this.order_id
-                }
+                let body = { ...data, id: this.id, order_id: this.order_id }
 
-                let update_order = await Restful.post(path, body, {}, headers)
+                let update_order = await Restful.post(path, body, null, headers)
 
                 if (
+                    update_order &&
                     update_order.data &&
                     update_order.data.data &&
                     update_order.data.data.order_info &&
                     update_order.data.data.order_info.order_id
                 ) {
                     this.is_update_order = false
-                    let order_id = update_order.data.data.order_info.order_id
-                    let time = update_order.data.data.order_info.updatedAt
+                    let order_info = update_order.data.data.order_info
+                    let order_id = order_info.order_id
+                    let time = 0
+
+                    if (order_info.updatedAt)
+                        time = order_info.updatedAt
                     if (this.order_option == 1) {
                         if (this.$refs.delivery) {
                             await this.$refs.delivery.createDelivery(order_id, this.product_info)
@@ -1225,26 +1237,31 @@ export default {
                         title: "Đã xảy ra lỗi khi cập nhật đơn",
                     })
                 }
-            } catch (error) {
+            } catch (e) {
                 this.is_loading = false
-                if (error.data && error.data.error_message && error.data.error_message.message) {
+                if (
+                    e &&
+                    e.data &&
+                    e.data.error_message &&
+                    e.data.error_message.message
+                ) {
                     Toast2.fire({
                         icon: "error",
-                        title: error.data.error_message.message,
+                        title: e.data.error_message.message,
                     })
                     return
                 }
-                if (error.data && error.data.error_message) {
+                if (e && e.data && e.data.error_message) {
                     Toast2.fire({
                         icon: "error",
-                        title: error.data.error_message,
+                        title: e.data.error_message,
                     })
                     return
                 }
-                if (error.errors) {
+                if (e && e.errors) {
                     Toast2.fire({
                         icon: "error",
-                        title: error.errors,
+                        title: e.errors,
                     });
                     return
                 }
@@ -1265,7 +1282,7 @@ export default {
             }
         },
         handleShowForm(name) {
-            this.show_form = name;
+            this.show_form = name
         },
         handleModalEditMsg() {
             this.is_edit_msg = !this.is_edit_msg
@@ -1295,7 +1312,7 @@ export default {
                     toast.addEventListener("mouseenter", Swal.stopTimer)
                     toast.addEventListener("mouseleave", Swal.resumeTimer)
                 },
-            });
+            })
             Toast.fire({
                 icon: icon,
                 title: title,
@@ -1305,7 +1322,7 @@ export default {
     },
     watch: {
         store_token() {
-            this.getInitialData();
+            this.getInitialData()
             this.name = this.payload.name
             this.phone = this.payload.phone
             this.email = this.payload.email
@@ -1346,9 +1363,9 @@ export default {
         })
         EventBus.$off("show-modal-setting", () => {
             this.showFormLogin()
-        });
+        })
         EventBus.$off("hide-modal-setting", () => {
             this.hideFormLogin()
-        });
+        })
     },
 };

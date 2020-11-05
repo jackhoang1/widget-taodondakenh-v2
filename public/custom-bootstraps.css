@@ -361,7 +361,7 @@ img {
 .btn-primary:active:focus {
     box-shadow: 0 0 0 0.2rem rgba(49, 132, 253, 0.5);
 }
-.close {
+/* .close {
     float: right;
     font-size: 1.5rem;
     font-weight: 700;
@@ -369,7 +369,7 @@ img {
     color: #000;
     text-shadow: 0 1px 0 #fff;
     opacity: 0.5;
-}
+} */
 button.close {
     padding: 0;
     background-color: transparent;

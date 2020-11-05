@@ -112,18 +112,21 @@ export default {
         async getInventory() {
             try {
                 let path = `${APICMS}/v1/selling-page/delivery/delivery_inventory`
-                let headers = {
-                    Authorization: this.store_token
-                }
+                let headers = { Authorization: this.store_token }
 
                 let get_inventory = await Restful.get(path, null, headers)
 
                 if (
+                    get_inventory &&
                     get_inventory.data &&
                     get_inventory.data.data
                 ) {
-                    let list_inventories = get_inventory.data.data.inventory || get_inventory.data.data.shops || get_inventory.data.data.data
-                    if (list_inventories && list_inventories.length > 0) {
+                    let list_inventories =
+                        get_inventory.data.data.inventory ||
+                        get_inventory.data.data.shops ||
+                        get_inventory.data.data.data
+
+                    if (list_inventories && list_inventories.length) {
                         this.list_inventories = list_inventories
                         this.order_info.inventory = this.list_inventories[0]    //default store serial 1
                     }
@@ -136,7 +139,8 @@ export default {
             try {
                 let body = {}
                 if (this.payload.delivery_platform == 'VIETTEL_POST') {
-                    if (!this.order_info.inventory.provinceId ||
+                    if (
+                        !this.order_info.inventory.provinceId ||
                         !this.order_info.inventory.districtId ||
                         !this.order_info.receiver_city ||
                         !this.order_info.receiver_district ||
@@ -145,7 +149,8 @@ export default {
                         !this.order_info.length ||
                         !this.order_info.width ||
                         !this.order_info.height ||
-                        !this.prop_total_price) return
+                        !this.prop_total_price
+                    ) return
                     body = {
                         "sender_province": this.order_info.inventory.provinceId,
                         "sender_district": this.order_info.inventory.districtId,
@@ -170,22 +175,23 @@ export default {
                 }
                 if (this.payload.delivery_platform == 'GHTK') { return }
                 let path = `${APICMS}/v1/selling-page/delivery/delivery_get_service`
-                let headers = {
-                    Authorization: this.store_token
-                }
+                let headers = { Authorization: this.store_token }
 
                 let get_pricing_services = await Restful.post(path, body, null, headers)
 
                 if (
+                    get_pricing_services &&
                     get_pricing_services.data &&
                     get_pricing_services.data.data
                 ) {
-                    let services = get_pricing_services.data.data.services
                     this.order_info.order_service = ""
                     this.order_info.shipping_fee = 0
-                    this.pricing_services_list = services
-                    if (services && services.length > 0) {
-                        this.order_info.order_service = services[0]   //default dịch vụ 1
+                    if (get_pricing_services.data.data.services) {
+                        let services = get_pricing_services.data.data.services
+                        this.pricing_services_list = services
+                        if (services.length) {
+                            this.order_info.order_service = services[0]   //default dịch vụ 1
+                        }
                     }
                 }
             } catch (e) {
@@ -195,10 +201,11 @@ export default {
         async getShippingFee() {
             try {
                 if (this.handle_api) return
-                if (this.payload.delivery_platform == "VIETTEL_POST") return
+                if (this.payload.delivery_platform == 'VIETTEL_POST') return
                 let body = {}
-                if (this.payload.delivery_platform == "GHN") {
-                    if (!this.order_info.inventory ||
+                if (this.payload.delivery_platform == 'GHN') {
+                    if (
+                        !this.order_info.inventory ||
                         !this.order_info.order_service ||
                         !this.order_info.receiver_district ||
                         !this.order_info.receiver_ward ||
@@ -208,18 +215,18 @@ export default {
                         !this.order_info.width
                     ) return
                     body = {
-                        "shop_id": this.order_info.inventory._id,
-                        "service_id": this.order_info.order_service.service_id,
-                        "coupon": this.order_info.coupon,
-                        "district_id": this.order_info.receiver_district.meta_data.ghn.district_id,
-                        "ward_code": this.order_info.receiver_ward.meta_data.ghn.code,
-                        "height": parseInt(this.order_info.height),
-                        "length": parseInt(this.order_info.length),
-                        "weight": parseInt(this.order_info.weight),
-                        "width": parseInt(this.order_info.width),
+                        'shop_id': this.order_info.inventory._id,
+                        'service_id': this.order_info.order_service.service_id,
+                        'coupon': this.order_info.coupon,
+                        'district_id': this.order_info.receiver_district.meta_data.ghn.district_id,
+                        'ward_code': this.order_info.receiver_ward.meta_data.ghn.code,
+                        'height': parseInt(this.order_info.height),
+                        'length': parseInt(this.order_info.length),
+                        'weight': parseInt(this.order_info.weight),
+                        'width': parseInt(this.order_info.width),
                     }
                 }
-                if (this.payload.delivery_platform == "GHTK") {
+                if (this.payload.delivery_platform == 'GHTK') {
                     if (!this.order_info.receiver_ward
                         || !this.order_info.receiver_district
                         || !this.order_info.receiver_city
@@ -229,35 +236,39 @@ export default {
                     ) return
                     this.order_info.receiver_address = `${this.prop_receiver_street}, ${this.order_info.receiver_ward.name}, ${this.order_info.receiver_district.name}, ${this.order_info.receiver_city.name}`
                     body = {
-                        "receiver_province": this.order_info.receiver_city.name,
-                        "receiver_district": this.order_info.receiver_district.name,
-                        "receiver_address": this.order_info.receiver_address,
-                        "weight": parseInt(this.order_info.weight) / 1000,  // khối lượng tính theo kg
-                        "value": this.prop_total_price,
-                        "transport": this.order_info.other_info.transport
+                        'receiver_province': this.order_info.receiver_city.name,
+                        'receiver_district': this.order_info.receiver_district.name,
+                        'receiver_address': this.order_info.receiver_address,
+                        'weight': parseInt(this.order_info.weight) / 1000,  // weight to kg
+                        'value': this.prop_total_price,
+                        'transport': this.order_info.other_info.transport
                     }
                 }
                 let path = `${APICMS}/v1/selling-page/delivery/delivery_ship_fee`
                 let headers = { Authorization: this.store_token }
-
                 this.handle_api = true
+
                 let get_shipping_fee = await Restful.post(path, body, null, headers)
+
                 this.handle_api = false
 
                 if (
+                    get_shipping_fee &&
                     get_shipping_fee.data &&
                     get_shipping_fee.data.data &&
                     get_shipping_fee.data.data.data
                 ) {
+                    let fee = get_shipping_fee.data.data.data
                     this.coupon_real_ghn = true
                     this.order_info.shipping_fee = 0
-                    return this.order_info.shipping_fee = get_shipping_fee.data.data.data.total || get_shipping_fee.data.data.data.fee     //GHN||GHTK
+                    return this.order_info.shipping_fee = fee.total || fee.fee     //GHN||GHTK
                 }
                 this.order_info.shipping_fee = 0
             } catch (e) {
                 console.log(e);
                 this.handle_api = false
                 if (
+                    e &&
                     e.data &&
                     e.data.error_message &&
                     e.data.error_message.code_message_value
@@ -274,45 +285,48 @@ export default {
             this.getShippingFee()
         },
         handleChangeCity() {
-            if (this.payload.delivery_platform == "VIETTEL_POST") {
+            if (this.payload.delivery_platform == 'VIETTEL_POST') {
                 this.getPricingServices()
             }
-            if (this.payload.delivery_platform == "GHTK") {
+            if (this.payload.delivery_platform == 'GHTK') {
                 this.getShippingFee()
             }
         },
         handleChangeDistrict() {
-            if (this.payload.delivery_platform == "VIETTEL_POST") {
+            if (this.payload.delivery_platform == 'VIETTEL_POST') {
                 this.getPricingServices()
             }
-            if (this.payload.delivery_platform == "GHTK") {
+            if (this.payload.delivery_platform == 'GHTK') {
                 this.getShippingFee()
             }
-            if (this.payload.delivery_platform == "GHN") {
+            if (this.payload.delivery_platform == 'GHN') {
                 this.handleShopChange()
             }
         },
         handleChangeWard() {
-            if (this.payload.delivery_platform == "GHN") {
+            if (this.payload.delivery_platform == 'GHN') {
                 this.getShippingFee()
             }
-            if (this.payload.delivery_platform == "GHTK") {
+            if (this.payload.delivery_platform == 'GHTK') {
                 this.getShippingFee()
             }
         },
         handleChangeSize() {
-            if (this.payload.delivery_platform == "VIETTEL_POST") {
+            if (this.payload.delivery_platform == 'VIETTEL_POST') {
                 this.getPricingServices()
             }
-            if (this.payload.delivery_platform == "GHN") {
+            if (this.payload.delivery_platform == 'GHN') {
                 this.getShippingFee()
             }
         },
         handleChangeWeight() {
-            if (this.payload.delivery_platform == "VIETTEL_POST") {
+            if (this.payload.delivery_platform == 'VIETTEL_POST') {
                 this.getPricingServices()
             }
-            if (this.payload.delivery_platform == "GHN" || this.payload.delivery_platform == "GHTK") {
+            if (
+                this.payload.delivery_platform == 'GHN' ||
+                this.payload.delivery_platform == 'GHTK'
+            ) {
                 this.getShippingFee()
             }
         },
@@ -321,105 +335,103 @@ export default {
             if (this.order_info.order_service) {
                 this.order_info.shipping_fee = this.order_info.order_service.GIA_CUOC
             }
-            else {
-                this.order_info.shipping_fee = 0
-            }
+            else this.order_info.shipping_fee = 0
             this.$emit('shipping_fee', this.order_info.shipping_fee)
         },
         handleWeightTimeout() {
             if (this.timer) {
-                clearTimeout(this.timer);
-                this.timer = null;
+                clearTimeout(this.timer)
+                this.timer = null
             }
             this.timer = setTimeout(() => {
                 this.handleChangeWeight()
-            }, 1000);
+            }, 1000)
         },
         handleSizeTimeout() {
             if (this.timer) {
-                clearTimeout(this.timer);
-                this.timer = null;
+                clearTimeout(this.timer)
+                this.timer = null
             }
             this.timer = setTimeout(() => {
                 this.handleChangeSize()
-            }, 1000);
+            }, 1000)
         },
-        //component order sẽ gọi hàm này
+        //comp order will call this
         infoDelivery(product_info) {
             let other = {}
             let body = {
-                "sender_name": this.order_info.inventory.name,
-                "sender_address": this.order_info.inventory.address,
-                "sender_phone": this.order_info.inventory.phone,
-                "sender_ward": this.order_info.inventory.wardsId,
-                "sender_district": this.order_info.inventory.districtId,
-                "sender_province": this.order_info.inventory.provinceId,
-                "receiver_name": this.order_info.receiver_name,
-                "receiver_phone": this.order_info.receiver_phone,
-                "receiver_address": this.order_info.receiver_address,
-                "product_name": product_info.list_product,
-                "product_quantity": product_info.total_item,
-                "product_price": parseInt(this.prop_total_price),
-                "product_type": this.order_info.product_type,
-                "weight": parseInt(this.order_info.weight),
-                "length": parseInt(this.order_info.length),
-                "width": parseInt(this.order_info.width),
-                "height": parseInt(this.order_info.height),
-                "required_note": this.order_info.note,
+                'sender_name': this.order_info.inventory.name,
+                'sender_address': this.order_info.inventory.address,
+                'sender_phone': this.order_info.inventory.phone,
+                'sender_ward': this.order_info.inventory.wardsId,
+                'sender_district': this.order_info.inventory.districtId,
+                'sender_province': this.order_info.inventory.provinceId,
+                'receiver_name': this.order_info.receiver_name,
+                'receiver_phone': this.order_info.receiver_phone,
+                'receiver_address': this.order_info.receiver_address,
+                'product_name': product_info.list_product,
+                'product_quantity': product_info.total_item,
+                'product_price': parseInt(this.prop_total_price),
+                'product_type': this.order_info.product_type,
+                'weight': parseInt(this.order_info.weight),
+                'length': parseInt(this.order_info.length),
+                'width': parseInt(this.order_info.width),
+                'height': parseInt(this.order_info.height),
+                'required_note': this.order_info.note,
             }
-            if (this.payload.delivery_platform == "VIETTEL_POST") {
+            if (this.payload.delivery_platform == 'VIETTEL_POST') {
                 other = {
-                    "sender_email": this.order_info.sender_email,
-                    "group_address_id": this.order_info.inventory.groupaddressId,
-                    "receiver_province": this.order_info.receiver_city.province_id,
-                    "receiver_district": this.order_info.receiver_district.district_id,
-                    "receiver_ward": this.order_info.receiver_ward.ward_id,
-                    "receiver_email": this.order_info.receiver_email,
-                    "order_payment": this.order_info.order_payment.value,
-                    "order_service": this.order_info.order_service.MA_DV_CHINH
+                    'sender_email': this.order_info.sender_email,
+                    'group_address_id': this.order_info.inventory.groupaddressId,
+                    'receiver_province': this.order_info.receiver_city.province_id,
+                    'receiver_district': this.order_info.receiver_district.district_id,
+                    'receiver_ward': this.order_info.receiver_ward.ward_id,
+                    'receiver_email': this.order_info.receiver_email,
+                    'order_payment': this.order_info.order_payment.value,
+                    'order_service': this.order_info.order_service.MA_DV_CHINH
                 }
             }
-            if (this.payload.delivery_platform == "GHN") {
-                delete body["sender_ward"]
-                delete body["sender_district"]
-                delete body["required_note"]
+            if (this.payload.delivery_platform == 'GHN') {
+                delete body['sender_ward']
+                delete body['sender_district']
+                delete body['required_note']
                 other = {
-                    "sender_ward": this.order_info.inventory.ward_code,
-                    "sender_district": this.order_info.inventory.district_id,
-                    "receiver_province": this.order_info.receiver_city.meta_data.ghn.province_id,
-                    "receiver_district": this.order_info.receiver_district.meta_data.ghn.district_id,
-                    "receiver_ward": this.order_info.receiver_ward.meta_data.ghn.code,
-                    "code_amount": this.order_info.code_amount_num,
-                    "shop_id": this.order_info.inventory._id,
-                    "content": `${product_info.list_product} [Tổng số lượng ${product_info.total_item}]`,
-                    "required_note": this.order_info.required_note,
-                    "service_type_id": this.order_info.order_service.service_type_id,
-                    "payment_type_id": this.order_info.order_payment.value,
-                    "order_value": parseInt(this.prop_total_price),
+                    'sender_ward': this.order_info.inventory.ward_code,
+                    'sender_district': this.order_info.inventory.district_id,
+                    'receiver_province': this.order_info.receiver_city.meta_data.ghn.province_id,
+                    'receiver_district': this.order_info.receiver_district.meta_data.ghn.district_id,
+                    'receiver_ward': this.order_info.receiver_ward.meta_data.ghn.code,
+                    'code_amount': this.order_info.code_amount_num,
+                    'shop_id': this.order_info.inventory._id,
+                    'content': `${product_info.list_product} [Tổng số lượng ${product_info.total_item}]`,
+                    'required_note': this.order_info.required_note,
+                    'service_type_id': this.order_info.order_service.service_type_id,
+                    'payment_type_id': this.order_info.order_payment.value,
+                    'order_value': parseInt(this.prop_total_price),
                 }
                 if (this.coupon_real_ghn) {
-                    other["coupon"] = this.order_info.coupon
+                    other['coupon'] = this.order_info.coupon
                 }
             }
-            if (this.payload.delivery_platform == "GHTK") {
-                delete body["length"]
-                delete body["width"]
-                delete body["height"]
-                delete body["weight"]
-                delete body["product_name"]
-                delete body["product_quantity"]
-                delete body["product_price"]
+            if (this.payload.delivery_platform == 'GHTK') {
+                delete body['length']
+                delete body['width']
+                delete body['height']
+                delete body['weight']
+                delete body['product_name']
+                delete body['product_quantity']
+                delete body['product_price']
                 other = {
-                    "products": [{ name: product_info.list_product, weight: parseInt(this.order_info.weight) / 1000, quantity: product_info.total_item }],
-                    "receiver_province": this.order_info.receiver_city.name,
-                    "receiver_district": this.order_info.receiver_district.name,
-                    "receiver_ward": this.order_info.receiver_ward.name,
-                    "code_amount": this.order_info.code_amount_num,
-                    "order_value": parseInt(this.prop_total_price),
-                    "cod_amount": parseInt(this.order_info.cod_amount),
-                    "other_info": {
-                        "transport": this.order_info.other_info.transport,
-                        "is_freeship": this.order_info.order_payment.value
+                    'products': [{ name: product_info.list_product, weight: parseInt(this.order_info.weight) / 1000, quantity: product_info.total_item }],
+                    'receiver_province': this.order_info.receiver_city.name,
+                    'receiver_district': this.order_info.receiver_district.name,
+                    'receiver_ward': this.order_info.receiver_ward.name,
+                    'code_amount': this.order_info.code_amount_num,
+                    'order_value': parseInt(this.prop_total_price),
+                    'cod_amount': parseInt(this.order_info.cod_amount),
+                    'other_info': {
+                        'transport': this.order_info.other_info.transport,
+                        'is_freeship': this.order_info.order_payment.value
                     }
                 }
 
@@ -500,43 +512,47 @@ export default {
                 let path = `${APICMS}/v1/selling-page/delivery/delivery_create`
                 let headers = { Authorization: this.store_token }
                 let info_delivery = this.infoDelivery(product_info)
-                let body = {
-                    ...info_delivery,
-                    "order_id": order_id
-                };
-                console.log("body create delivery", body)
+                let body = { ...info_delivery, 'order_id': order_id }
 
                 let create_order = await Restful.post(path, body, {}, headers)
 
                 if (
+                    create_order &&
                     create_order.data &&
                     create_order.data.data &&
                     create_order.data.data.snap_order
                 ) {
-                    if ((create_order.data.data.snap_order.data && create_order.data.data.snap_order.data.fee) || create_order.data.data.snap_order.data || create_order.data.data.snap_order.success) {
+                    let time = create_order.data.data.updatedAt
+                    let snap_order = create_order.data.data.snap_order
+                    if (
+                        (snap_order.data && snap_order.data.fee) ||
+                        snap_order.data ||
+                        snap_order.success
+                    ) {
                         let delivery_id = ''
-                        let time = create_order.data.data.updatedAt
-                        if (this.payload.delivery_platform == "GHTK") {
-                            delivery_id = create_order.data.data.snap_order.order.label
+                        if (this.payload.delivery_platform == 'GHTK') {
+                            delivery_id = snap_order.order.label
                         }
                         else {
-                            delivery_id = create_order.data.data.snap_order.data.order_code || create_order.data.data.snap_order.data.ORDER_NUMBER         //GHN || VTP 
+                            delivery_id = snap_order.data.order_code ||
+                                snap_order.data.ORDER_NUMBER       //GHN || VTP 
                         }
                         this.propSendMessage(order_id, null, delivery_id, time)
-                        this.swalToast("Tạo đơn giao vận thành công", "success")
+                        this.swalToast('Tạo đơn giao vận thành công', 'success')
                         return
                     }
                     if (
-                        !create_order.data.data.snap_order.success &&
-                        this.payload.delivery_platform == "GHTK"
+                        this.payload.delivery_platform == 'GHTK' &&
+                        !snap_order.success
                     ) {
-                        return this.swalToast(create_order.data.data.snap_order.message, "error", 4000)
+                        return this.swalToast(snap_order.message, 'error', 4000)
                     }
                 }
-                this.swalToast(`Tạo đơn lỗi bên ${this.payload.delivery_platform}`, "error", 3000)
+                this.swalToast(`Tạo vận đơn lỗi bên ${this.payload.delivery_platform}`, 'error', 3000)
             } catch (e) {
-                console.log("e", e)
+                console.log('e', e)
                 if (
+                    e &&
                     e.data &&
                     e.data.error_message
                 ) {
@@ -551,12 +567,11 @@ export default {
         handleSaveInfo() {
             // if (this.option_save_info) {
             let data = JSON.parse(localStorage.getItem('order_3d_platform'))
-            console.log('localstorerage', { ...data, 'store_email': this.store_email });
             localStorage.setItem('order_3d_platform', JSON.stringify({ ...data, 'option_save_info': this.option_save_info, 'sender_email': this.order_info.sender_email }))
             // }
         },
         getEmailLocal() {
-            if (this.payload.delivery_platform == "VIETTEL_POST") {
+            if (this.payload.delivery_platform == 'VIETTEL_POST') {
                 let data = JSON.parse(localStorage.getItem('order_3d_platform'))
                 if (data && data.option_save_info) {
                     return this.order_info.sender_email = data.sender_email
@@ -579,10 +594,11 @@ export default {
                 event.keyCode == 39 ||
                 event.keyCode == 8 ||
                 event.keyCode == 46
-            )
-                return
+            ) return
+
             let caret_pos = event.target.selectionStart
-            let input = document.getElementById("input")
+            let input = document.getElementById('input')
+
             let number_length = await this.formatNumber(string)
             //handle caret_pos when number length = 3*x+1
             if (number_length == Math.floor(number_length / 3) * 3 + 1) {
@@ -592,7 +608,7 @@ export default {
             if (input != null) {
                 if (input.createTextRange) {
                     let range = input.createTextRange()
-                    range.move("character", caret_pos)
+                    range.move('character', caret_pos)
                     range.select()
                 } else {
                     if (input.selectionStart) {
@@ -605,31 +621,31 @@ export default {
             }
         },
         async formatNumber(string) {
-            let number = string.toString().replace(/\D/g, "")
+            let number = string.toString().replace(/\D/g, '')
             this.order_info.cod_amount_num = number
-            this.order_info.cod_amount = new Intl.NumberFormat("de-DE", {
-                style: "currency",
-                currency: "VND",
+            this.order_info.cod_amount = new Intl.NumberFormat('de-DE', {
+                style: 'currency',
+                currency: 'VND',
             }).format(number)
             return number.length
         },
         swalToast(title, icon, timer = 2000) {
             const Toast = Swal.mixin({
                 toast: true,
-                position: "center",
+                position: 'center',
                 showConfirmButton: false,
                 width: '80vw',
                 timer: timer,
                 timerProgressBar: false,
                 onOpen: (toast) => {
-                    toast.addEventListener("mouseenter", Swal.stopTimer)
-                    toast.addEventListener("mouseleave", Swal.resumeTimer)
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
                 },
             });
             Toast.fire({
                 icon: icon,
                 title: title,
-                padding: "5px",
+                padding: '5px',
             })
         },
     },
@@ -694,7 +710,7 @@ export default {
                 style: "currency",
                 minimumFractionDigits: 0,
                 currency: "VND",
-            });
+            })
             return formatter.format(value)
         },
     }

@@ -4,46 +4,46 @@ import { APICMS } from "@/services/domain.js"
 
 const Toast = Swal.mixin({
     toast: true,
-    position: "top",
+    position: 'top',
     showConfirmButton: false,
     timer: 1500,
     timerProgressBar: false,
     onOpen: (toast) => {
-        toast.addEventListener("mouseenter", Swal.stopTimer);
-        toast.addEventListener("mouseleave", Swal.resumeTimer);
+        toast.addEventListener('mouseenter', Swal.stopTimer);
+        toast.addEventListener('mouseleave', Swal.resumeTimer);
     },
-    width: "80vw",
+    width: '80vw',
 });
 const Toast2 = Swal.mixin({
     toast: true,
-    position: "top",
+    position: 'top',
     showConfirmButton: false,
     timer: 3000,
     timerProgressBar: false,
     onOpen: (toast) => {
-        toast.addEventListener("mouseenter", Swal.stopTimer);
-        toast.addEventListener("mouseleave", Swal.resumeTimer);
+        toast.addEventListener('mouseenter', Swal.stopTimer);
+        toast.addEventListener('mouseleave', Swal.resumeTimer);
     },
-    width: "80vw",
+    width: '80vw',
 });
 
 export default {
-    props: ["store_token", "payload", "handleShowCreateOrder"],
+    props: ['store_token', 'payload', 'handleShowCreateOrder'],
     data() {
         return {
             list_order: [],
             skip: 0,
-            order_filter: "",
+            order_filter: '',
             handle_api: false,
             handle_draft_order: false,
-            delivery_platform: "",
-            payment_platform: "",
+            delivery_platform: '',
+            payment_platform: '',
         };
     },
     async created() {
         try {
             if (!this.store_token) {
-                throw "Error store_token";
+                throw 'Error store_token';
             }
             await this.readOrder()
             this.checkPhone()
@@ -53,7 +53,7 @@ export default {
             }, 2000)
 
             //////////
-            EventBus.$on("call-order", () => {
+            EventBus.$on('call-order', () => {
                 this.readOrder()
             });
         } catch (e) {
@@ -69,56 +69,56 @@ export default {
                 }:${date.getMinutes() < 10 ? `0${date.getMinutes()}` : date.getMinutes()
                 }`;
             let day = `${date.getDate()}/${date.getMonth() + 1}`
-            return time + " " + day
+            return time + ' ' + day
         },
         handleClickOrder(index, expand, order_status) {
             // Thay đổi class của order-title
-            let arr_tag_expand = this.$el.getElementsByClassName("order__expand")
-            let arr_tag_title = this.$el.getElementsByClassName("order__title")
+            let arr_tag_expand = this.$el.getElementsByClassName('order__expand')
+            let arr_tag_title = this.$el.getElementsByClassName('order__title')
             let class_tag_expand =
-                this.$el.getElementsByClassName("order__expand")[index].classList
+                this.$el.getElementsByClassName('order__expand')[index].classList
             let class_tag_title =
-                this.$el.getElementsByClassName("order__title")[index].classList
+                this.$el.getElementsByClassName('order__title')[index].classList
             if (expand) {
-                class_tag_expand.remove("expand__hide")
-                class_tag_title.add("expand__border")
+                class_tag_expand.remove('expand__hide')
+                class_tag_title.add('expand__border')
                 if (order_status === 'draft_order')
-                    class_tag_expand.add("expand__show--large")
+                    class_tag_expand.add('expand__show--large')
                 else
-                    class_tag_expand.add("expand__show--medium")
+                    class_tag_expand.add('expand__show--medium')
                 return
             }
             for (let i = 0; i < arr_tag_expand.length; ++i) {
                 if (i !== index) {
-                    arr_tag_title[i].classList.remove("expand__border")
-                    arr_tag_expand[i].classList.remove("expand__show--large")
-                    arr_tag_expand[i].classList.remove("expand__show--medium")
-                    arr_tag_expand[i].classList.add("expand__hide")
+                    arr_tag_title[i].classList.remove('expand__border')
+                    arr_tag_expand[i].classList.remove('expand__show--large')
+                    arr_tag_expand[i].classList.remove('expand__show--medium')
+                    arr_tag_expand[i].classList.add('expand__hide')
                 }
             }
             for (let i = 0; i < class_tag_expand.length; ++i) {
-                if (class_tag_expand[i] === "expand__show--large" || class_tag_expand[i] === "expand__show--medium") {
-                    class_tag_expand.remove("expand__show--large")
-                    class_tag_expand.remove("expand__show--medium")
-                    class_tag_expand.add("expand__hide")
-                    class_tag_title.remove("expand__border")
+                if (class_tag_expand[i] === 'expand__show--large' || class_tag_expand[i] === 'expand__show--medium') {
+                    class_tag_expand.remove('expand__show--large')
+                    class_tag_expand.remove('expand__show--medium')
+                    class_tag_expand.add('expand__hide')
+                    class_tag_title.remove('expand__border')
                     return
                 }
             }
             if (order_status === 'draft_order')
-                class_tag_expand.add("expand__show--large")
+                class_tag_expand.add('expand__show--large')
             else
-                class_tag_expand.add("expand__show--medium")
-            class_tag_title.add("expand__border")
+                class_tag_expand.add('expand__show--medium')
+            class_tag_title.add('expand__border')
         },
         async handleClickEdit(item) {
             await this.handleShowCreateOrder()
-            EventBus.$emit("get-order", item)
+            EventBus.$emit('get-order', item)
         },
         async readOrder() {
             try {
                 let path = `${APICMS}/v1/selling-page/order/order_read`
-                let params = { sort: "createdAt DESC" }
+                let params = { sort: 'createdAt DESC' }
                 let headers = { Authorization: this.store_token }
 
                 let get_list_order = await Restful.get(path, params, headers)
@@ -134,25 +134,25 @@ export default {
                     }
                     this.$emit('platform', this.delivery_platform, this.payment_platform)
                 } else {
-                    throw "Lỗi lấy danh sách Đơn hàng";
+                    throw 'Lỗi lấy danh sách Đơn hàng'
                 }
             } catch (e) {
                 console.log(e);
                 if (e.data && e.data.error_message) {
                     Toast2.fire({
-                        icon: "error",
+                        icon: 'error',
                         title: e.data.error_message,
                     });
                     return;
                 }
                 Toast2.fire({
-                    icon: "error",
+                    icon: 'error',
                     title: e,
                 });
             }
         },
         async updateStatusOrder(status, item, index) {
-            if ((item.status == "draft_order" && status == 'cancel_order') || (item.status == "new_order" && status == 'confirmed_order')) {
+            if ((item.status == 'draft_order' && status == 'cancel_order') || (item.status == 'new_order' && status == 'confirmed_order')) {
                 let path = `${APICMS}/v1/selling-page/order/order_update`
                 let headers = { Authorization: this.store_token }
                 let body = {
@@ -185,62 +185,73 @@ export default {
                 return 'label-cancel-order'
         },
         isActiveConfirm(item) {
-            if (item.status != "draft_order")
-                return item.status === "new_order"
+            if (item.status !== 'draft_order')
+                return item.status === 'new_order'
         },
         isUnconfirm(item) {
-            return item.status == "unconfirmed"
+            return item.status === 'unconfirmed'
         },
         isCancelled(item) {
-            if (item.status == "draft_order")
-                return item.status === "cancel_order"
+            if (item.status === 'draft_order')
+                return item.status === 'cancel_order'
         },
         async handleGetMoreOrder() {
             try {
                 this.skip = this.skip + 20;
                 let path = `${APICMS}/v1/selling-page/order/order_read`
                 let params = {
-                    sort: "createdAt DESC",
+                    sort: 'createdAt DESC',
                     skip: this.skip,
                 };
                 let headers = { Authorization: this.store_token }
 
                 let get_list_order = await Restful.get(path, params, headers)
 
-                if (get_list_order.data && get_list_order.data.data && get_list_order.data.data.orders) {
-                    if (get_list_order.data.data.orders.length == 0) {
+                if (
+                    get_list_order &&
+                    get_list_order.data &&
+                    get_list_order.data.data &&
+                    get_list_order.data.data.orders
+                ) {
+                    if (get_list_order.data.data.orders.length === 0) {
                         Toast2.fire({
-                            icon: "success",
-                            title: "Đã hiển thị tất cả đơn hàng",
+                            icon: 'success',
+                            title: 'Đã hiển thị tất cả đơn hàng',
                         })
                         return
                     }
                     this.list_order = this.list_order.concat(get_list_order.data.data.orders)
                 } else {
-                    throw "Lỗi lấy danh sách Đơn hàng"
+                    throw 'Lỗi lấy danh sách Đơn hàng'
                 }
             } catch (e) {
-                if (e.data && e.data.error_message) {
+                if (e && e.data && e.data.error_message) {
                     Toast2.fire({
-                        icon: "error",
+                        icon: 'error',
                         title: e.data.error_message,
                     });
                     return
                 }
                 Toast2.fire({
-                    icon: "error",
+                    icon: 'error',
                     title: e,
                 })
             }
         },
         checkPhone() {
-            if (!this.payload.phone || this.payload.phone == localStorage.getItem("order_3rd_cus_phone")) return
+            if (
+                !this.payload.phone ||
+                this.payload.phone == localStorage.getItem('order_3rd_cus_phone')
+            ) return
             let length = this.list_order.length
             let phone_created = false
             let first_run = false
             if (length > 0) {
                 for (const order of this.list_order) {
-                    if ((order.status == 'draft_order' && order.customer_phone == this.payload.phone)) {
+                    if (
+                        order.status == 'draft_order' &&
+                        order.customer_phone == this.payload.phone
+                    ) {
                         phone_created = true
                         break
                     }
@@ -256,7 +267,7 @@ export default {
                 }
 
             }
-            localStorage.setItem("order_3rd_cus_phone", this.payload.phone);
+            localStorage.setItem('order_3rd_cus_phone', this.payload.phone);
             this.createDraftOrder()
         },
         async createDraftOrder() {
@@ -265,7 +276,6 @@ export default {
                 this.handle_draft_order = true
                 let path = `${APICMS}/v1/selling-page/order/order_draft`
                 let body = {
-                    // platform_type: this.payload.platform_type,
                     customer_phone: this.payload.phone,
                     customer_name: this.payload.name,
                     status: 'draft_order',
@@ -275,14 +285,13 @@ export default {
                     }
                 }
                 if (this.payload.email) {
-                    body["customer_email"] = this.payload.email
+                    body['customer_email'] = this.payload.email
                 }
                 let headers = { Authorization: this.store_token }
 
                 let create_draft = await Restful.post(path, body, null, headers)
 
                 this.readOrder()
-                console.log('create_draft', create_draft);
             } catch (e) {
                 console.log(e);
             }
@@ -290,29 +299,29 @@ export default {
         swalToast(title, icon) {
             const Toast = Swal.mixin({
                 toast: true,
-                position: "center",
+                position: 'center',
                 showConfirmButton: false,
-                width: "80vw",
+                width: '80vw',
                 timer: 2000,
                 timerProgressBar: false,
                 onOpen: (toast) => {
-                    toast.addEventListener("mouseenter", Swal.stopTimer);
-                    toast.addEventListener("mouseleave", Swal.resumeTimer);
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
                 },
             });
             Toast.fire({
                 icon: icon,
                 title: title,
-                padding: "5px",
-            });
+                padding: '5px',
+            })
         },
     },
     beforeDestroy() {
-        EventBus.$off("call-order");
+        EventBus.$off('call-order')
     },
     watch: {
         store_token: function () {
-            this.readOrder();
+            this.readOrder()
         }
     },
 };

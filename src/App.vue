@@ -1,6 +1,6 @@
 <template>
   <div class>
-    <!-- Xác thực App -->
+    <!-- Authentication -->
     <Login
       v-if="isLogin || (!is_oauth && !overlaySign)"
       :isLogin="isLogin"
@@ -12,8 +12,8 @@
       @store-email="payload.store_email = $event"
     >
     </Login>
-    <!--End Xác thực App -->
-
+    <!--End Authentication -->
+    <!-- header widget -->
     <div v-if="is_oauth" class="widget">
       <section class="header">
         <div class="d-flex justify-content-between">
@@ -87,6 +87,8 @@
           </div>
         </div>
       </section>
+      <!-- End header widget -->
+      <!-- Comp Create order -->
       <section>
         <div style="position: relative">
           <div class="create__order" v-show="show_order">
@@ -103,20 +105,7 @@
           </div>
         </div>
       </section>
-      <!-- <div class="d-flex header border-bottom">
-        <div
-          class="flex-grow-1 text-center py-2"
-          :class="{ select: isSelectList }"
-        >
-          Thông tin
-        </div>
-        <div
-          class="create-order flex-grow-1 text-center py-2"
-          :class="[isSelectList ? '' : 'select']"
-        >
-          Tạo đơn
-        </div>
-      </div> -->
+      <!-- End Comp Create order -->
       <list-order
         :store_token="store_token"
         :payload="payload"
@@ -280,12 +269,13 @@ export default {
           await this.createCustomer();
           this.handleLocalStorage();
         }
-      } catch (error) {
+      } catch (e) {
         this.overlaySign = false;
         this.is_oauth = false;
-        console.log("info err", error);
+        console.log("info err", e);
       }
     },
+    //get platform from comp list_order
     getPlatform(delivery_platform, payment_platform) {
       this.payload.delivery_platform = delivery_platform;
       this.payload.payment_platform = payment_platform;
@@ -321,7 +311,9 @@ export default {
         };
 
         let create_customer = await Restful.post(path, body, null, headers);
+
         if (
+          create_customer &&
           create_customer.data &&
           create_customer.data.data &&
           create_customer.data.data.id
@@ -338,7 +330,7 @@ export default {
     },
     showLogin() {
       console.log("isLogin");
-      this.isLogin = true
+      this.isLogin = true;
     },
     hideLogin() {
       this.isLogin = false;
@@ -411,7 +403,7 @@ $colorNeutral5: #f6f7f8;
   left: 50%;
   transform: translateX(-50%);
   padding: 12px 20px;
-  top: 30%;
+  top: 20%;
   width: 100%;
   z-index: 999;
   .auth__activate {
@@ -788,11 +780,35 @@ input[type="radio"] + label span {
   height: 20px;
   margin: -1px 12px 0 0;
   vertical-align: middle;
-  background: url(./assets/checkbox.svg) no-repeat;
+  background: url(./assets/radio.svg) no-repeat;
   cursor: pointer;
 }
 
 input[type="radio"]:checked + label span {
+  background: url(./assets/radio_checked.svg) no-repeat;
+}
+
+input[type="checkbox"] {
+  display: none;
+}
+
+input[type="checkbox"] + label {
+  // color:#f2f2f2;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+}
+
+input[type="checkbox"] + label span {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin: 1px 8px 0 0;
+  vertical-align: middle;
+  background: url(./assets/checkbox.svg) no-repeat;
+  cursor: pointer;
+}
+
+input[type="checkbox"]:checked + label span {
   background: url(./assets/checkbox_checked.svg) no-repeat;
 }
 </style>

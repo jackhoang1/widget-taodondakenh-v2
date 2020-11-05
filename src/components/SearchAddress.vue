@@ -9,7 +9,7 @@
       v-model="result"
       @keydown.down="onArrowDown"
       @keydown.up="onArrowUp"
-      @keydown.enter="onEnter"
+      @keydown.enter="handleClickInput"
       @click="handleClickInput"
       @change="onChange()"
     />
@@ -21,7 +21,6 @@
         type="text"
         autocomplete="off"
         v-model="search"
-        @keydown.enter="onEnter"
         @input="onChange"
         @change="onChange()"
       />
@@ -187,8 +186,7 @@ export default {
 
 <style lang="scss" scoped>
 @mixin imageSelect {
-  background: url(../assets/arrow.svg)
-    no-repeat right #fff !important;
+  background: url(../assets/arrow.svg) no-repeat right #fff !important;
   background-size: 20px;
 }
 $colorHover: #dfe1e4;
