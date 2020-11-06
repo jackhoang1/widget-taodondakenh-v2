@@ -15,10 +15,13 @@
         </div>
     </div>
     <div :class="['select-store', 'mb-5', { 'show-store': show_list_store }]">
-        <div class="list__store" v-if="show_list_store">
-            <p class="text__second--large margin__bottom--12">Danh sách Store</p>
-            <div v-for="(item, ind) in list_store" class="store margin__bottom--8" @click="handleChooseStore(item)" :key="ind">
-                {{ item.store_name }}
+        <div v-if="show_list_store">
+            <div class="list__store">
+                <p class="text__second--large margin__bottom--12">Danh sách Store</p>
+                <div v-for="(item, ind) in list_store" class="store margin__bottom--8" @click="handleChooseStore(item)"
+                    :key="ind">
+                    {{ item.store_name }}
+                </div>
             </div>
         </div>
     </div>

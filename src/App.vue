@@ -397,66 +397,6 @@ $colorNeutral5: #f6f7f8;
     display: none;
   }
 }
-/* Auth ---- */
-.auth {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 12px 20px;
-  top: 20%;
-  width: 100%;
-  z-index: 999;
-  .auth__activate {
-    position: relative;
-    background: #f6f6f6;
-    border: 1px solid rgba(0, 0, 0, 0.125);
-    border-radius: 1rem;
-    margin-top: 5%;
-    padding: 5% 10%;
-    -webkit-box-shadow: 0px 1px 5px rgba(126, 142, 177, 0.2);
-    box-shadow: 0 1px 5px rgba(126, 142, 177, 0.2);
-  }
-  .sign {
-    width: 100%;
-    input {
-      width: 100%;
-      height: 35px;
-    }
-  }
-  .select-store {
-    width: 100%;
-    opacity: 0;
-    height: 0;
-    transition: all 0.4s ease-out 0.2s;
-    .store {
-      cursor: pointer;
-      padding: 6px 12px;
-      border-radius: 8px;
-      background: $colorNeutral5;
-      transition: transform 0.2s ease-out, border-bottom 0s,
-        background 0.7s ease-out;
-      &:hover {
-        transform: scale(1.03);
-        background: #ddd;
-      }
-    }
-    .store:last-child {
-      border-bottom: 2px solid #0001;
-    }
-  }
-  .show-store {
-    height: initial;
-    opacity: 1;
-  }
-  .overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #fff;
-  }
-}
 /* --------------- */
 .widget {
   padding: 18px 0;
@@ -562,6 +502,7 @@ $colorNeutral5: #f6f7f8;
     bottom: 125%;
     left: 50%;
     transform: translateX(-50%);
+    font-size: 12px;
     &::after {
       @include tooltip-position-after;
       top: 100%;
@@ -575,6 +516,7 @@ $colorNeutral5: #f6f7f8;
     top: 100%;
     left: 50%;
     transform: translateX(-50%);
+    font-size: 12px;
     &::after {
       @include tooltip-position-after;
       bottom: 100%;
@@ -587,6 +529,7 @@ $colorNeutral5: #f6f7f8;
     @include tooltip-position;
     top: 0;
     left: 125%;
+    font-size: 12px;
     &::after {
       top: 50%;
       right: 100%;
@@ -599,6 +542,7 @@ $colorNeutral5: #f6f7f8;
     top: 0;
     bottom: auto;
     right: 128%;
+    font-size: 12px;
     &::after {
       @include tooltip-position-after;
       top: 50%;
