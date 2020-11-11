@@ -44,6 +44,10 @@ $colorNeutral5: #f6f7f8;
         color: #999999;
     }
 }
+.list-short {
+    height: 290px;
+    overflow: hidden;
+}
 .order__title-payment {
     background: #fff;
 }
@@ -53,7 +57,7 @@ $colorNeutral5: #f6f7f8;
     user-select: none;
     cursor: pointer;
     transition: all 0.3s ease-out, background 0.1s;
-    .order__title--status{
+    .order__title--status {
         margin: 3px;
     }
     .order__title--icon-status {
@@ -62,7 +66,7 @@ $colorNeutral5: #f6f7f8;
             float: right;
             vertical-align: inherit;
             transform: rotate(0deg);
-            &:hover{
+            &:hover {
                 transform: scale(1.2);
             }
         }
@@ -108,36 +112,37 @@ $colorNeutral5: #f6f7f8;
         background: #fff;
         overflow: hidden;
         filter: drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.15));
-        .order__expand--icon-new{
+        .order__expand--icon-new {
             margin-right: 8px;
         }
-        .order__expand--icon-confirm,.order__expand--icon-cancel{
+        .order__expand--icon-confirm,
+        .order__expand--icon-cancel {
             margin: 0 8px;
         }
-        .order__expand--icon-info{
+        .order__expand--icon-info {
             margin-right: 14px;
         }
         // > div {
         //     display: none !important;
         // }
     }
-    .expand__border{
-        border: 1px solid #DFE1E4;
+    .expand__border {
+        border: 1px solid #dfe1e4;
         border-radius: 8px;
         .order__status--icon-arrow {
             transition: transform 0.25s ease-out !important;
             transform: rotate(-180deg) !important;
         }
     }
-    .expand__hide{
+    .expand__hide {
         transition: height 0.25s ease-out;
         height: 0;
     }
-    .expand__show--medium{
+    .expand__show--medium {
         transition: height 0.25s ease-out;
         height: 190px;
     }
-    .expand__show--large{
+    .expand__show--large {
         transition: height 0.25s ease-out;
         height: 222px;
     }
@@ -146,7 +151,7 @@ $colorNeutral5: #f6f7f8;
 // .order__title.expand p {
 //     color: #f8f9fa !important;
 // }
-.order__status--icon-arrow{
+.order__status--icon-arrow {
     transition: transform 0.25s ease-out;
     transform: rotate(0);
 }
@@ -222,12 +227,12 @@ $colorNeutral5: #f6f7f8;
             filter: none;
         }
     }
-    .order__expand--content{
+    .order__expand--content {
         padding: 16px 0 0 18px;
     }
 }
 .more {
-    // position: fixed;
+    position: fixed;
     bottom: 0;
     padding-bottom: 10px;
     background: #fff;
@@ -235,50 +240,49 @@ $colorNeutral5: #f6f7f8;
     right: 0;
     cursor: pointer;
     img {
-        width: 30px;
-        height: 20px;
+        width: 20px;
+        height: 15px;
         opacity: 0.6;
     }
 }
 
-
-.order__status--icon-draft{
+.order__status--icon-draft {
     @include orderStatus;
     background: $colorNeutral18;
 }
-.order__status--icon-new{
+.order__status--icon-new {
     @include orderStatus;
     background: rgba(242, 201, 76, 0.1);
 }
-.order__status--icon-out_stock{
+.order__status--icon-out_stock {
     @include orderStatus;
     background: rgba(86, 204, 242, 0.1);
 }
-.order__status--icon-confirmed{
+.order__status--icon-confirmed {
     @include orderStatus;
     background: rgba(39, 174, 96, 0.1);
 }
-.order__status--icon-deliver{
+.order__status--icon-deliver {
     @include orderStatus;
     background: rgba(47, 128, 237, 0.1);
 }
-.order__status--icon-return{
+.order__status--icon-return {
     @include orderStatus;
     background: rgba(187, 107, 217, 0.1);
 }
-.order__status--icon-success{
+.order__status--icon-success {
     @include orderStatus;
     background: rgba(33, 150, 83, 0.1);
 }
-.order__status--icon-returned{
+.order__status--icon-returned {
     @include orderStatus;
     background: rgba(155, 81, 224, 0.1);
 }
-.order__status--icon-cancel{
+.order__status--icon-cancel {
     @include orderStatus;
-    background:rgba(235, 87, 87, 0.1);
+    background: rgba(235, 87, 87, 0.1);
 }
-.order__status--icon-remove{
+.order__status--icon-remove {
     @include orderStatus;
     background: $colorNeutral;
 }

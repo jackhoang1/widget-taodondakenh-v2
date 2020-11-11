@@ -18,10 +18,10 @@
       <section class="header">
         <div class="d-flex justify-content-between">
           <p class="header__title text__second--large">Đơn hàng</p>
-          <div class="cursor__pointer" @click="handleHideCreateOrder">
+          <div class="cursor__pointer" @click="handleListShort">
             <svg
               class="header__title--icon-arrow"
-              :class="{ 'arrow-rorate': show_order }"
+              :class="{ 'arrow-rorate': is_short }"
               width="14"
               height="8"
               viewBox="0 0 14 8"
@@ -91,25 +91,37 @@
       <!-- Comp Create order -->
       <section>
         <div style="position: relative">
-          <div class="create__order" v-show="show_order">
-            <create-order
-              :store_token="store_token"
-              :payload="payload"
-              :handleShowCreateOrder="handleShowCreateOrder"
-              :showLogin="showLogin"
-              :hideLogin="hideLogin"
-              :key="componentKey"
-              @platform_type="payload.platform_type = $event"
-              @msg-info="getMsgInfoDraft"
-            />
+          <!-- <div
+            class="close"
+            style="z-index: 3; right: 0"
+            v-if="show_order"
+            @click="handleHideCreateOrder"
+          >
+            <img src="@/assets/close1.png" alt="" />
+          </div> -->
+          <div>
+            <div class="create__order" v-show="show_order">
+              <create-order
+                :store_token="store_token"
+                :payload="payload"
+                :handleShowCreateOrder="handleShowCreateOrder"
+                :showLogin="showLogin"
+                :hideLogin="hideLogin"
+                :key="componentKey"
+                @platform_type="payload.platform_type = $event"
+                @msg-info="getMsgInfoDraft"
+              />
+            </div>
           </div>
         </div>
       </section>
       <!-- End Comp Create order -->
       <list-order
+        ref="listOrder"
         :store_token="store_token"
         :payload="payload"
         :handleShowCreateOrder="handleShowCreateOrder"
+        :key="componentKey"
         @platform="getPlatform"
       />
     </div>
@@ -190,6 +202,7 @@ export default {
         store_email: "",
       },
       show_order: false,
+      is_short: false,
     };
   },
   async created() {
@@ -341,6 +354,11 @@ export default {
     handleHideCreateOrder() {
       this.show_order = false;
     },
+    handleListShort() {
+      if (this.$refs.listOrder && this.$refs.listOrder.handleListShort)
+        this.$refs.listOrder.handleListShort();
+      this.is_short = !this.is_short;
+    },
   },
 };
 </script>
@@ -378,6 +396,7 @@ $colorNeutral5: #f6f7f8;
 }
 @mixin imageSelect {
   background: url(./assets/arrow.svg) no-repeat right #fff !important;
+  background-position-x: 98% !important;
   background-size: 20px;
 }
 
@@ -439,7 +458,7 @@ $colorNeutral5: #f6f7f8;
 .btn-pill {
   font-size: 12px;
   line-height: 20px;
-  background: #ff5f0b;
+  background: $colorAccent;
   color: #ffffff;
   height: 2rem;
   outline: none;
@@ -448,7 +467,7 @@ $colorNeutral5: #f6f7f8;
   -webkit-box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
   box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
   &:hover {
-    background: #ff5f0b;
+    background: $colorAccent;
     transition: transform 0.15s, background 0.15s;
     -webkit-transform: scale(1.03);
     transform: scale(1.03);
@@ -456,7 +475,7 @@ $colorNeutral5: #f6f7f8;
     box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
   }
   &:focus {
-    background: #ff5f0b;
+    background: $colorAccent;
     transition: transform 0.15s, background 0.15s;
     -webkit-transform: scale(1.03);
     transform: scale(1.03);

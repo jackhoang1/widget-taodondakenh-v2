@@ -2,7 +2,7 @@
     <!-- Widget -->
     <div v-if="show_form=='order'"
         :class="{ 'app': true, 'disable-scroll': is_show_popup, 'disable-scroll': is_show_order_info}">
-        <div class="order__header d-flex justify-content-between align-items-center">
+        <div class="order-header d-flex justify-content-between align-items-center">
             <p class="text__second--medium font__weight--600">Đơn {{ platform_type }}</p>
             <div>
                 <div class="tooltip" @click="handleModalEditMsg">
@@ -40,7 +40,7 @@
 
         </div>
         <!-- thông tin khách hàng -->
-        <div class="order__customer">
+        <div class="order-customer">
             <!-- Forrm điền thông tin khách hàng -->
             <div class="margin__bottom--12 form-row">
                 <div class="col">
@@ -90,32 +90,32 @@
             </div>
             <!------------------------------------- -->
             <!-- Tuỳ chọn thanh toán hoặc ship code -->
-            <div class="order__option">
-                <div class="order__option--main">
+            <div class="order-option">
+                <div class="order-option-main">
                     <p class="text__second--medium margin__bottom--12">Tuỳ chọn</p>
                     <div class="margin__bottom--12">
-                        <input id="order__option--order-only" type="radio" value="0" v-model="order_option">
-                        <label class="margin__left--12" for="order__option--order-only"><span class=""></span>Chỉ tạo
+                        <input id="option-order-only" type="radio" value="0" v-model="order_option">
+                        <label class="margin__left--12" for="option-order-only"><span class=""></span>Chỉ tạo
                             đơn</label>
                     </div>
                     <div class="margin__bottom--12">
-                        <input id="order__option--order-shipcod" type="radio" value="1" v-model="order_option"
+                        <input id="option-order-shipcod" type="radio" value="1" v-model="order_option"
                             @click="checkDelivery">
-                        <label class="margin__left--12" for="order__option--order-shipcod"><span class=""></span>Ship
+                        <label class="margin__left--12" for="option-order-shipcod"><span class=""></span>Ship
                             COD</label>
-                        <div class="order__option--icon-shipcod tooltip">
+                        <div class="option-icon-shipcod tooltip">
                             <img src="@/assets/question.png" alt="">
                             <span class="tooltip-top tooltip-medium">Hình thức tạo đơn và giao vận với bên thứ
                                 3</span>
                         </div>
                     </div>
                     <div class="margin__bottom--12">
-                        <input id="order__option--order-payment" type="radio" value="2" v-model="order_option"
+                        <input id="option-order-payment" type="radio" value="2" v-model="order_option"
                             @click="checkPayment">
-                        <label class="margin__left--12" for="order__option--order-payment"><span class=""></span>Thanh
+                        <label class="margin__left--12" for="option-order-payment"><span class=""></span>Thanh
                             toán và giao
                             vận</label>
-                        <div class="order__option--icon-payment tooltip">
+                        <div class="option-icon-payment tooltip">
                             <img class="" src="@/assets/question.png" alt="">
                             <span class="tooltip-top tooltip-medium">Khách hàng thanh toán xong, hệ thống tự
                                 động kích hoạt giao vận</span>
@@ -128,7 +128,7 @@
             <!-- --------------- -->
         </div>
 
-        <div class="order__product">
+        <div class="order-product">
             <!-- Tìm sản phẩm và Tạo ghi chú -->
             <div>
                 <div class="margin__y--8 d-flex justify-content-between align-items-center">
@@ -276,9 +276,9 @@
         <!-- Search product-->
         <div :class="{ 'popup': true, 'show-popup': is_show_popup}">
             <div v-if="is_show_popup">
-                <div>
+                <div class="search">
                     <div class="form-row">
-                        <div class="search col">
+                        <div class="search-input col">
                             <img src="https://img.icons8.com/ios-glyphs/48/000000/search.png" alt="">
                             <input @keyup.enter="handleSearch" v-model="search_value"
                                 class="form-control-sm flex-grow-1" type="text" placeholder="Tìm sản phẩm" />
@@ -291,7 +291,7 @@
                     </div>
                 </div>
                 <div class="list-product">
-                    <div v-if="!filter_list_product.length" class="product d-flex align-items-center border-bottom"
+                    <div v-if="!filter_list_product.length" class="product d-flex align-items-center"
                         v-for="(item, index) in list_product" :key="index" @click="handleAddToCart(item)">
                         <img class="border rounded mr-2"
                             :src="item.image || 'https://img.icons8.com/officexs/80/000000/spinner-frame-6.png'"
@@ -299,11 +299,13 @@
                         <div class="flex-grow-1">
                             <p class="m-0" :title="item.product_name">{{ item.product_name.substring(0, 60) + '...' }}
                             </p>
-                            <p class="m-0">{{ item.product_option }}</p>
-                            <p class="text-right">{{ item.product_price ||0 | toCurrency }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <p class="text__neutral">{{ item.product_option }}</p>
+                                <p class="text__neutral--medium font__weight--600">{{ item.product_price ||0 | toCurrency }}</p>
+                            </div>
                         </div>
                     </div>
-                    <div v-if="filter_list_product.length" class="product d-flex align-items-center border-bottom"
+                    <div v-if="filter_list_product.length" class="product d-flex align-items-center"
                         v-for="(item, index) in filter_list_product" :key="index" @click="handleAddToCart(item)">
                         <img class="border rounded mr-2"
                             :src="item.image || 'https://img.icons8.com/officexs/80/000000/spinner-frame-6.png'"
@@ -311,8 +313,10 @@
                         <div class="flex-grow-1">
                             <p class="m-0" :title="item.product_name">{{ item.product_name.substring(0, 60) + '...' }}
                             </p>
-                            <p class="m-0">{{ item.product_option }}</p>
-                            <p class="text-right">{{ item.product_price||0 | toCurrency }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <p class="text__neutral">{{ item.product_option }}</p>
+                                <p class="text__neutral--medium font__weight--600">{{ item.product_price ||0 | toCurrency }}</p>
+                            </div>
                         </div>
                     </div>
                     <div>
@@ -486,8 +490,9 @@
                 <p>Thanh toán</p>
                 <textarea rows="3" v-model="msg_content.payment" class="form-control-sm mt-1 mb-3"></textarea>
                 <div class="d-flex">
-                    <button class="btn-pill w-100 m2-4 mx-2" @click="handleSaveMsg">Lưu</button>
-                    <button class="btn-pill w-100 mx-2" @click="handleResetMsg">Đặt lại</button>
+                    <button class="btn-pill btn-reset w-100 mx-2" @click="handleResetMsg">Đặt lại</button>
+
+                    <button class="btn-pill w-100 mx-2" @click="handleSaveMsg">Lưu</button>
                 </div>
 
             </div>

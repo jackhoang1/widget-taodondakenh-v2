@@ -15,6 +15,16 @@
                     </select>
                 </div>
             </div>
+            <div class="affiliate margin__bottom--12 form-row" v-if="payload.delivery_platform=='GHN'&&!is_affiliate">
+                <div class="col d-flex align-items-center">
+                    <div class="tooltip" style="width: 100%">
+                        <input class="form-control-sm" type="text" placeholder="Mã OTP" v-model="otpGhn">
+                        <span class="tooltip-top tooltip-medium">Nhập OTP để phân quyền cho Bot Bán Hàng làm nhân viên
+                            lên đơn</span>
+                    </div>
+                    <button class="btn-pill" @click="addAffiliate()">Xác nhận</button>
+                </div>
+            </div>
             <!-- VTP sender email -->
             <div class="margin__bottom--12 form-row"
                 v-if="!payload.store_email&&payload.delivery_platform=='VIETTEL_POST'">
@@ -24,7 +34,8 @@
                     <div class="margin__top--9 d-flex justify-content-end align-items-center">
                         <input id="checkbox__save--email" class="m-0 mr-1" type="checkbox" v-model="option_save_info"
                             @change="handleSaveInfo">
-                        <label class="cursor__pointer" for="checkbox__save--email"><span class="align-items-center"></span>Lưu
+                        <label class="cursor__pointer" for="checkbox__save--email"><span
+                                class="align-items-center"></span>Lưu
                             email</label>
                     </div>
                 </div>

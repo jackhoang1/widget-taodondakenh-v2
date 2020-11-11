@@ -187,6 +187,7 @@ export default {
 <style lang="scss" scoped>
 @mixin imageSelect {
   background: url(../assets/arrow.svg) no-repeat right #fff !important;
+  background-position-x: 98% !important;
   background-size: 20px;
 }
 $colorHover: #dfe1e4;

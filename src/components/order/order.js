@@ -881,9 +881,6 @@ export default {
                 this.swalToast("Lỗi khi gửi tin về message", "error")
             }
         },
-        closeOrderInfo() {
-            this.is_show_order_info = false
-        },
         async getListProduct(params) {
             try {
                 let path = `${APICMS}/v1/selling-page/product/product_read`
@@ -1280,6 +1277,9 @@ export default {
             if (!this.payload.delivery_platform) {
                 return this.swalToast("Hãy cài đặt giao vận để sử dụng chức năng này!", "warning")
             }
+        },
+        closeOrderInfo() {
+            this.is_show_order_info = false
         },
         handleShowForm(name) {
             this.show_form = name

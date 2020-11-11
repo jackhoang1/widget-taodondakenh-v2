@@ -38,6 +38,7 @@ export default {
             handle_draft_order: false,
             delivery_platform: '',
             payment_platform: '',
+            is_short: false
         };
     },
     async created() {
@@ -295,6 +296,9 @@ export default {
             } catch (e) {
                 console.log(e);
             }
+        },
+        handleListShort() {
+            this.is_short = !this.is_short
         },
         swalToast(title, icon) {
             const Toast = Swal.mixin({

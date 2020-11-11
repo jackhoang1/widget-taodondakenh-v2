@@ -1,3 +1,4 @@
+$colorAccent: #ff5f0b;
 body::-webkit-scrollbar {
     display: none;
 }
@@ -17,6 +18,18 @@ body > div {
     }
     .delivery__inventory {
         position: relative;
+        .affiliate {
+            button {
+                width: 30%;
+                background: #fff;
+                border: 1px solid $colorAccent;
+                color: $colorAccent;
+                margin-left: 12px;
+            }
+            input{
+                cursor: help;
+            }
+        }
     }
     .delivery__product--size,
     .delivery__service,

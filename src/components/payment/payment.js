@@ -41,13 +41,10 @@ export default {
     },
     computed: {
         initialization() {       // default hình  thức thanh toán
-            if (this.payload.payment_platform == 'ALEPAY') {
+            if (this.payload.payment_platform == 'ALEPAY')
                 this.checkout_type = this.list_type[1]
-            }
-            if (this.payload.payment_platform == 'VNPAY') {
+            if (this.payload.payment_platform == 'VNPAY')
                 this.order_type_vnpay = this.list_order_type_vnpay[0]
-            }
-
         }
     },
     methods: {
@@ -61,8 +58,8 @@ export default {
                 },
                 'order_description': this.order_description,
                 'total_item': this.product_info.total_item,
-                'return_url': `https://devbbh.tk/dev-cms/#/payment/?access_token=${this.store_token}&order_id=${order_id}`,
-                'cancel_url': `https://devbbh.tk/dev-cms/#/payment/?access_token=${this.store_token}&order_id=${order_id}`,
+                'return_url': `${APICMS}/dev-cms/#/payment/?access_token=${this.store_token}&order_id=${order_id}`,
+                'cancel_url': `${APICMS}/dev-cms/#/payment/?access_token=${this.store_token}&order_id=${order_id}`,
                 'customer_name': this.prop_receiver_name,
                 'customer_email': this.prop_receiver_email,
                 'customer_phone': this.prop_receiver_phone,
