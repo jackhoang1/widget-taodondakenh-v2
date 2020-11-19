@@ -37,11 +37,13 @@ export default {
         Payment
     },
     props: [
-        "store_token",
-        "payload",
-        "handleShowCreateOrder",
+        'store_token',
+        'payload',
+        'handleShowCreateOrder',
         'showLogin',
-        'hideLogin'
+        'hideLogin',
+        'readSetting',
+        'updateSetting'
     ],
     data() {
         return {
@@ -134,10 +136,11 @@ export default {
     created() {
         console.log('create component order');
         if (this.store_token) {
-            this.getInitialData()
+            this.initialData()
             this.name = this.payload.name
             this.phone = this.payload.phone
-            this.email = this.payload.email
+            if (this.payload.email)
+                this.email = this.payload.email
         }
         EventBus.$on("get-order", (item) => {
             this.getOrderInfo(item)
@@ -152,10 +155,6 @@ export default {
     mounted() {
     },
     methods: {
-        getEmailLocal() {
-            if (this.email || !this.payload.store_email) return
-            this.email = this.payload.store_email
-        },
         resetAddress() {
             this.city = ""
             this.district = ""
@@ -236,7 +235,7 @@ export default {
                     }
                     await this.getListProduct(params)
                     if (this.list_product.length > 0) return
-                    if (this.list_product.length == 0 && (this.platform_type == 'SAPO' || this.platform_type == 'HARAVAN')) {
+                    if (this.list_product.length === 0 && (this.platform_type === 'SAPO' || this.platform_type === 'HARAVAN')) {
                         await this.getListProduct()
                         this.searchByFilter()
                         if (this.filter_list_product.length == 0) {
@@ -365,14 +364,14 @@ export default {
                 }
                 // Thêm sản phẩm vào giỏ hàng
                 let add_cart = await Restful.post(path, body, null, headers)
-                // Lưu client_id và lưu vào localStorage
+                // Lưu client_id api setting
                 if (add_cart &&
                     add_cart.data &&
                     add_cart.data.data &&
                     add_cart.data.data.client_id
                 ) {
                     this.client_id = add_cart.data.data.client_id
-                    this.client_id && localStorage.setItem("order_3rd_client_id", this.client_id)
+                    this.updateSetting('client_id', { client_id: this.client_id })
                 }
 
                 Toast.fire({
@@ -1015,16 +1014,25 @@ export default {
                 this.list_product = this.list_product.concat(map_variant)
             });
         },
-        async getInitialData() {
-            if (localStorage.getItem("order_3rd_client_id")) {
-                this.client_id = localStorage.getItem("order_3rd_client_id")
+        async initialData() {
+            try {
+                if (this.payload.setting && this.payload.setting.setting_data) {
+
+                    let setting = this.payload.setting.setting_data
+                    if (!this.payload.email)
+                        this.email = setting.store_email
+                    if (setting.client_id)
+                        this.client_id = setting.client_id
+                    if (setting.msg_content)
+                        this.msg_content = setting.msg_content
+                }
+                await this.getListProduct()
+                this.getListProvince()
+                this.getCart()
+            } catch (e) {
+                console.log(e);
             }
-            if (localStorage.getItem("order_3rd_msg_content")) {
-                this.msg_content = JSON.parse(localStorage.getItem("order_3rd_msg_content"))
-            }
-            await this.getListProduct()
-            this.getListProvince()
-            this.getCart()
+
         },
         async getBranchKiotviet() {
             try {
@@ -1165,13 +1173,24 @@ export default {
 
         async getOrderInfo(item) {
             // Reset client_id tránh loạn giỏ hàng
+            console.log('itemt', item);
             this.client_id = ''
-            localStorage.removeItem('order_3rd_client_id')
+            // this.updateSetting('client_id', { client_id: null })
             this.cart = []
             this.is_update_order = true
             this.name = item.customer_name
             this.phone = item.customer_phone
-            this.email = item.customer_email || this.payload.store_email  //customer không có email > email merchant
+
+            //customer không có email > email merchant
+            this.email = item.customer_email ||
+                (
+                    (
+                        this.payload.setting &&
+                        this.payload.setting.setting_data &&
+                        this.payload.setting.setting_data.store_email
+                    )
+                        ? (this.payload.setting.setting_data.store_email) : null
+                )
             this.platform_type = item.platform_type
             this.id = item.id
             this.order_id = item.order_id
@@ -1294,7 +1313,7 @@ export default {
             }
         },
         handleSaveMsg() {
-            localStorage.setItem('order_3rd_msg_content', JSON.stringify(this.msg_content))
+            this.updateSetting('msg_content', { msg_content: this.msg_content })
             this.handleModalEditMsg()
         },
         handleResetMsg() {
@@ -1322,10 +1341,11 @@ export default {
     },
     watch: {
         store_token() {
-            this.getInitialData()
+            this.initialData()
             this.name = this.payload.name
             this.phone = this.payload.phone
-            this.email = this.payload.email
+            if (this.payload.email)
+                this.email = this.payload.email
         },
         total_price: function () {
             this.handleTotalPayment()
@@ -1339,8 +1359,22 @@ export default {
         'payload.platform_type': function () {
             this.platform_type = this.payload.platform_type
         },
-        'payload.store_email': function () {
-            this.getEmailLocal()
+        'payload.setting': function (nValue, oValue) {
+            console.log('watch run 1111');
+            if (
+                this.payload.setting &&
+                this.payload.setting.setting_data
+            ) {
+                let setting = this.payload.setting.setting_data
+                if (!this.payload.email)
+                    this.email = setting.store_email
+                if (setting.client_id) {
+                    this.client_id = setting.client_id
+                    this.getCart()
+                }
+                if (setting.msg_content)
+                    this.msg_content = setting.msg_content
+            }
         }
     },
     filters: {

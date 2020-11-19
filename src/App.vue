@@ -6,10 +6,11 @@
       :isLogin="isLogin"
       :showLogin="showLogin"
       :hideLogin="hideLogin"
+      :readSetting="readSetting"
+      :updateSetting="updateSetting"
       :access_token="access_token"
       :forceRerender="forceRerender"
       @store-token="store_token = $event"
-      @store-email="payload.store_email = $event"
     >
     </Login>
     <!--End Authentication -->
@@ -107,6 +108,8 @@
                 :handleShowCreateOrder="handleShowCreateOrder"
                 :showLogin="showLogin"
                 :hideLogin="hideLogin"
+                :readSetting="readSetting"
+                :updateSetting="updateSetting"
                 :key="componentKey"
                 @platform_type="payload.platform_type = $event"
                 @msg-info="getMsgInfoDraft"
@@ -134,7 +137,7 @@ import Restful from "@/services/resful.js";
 import CreateOrder from "@/components/order/Order.vue";
 import ListOrder from "@/components/order/ListOrder.vue";
 import Login from "@/components/login/Login.vue";
-import { APICMS, APIBASE, secretKey } from "@/services/domain.js";
+import { APICMS, APIBASE, APISETTING, secretKey } from "@/services/domain.js";
 
 let urlString = location.href;
 let url = new URL(urlString);
@@ -178,7 +181,6 @@ export default {
       is_oauth: false,
       secretKey: secretKey,
       access_token: access_token,
-      is_select: "list",
 
       cms_account: "",
       cms_password: "",
@@ -190,6 +192,7 @@ export default {
       store_token: "",
       payload: {
         psid: "",
+        asid: "",
         fb_page_id: "",
         token_bbh: "",
         delivery_platform: "",
@@ -200,21 +203,24 @@ export default {
         email: "",
         customer_id: "",
         store_email: "",
+        setting: "",
       },
       show_order: false,
       is_short: false,
     };
   },
   async created() {
-    await this.partnerAuth();
-    this.testAndroid(this.access_token);
+    try {
+      await this.partnerAuth();
+      await this.createCustomer();
+      this.readSetting();
+      this.testAndroid(this.access_token);
+    } catch (e) {
+      console.log(e);
+    }
   },
   mounted() {},
-  computed: {
-    isSelectList() {
-      return this.is_select === "list";
-    },
-  },
+  computed: {},
   methods: {
     forceRerender() {
       this.componentKey += 1;
@@ -258,6 +264,9 @@ export default {
             if (customer.public_profile.fb_page_id) {
               this.payload.fb_page_id = customer.public_profile.fb_page_id;
             }
+            if (customer.public_profile.current_staff_id) {
+              this.payload.asid = customer.public_profile.current_staff_id;
+            }
           }
           if (customer.conversation_chatbot) {
             this.payload.token_bbh =
@@ -279,8 +288,6 @@ export default {
               .split(" ")
               .join("");
           }
-          await this.createCustomer();
-          this.handleLocalStorage();
         }
       } catch (e) {
         this.overlaySign = false;
@@ -304,13 +311,6 @@ export default {
         title: "Không có thông tin msg_info",
       });
     },
-    handleLocalStorage() {
-      let data = JSON.parse(localStorage.getItem("order_3d_platform"));
-      if (data && data.store_email) {
-        this.payload.store_email = data.store_email;
-      }
-    },
-
     async createCustomer() {
       try {
         let path = `${APICMS}/v1/selling-page/customer/customer_find_or_create`;
@@ -339,6 +339,86 @@ export default {
           icon: "error",
           title: "error api customer_find_or_create",
         });
+      }
+    },
+    async createSetting() {
+      try {
+        let path = `${APISETTING}/v1/setting/WidgetSetting/create_setting`;
+        let body = {
+          fb_page_id: this.payload.fb_page_id,
+          asid: this.payload.asid,
+          secret_key: secretKey,
+          setting_data: "",
+        };
+
+        let create_setting = await Restful.post(path, body, null, null);
+      } catch (e) {
+        console.log(e);
+      }
+    },
+    async readSetting() {
+      try {
+        let path = `${APISETTING}/v1/setting/WidgetSetting/read_setting`;
+        let body = {
+          fb_page_id: this.payload.fb_page_id,
+          secret_key: secretKey,
+          asid: this.payload.asid,
+        };
+
+        let read_setting = await Restful.post(path, body, null, null);
+
+        if (read_setting && read_setting.data && read_setting.data.data) {
+          let setting = read_setting.data.data;
+          if (setting.length === 0) return this.createSetting();
+          this.payload.setting = setting[0];
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    },
+    async updateSetting(name, data) {
+      try {
+        if (
+          !data ||
+          (name !== "store_email" &&
+            name !== "client_id" &&
+            name !== "msg_content")
+        )
+          return;
+
+        let setting_data = { ...this.payload.setting.setting_data };
+
+        if (name === "store_email") {
+          setting_data.store_email = data.email;
+        }
+        if (name === "client_id") {
+          setting_data.client_id = data.client_id;
+        }
+        if (name === "msg_content") {
+          setting_data.msg_content = data.msg_content;
+        }
+
+        let path = `${APISETTING}/v1/setting/WidgetSetting/update_setting`;
+        let body = {
+          id: this.payload.setting.id,
+          setting_data: setting_data,
+        };
+
+        let update_setting = await Restful.post(path, body, null, null);
+      } catch (e) {
+        console.log(e);
+      }
+    },
+    async delete_setting() {
+      try {
+        let path = `${APISETTING}/v1/setting/WidgetSetting/delete_setting`;
+        let body = {
+          fb_page_id: this.payload.fb_page_id,
+        };
+
+        let delete_setting = await Restful.post(path, body, null, null);
+      } catch (e) {
+        console.log(e);
       }
     },
     showLogin() {
@@ -464,6 +544,9 @@ $colorNeutral5: #f6f7f8;
   outline: none;
   border: none;
   border-radius: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   -webkit-box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
   box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
   &:hover {
