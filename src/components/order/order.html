@@ -147,60 +147,42 @@
                 <div class="list-product">
                     <div class="product-detail d-flex justify-content-between align-items-center"
                         v-for="(item, index) in cart" :key="index">
-                        <div class="d-flex" style="width:50%">
-                            <img class="border rounded mr-1"
+                        <div class="d-flex">
+                            <img class="margin__right--8"
                                 :src="item.product_image || 'https://img.icons8.com/officexs/80/000000/spinner-frame-6.png'"
                                 alt="product" />
                             <div class="product-detail-name align-self-start">
                                 <p class="name m-0" :title="item.product_name">{{ item.product_name }}</p>
-                                <p class="m-0" :title="item.other_info" v-if="platform_type!='MISA'">
+                                <!-- <p class="m-0" :title="item.other_info" v-if="platform_type!='MISA'">
                                     {{ item.other_info }}
-                                </p>
+                                </p> -->
+                                <div class="price">
+                                    <p style="text-align:left !important">{{ item.product_price | toCurrency }}</p>
+                                </div>
+                                <div class="quantity d-flex align-items-center">
+                                    <div class="d-flex flex-column justify-content-around">
+                                        <div class="quantity-sub-add d-flex justify-content-around align-items-center">
+                                            <div class="d-flex align-items-center" @click="handleSubQuantity(item)">
+                                                <img src="@/assets/icon/minus.png" alt="">
+                                            </div>
+                                            <p
+                                                class="text__neutral--medium d-flex justify-content-center align-items-center ">
+                                                {{ item.product_quantity }}
+                                            </p>
+                                            <div class="d-flex align-items-center" @click="handleAddQuantity(item)">
+                                                <img src="@/assets/icon/add.png" alt="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center" style="width:50%">
-                            <div class="quantity d-flex align-items-center">
-                                <p class="text__neutral--medium padding__left--8">{{ item.product_quantity }}</p>
-                                <div class="padding__left--8 d-flex flex-column justify-content-around">
-                                    <button @click="handleAddQuantity(item)" class="btn p-0">
-                                        <div>
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-                                                xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M4 10L8 6L12 10" stroke="#BCC0C6" stroke-width="1.5"
-                                                    stroke-linecap="round" stroke-linejoin="round" />
-                                                <path
-                                                    d="M15 4L15 12L17 12L17 4L15 4ZM12 15L4 15L4 17L12 17L12 15ZM0.999999 12L1 4L-1 4L-1 12L0.999999 12ZM4 0.999999L12 1L12 -1L4 -1L4 0.999999ZM1 4C1 2.34315 2.34315 0.999999 4 0.999999L4 -1C1.23858 -1 -1 1.23858 -1 4L1 4ZM4 15C2.34314 15 0.999999 13.6569 0.999999 12L-1 12C-1 14.7614 1.23858 17 4 17L4 15ZM15 12C15 13.6569 13.6569 15 12 15L12 17C14.7614 17 17 14.7614 17 12L15 12ZM17 4C17 1.23858 14.7614 -1 12 -1L12 1C13.6569 1 15 2.34315 15 4L17 4Z"
-                                                    fill="#F6F7F8" />
-                                            </svg>
-                                        </div>
-                                    </button>
-                                    <button @click="handleSubQuantity(item)" class="btn p-0">
-                                        <div>
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-                                                xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M12 6L8 10L4 6" stroke="#BCC0C6" stroke-width="1.5"
-                                                    stroke-linecap="round" stroke-linejoin="round" />
-                                                <path
-                                                    d="M1 12L0.999999 4L-1 4L-1 12L1 12ZM4 1L12 0.999999L12 -1L4 -1L4 1ZM15 4L15 12L17 12L17 4L15 4ZM12 15L4 15L4 17L12 17L12 15ZM15 12C15 13.6569 13.6569 15 12 15L12 17C14.7614 17 17 14.7614 17 12L15 12ZM12 0.999999C13.6569 0.999999 15 2.34314 15 4L17 4C17 1.23858 14.7614 -1 12 -1L12 0.999999ZM0.999999 4C0.999999 2.34315 2.34315 1 4 1L4 -1C1.23858 -1 -1 1.23858 -1 4L0.999999 4ZM-1 12C-1 14.7614 1.23858 17 4 17L4 15C2.34315 15 1 13.6569 1 12L-1 12Z"
-                                                    fill="#F6F7F8" />
-                                            </svg>
-                                        </div>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="price">
-                                <p class="price text-right">{{ item.product_price | toCurrency }}</p>
-                            </div>
+                        <div class="">
+
                             <div class="edit d-flex flex-column justify-content-between">
                                 <div class="d-flex align-items-center" @click="delProductCart(item)">
-                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M15 5L5 15" stroke="#EB5757" stroke-width="1.5" stroke-linecap="round"
-                                            stroke-linejoin="round" />
-                                        <path d="M5 5L15 15" stroke="#EB5757" stroke-width="1.5" stroke-linecap="round"
-                                            stroke-linejoin="round" />
-                                    </svg>
-
+                                    <img src="@/assets/icon/close.png" alt="">
                                 </div>
                             </div>
                         </div>
@@ -284,11 +266,14 @@
                                 class="form-control-sm flex-grow-1" type="text" placeholder="Tìm sản phẩm" />
                         </div>
                     </div>
-                    <div>
+                    <!-- <div class="search-btn-close">
+                        <button class="btn-pill" @click="handleClosePopup">Close</button>
+                    </div> -->
+                    <!-- <div>
                         <div class="close close__search" @click="handleClosePopup">
                             <img src="@/assets/close1.png" alt="">
                         </div>
-                    </div>
+                    </div> -->
                 </div>
                 <div class="list-product">
                     <div v-if="!filter_list_product.length" class="product d-flex align-items-center"
@@ -322,10 +307,16 @@
                         </div>
                     </div>
                     <div>
-                        <div class="more d-flex justify-content-center" @click="getMoreProduct">
-                            <img src="https://img.icons8.com/ios-filled/50/000000/expand-arrow.png" />
+                        <div class="more">
+                            <img src="https://img.icons8.com/ios-filled/50/000000/expand-arrow.png"
+                                @click="getMoreProduct" />
+                            <div class="more-btn-close">
+                                <button class="btn-pill" @click="handleClosePopup">Chọn xong</button>
+                            </div>
                         </div>
+
                     </div>
+
                 </div>
             </div>
 
@@ -386,7 +377,7 @@
     </div>
     <!-- modal loading -->
     <div class="modal" v-if="is_loading">
-        <div class="modal__content">
+        <div class="modal__content--loading">
             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
                 style="margin:auto;display:block;" width="100px" height="100px" viewBox="0 0 100 100"
                 preserveAspectRatio="xMidYMid">
@@ -471,7 +462,7 @@
                         repeatCount="indefinite" times="0;0.1;0.2;0.3;1" dur="1s" begin="0s"></animate>
                 </circle>
             </svg>
-            <p>Vui lòng đợi ...</p>
+            <p style="color: #ffffff; text-align: center;">Vui lòng đợi ...</p>
 
         </div>
     </div>

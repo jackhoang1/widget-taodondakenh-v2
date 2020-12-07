@@ -90,34 +90,39 @@
       </section>
       <!-- End header widget -->
       <!-- Comp Create order -->
-      <section>
+      <!-- <section id="create-order">
         <div style="position: relative">
-          <!-- <div
-            class="close"
-            style="z-index: 3; right: 0"
-            v-if="show_order"
-            @click="handleHideCreateOrder"
-          >
-            <img src="@/assets/close1.png" alt="" />
-          </div> -->
+ 
           <div>
             <div class="create__order" v-show="show_order">
-              <create-order
-                :store_token="store_token"
-                :payload="payload"
-                :handleShowCreateOrder="handleShowCreateOrder"
-                :showLogin="showLogin"
-                :hideLogin="hideLogin"
-                :readSetting="readSetting"
-                :updateSetting="updateSetting"
-                :key="componentKey"
-                @platform_type="payload.platform_type = $event"
-                @msg-info="getMsgInfoDraft"
-              />
+           
             </div>
           </div>
         </div>
-      </section>
+      </section> -->
+      <!-- test modal -->
+      <div class="modal" v-show="show_order">
+        <div class="modal__content">
+          <div class="close" @click="handleHideCreateOrder">
+            <img src="@/assets/close1.png" alt="" />
+          </div>
+          <div>
+            <create-order
+              :store_token="store_token"
+              :payload="payload"
+              :handleShowCreateOrder="handleShowCreateOrder"
+              :showLogin="showLogin"
+              :hideLogin="hideLogin"
+              :readSetting="readSetting"
+              :updateSetting="updateSetting"
+              :key="componentKey"
+              @platform_type="payload.platform_type = $event"
+              @msg-info="getMsgInfoDraft"
+            />
+          </div>
+        </div>
+      </div>
+
       <!-- End Comp Create order -->
       <list-order
         ref="listOrder"
@@ -212,7 +217,6 @@ export default {
   async created() {
     try {
       await this.partnerAuth();
-      await this.createCustomer();
       this.readSetting();
       this.testAndroid(this.access_token);
     } catch (e) {
@@ -288,6 +292,7 @@ export default {
               .split(" ")
               .join("");
           }
+          this.createCustomer();
         }
       } catch (e) {
         this.overlaySign = false;
@@ -444,17 +449,6 @@ export default {
 </script>
 
 <style lang="scss">
-$colorSecond: #140f2d;
-$colorAccent110: #f55600;
-$colorAccent: #ff5f0b;
-$colorAccent70: #ff8f54;
-$colorAccent30: #ffcfb6;
-$colorAccent10: #fff7f3;
-$colorNeutral: #4f596a;
-$colorNeutral70: #848b97;
-$colorNeutral38: #bcc0c6;
-$colorNeutral18: #dfe1e4;
-$colorNeutral5: #f6f7f8;
 @mixin tooltip-position {
   visibility: hidden;
   min-width: 6rem;
@@ -499,6 +493,7 @@ $colorNeutral5: #f6f7f8;
 /* --------------- */
 .widget {
   padding: 18px 0;
+  position: relative;
   .header {
     padding: 0 25px 0 20px;
     user-select: none;
@@ -742,6 +737,9 @@ select {
 .margin__right--5 {
   margin-right: 5px;
 }
+.margin__right--8 {
+  margin-right: 8px;
+}
 .margin__right--12 {
   margin-right: 12px;
 }
@@ -797,8 +795,8 @@ select {
   display: flex;
   justify-content: center;
   align-items: center;
+  cursor: pointer;
   &:hover {
-    cursor: pointer;
     opacity: 1 !important;
     transform: scale(1.1);
   }
@@ -856,5 +854,46 @@ input[type="checkbox"] + label span {
 
 input[type="checkbox"]:checked + label span {
   background: url(./assets/checkbox_checked.svg) no-repeat;
+}
+// #create-order {
+//   position: absolute;
+//   top: 0;
+//   background: black;
+//   z-index: 9;
+// }
+
+.modal {
+  position: absolute;
+  top: 0;
+  padding: 90px 0;
+  z-index: 999;
+  background: rgba(0, 0, 0, 0.7);
+  min-height: 100%;
+  width: 100%;
+  .modal__btn--close {
+    text-align: right;
+    img {
+      height: 20px;
+      width: 20px;
+      &:hover {
+        cursor: pointer;
+      }
+    }
+  }
+  .modal__content {
+    background: #ffffff;
+    position: relative;
+    border-radius: 8px;
+    margin: 0 9px;
+  }
+  .modal__msg {
+    position: relative;
+    background: #ffffff;
+    color: #000000;
+    width: 100%;
+    margin: 9px;
+    padding: 0 12px 20px;
+    border-radius: 4px;
+  }
 }
 </style>
