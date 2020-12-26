@@ -1,6 +1,6 @@
 import EventBus from "@/EventBus.js";
 import Restful from "@/services/resful.js";
-import { APICMS } from "@/services/domain.js"
+import { APICMS } from "@/services/constant.js"
 
 const Toast = Swal.mixin({
     toast: true,
@@ -28,9 +28,10 @@ const Toast2 = Swal.mixin({
 });
 
 export default {
-    props: ['store_token', 'payload', 'handleShowCreateOrder'],
+    props: ['store_token', 'payload', 'handleShowCreateOrder', 'readSetting', 'updateSetting'],
     data() {
         return {
+            filterOrder: 'customer',
             list_order: [],
             skip: 0,
             order_filter: '',
@@ -46,14 +47,7 @@ export default {
             if (!this.store_token) {
                 throw 'Error store_token';
             }
-            await this.readOrder()
-            this.checkPhone()
-            ///////
-            setTimeout(() => {
-                this.readOrder()
-            }, 2000)
 
-            //////////
             EventBus.$on('call-order', () => {
                 this.readOrder()
             });
@@ -72,6 +66,10 @@ export default {
             let day = `${date.getDate()}/${date.getMonth() + 1}`
             return time + ' ' + day
         },
+        handlefilterOrder() {
+            this.updateSetting('filter_order', { filter_order: this.filterOrder })
+            this.readOrder()
+        },
         handleClickOrder(index, expand, order_status) {
             // Thay đổi class của order-title
             let arr_tag_expand = this.$el.getElementsByClassName('order__expand')
@@ -83,7 +81,7 @@ export default {
             if (expand) {
                 class_tag_expand.remove('expand__hide')
                 class_tag_title.add('expand__border')
-                if (order_status === 'draft_order')
+                if (order_status === 'draft_order' || order_status === 'new_order')
                     class_tag_expand.add('expand__show--large')
                 else
                     class_tag_expand.add('expand__show--medium')
@@ -106,21 +104,27 @@ export default {
                     return
                 }
             }
-            if (order_status === 'draft_order')
+            if (order_status === 'draft_order' || order_status === 'new_order')
                 class_tag_expand.add('expand__show--large')
             else
                 class_tag_expand.add('expand__show--medium')
             class_tag_title.add('expand__border')
         },
         async handleClickEdit(item) {
-            await this.handleShowCreateOrder()
-            EventBus.$emit('get-order', item)
+            if (item) {
+                if (item.status === 'draft_order' || item.status === 'new_order') {
+                    await this.handleShowCreateOrder()
+                    EventBus.$emit('get-order', item)
+                }
+            }
         },
         async readOrder() {
             try {
                 let path = `${APICMS}/v1/selling-page/order/order_read`
-                let params = { sort: 'createdAt DESC' }
                 let headers = { Authorization: this.store_token }
+                let params = { sort: 'createdAt DESC', customer_id: this.payload.customer_id }
+
+                if (this.filterOrder === 'all') delete params.customer_id
 
                 let get_list_order = await Restful.get(path, params, headers)
                 if (get_list_order.data && get_list_order.data.data) {
@@ -150,6 +154,52 @@ export default {
                     icon: 'error',
                     title: e,
                 });
+            }
+        },
+        async handleGetMoreOrder() {
+            try {
+                this.skip = this.skip + 20;
+                let path = `${APICMS}/v1/selling-page/order/order_read`
+                let headers = { Authorization: this.store_token }
+                let params = {
+                    sort: 'createdAt DESC',
+                    skip: this.skip,
+                    customer_id: this.payload.customer_id
+                };
+
+                if (this.filterOrder === 'all') delete params.customer_id
+
+                let get_list_order = await Restful.get(path, params, headers)
+
+                if (
+                    get_list_order &&
+                    get_list_order.data &&
+                    get_list_order.data.data &&
+                    get_list_order.data.data.orders
+                ) {
+                    if (get_list_order.data.data.orders.length === 0) {
+                        Toast2.fire({
+                            icon: 'success',
+                            title: 'Đã hiển thị tất cả đơn hàng',
+                        })
+                        return
+                    }
+                    this.list_order = this.list_order.concat(get_list_order.data.data.orders)
+                } else {
+                    throw 'Lỗi lấy danh sách Đơn hàng'
+                }
+            } catch (e) {
+                if (e && e.data && e.data.error_message) {
+                    Toast2.fire({
+                        icon: 'error',
+                        title: e.data.error_message,
+                    });
+                    return
+                }
+                Toast2.fire({
+                    icon: 'error',
+                    title: e,
+                })
             }
         },
         async updateStatusOrder(status, item, index) {
@@ -196,49 +246,6 @@ export default {
             if (item.status === 'draft_order')
                 return item.status === 'cancel_order'
         },
-        async handleGetMoreOrder() {
-            try {
-                this.skip = this.skip + 20;
-                let path = `${APICMS}/v1/selling-page/order/order_read`
-                let params = {
-                    sort: 'createdAt DESC',
-                    skip: this.skip,
-                };
-                let headers = { Authorization: this.store_token }
-
-                let get_list_order = await Restful.get(path, params, headers)
-
-                if (
-                    get_list_order &&
-                    get_list_order.data &&
-                    get_list_order.data.data &&
-                    get_list_order.data.data.orders
-                ) {
-                    if (get_list_order.data.data.orders.length === 0) {
-                        Toast2.fire({
-                            icon: 'success',
-                            title: 'Đã hiển thị tất cả đơn hàng',
-                        })
-                        return
-                    }
-                    this.list_order = this.list_order.concat(get_list_order.data.data.orders)
-                } else {
-                    throw 'Lỗi lấy danh sách Đơn hàng'
-                }
-            } catch (e) {
-                if (e && e.data && e.data.error_message) {
-                    Toast2.fire({
-                        icon: 'error',
-                        title: e.data.error_message,
-                    });
-                    return
-                }
-                Toast2.fire({
-                    icon: 'error',
-                    title: e,
-                })
-            }
-        },
         checkPhone() {
             if (
                 !this.payload.phone ||
@@ -279,6 +286,7 @@ export default {
                 let body = {
                     customer_phone: this.payload.phone,
                     customer_name: this.payload.name,
+                    customer_id: this.payload.customer_id,
                     status: 'draft_order',
                     other_info: {
                         psid: this.payload.psid,
@@ -326,6 +334,15 @@ export default {
     watch: {
         store_token: function () {
             this.readOrder()
-        }
+        },
+        'payload.customer_id': async function (newVal) {
+            if (newVal) {
+                await this.readOrder()
+                this.checkPhone()
+            }
+        },
+        // 'payload.setting': function (newVal) {
+        //     console.log('setting', this.payload.setting);
+        // }
     },
 };

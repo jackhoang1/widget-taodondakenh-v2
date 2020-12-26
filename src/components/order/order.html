@@ -64,18 +64,20 @@
                 <!-- Search address -->
                 <div class="order__address col" :class="{'validate-failed-address':validate_failed.city}">
                     <SearchAddress :list_data_input="list_city" :placeholder="'Tỉnh/TP'" @data_output="city=$event"
-                        :getData="getListDistrict" :clearInput="resetChangeCity" :prop_name="'name'" />
+                        :getData="getListDistrict" :clearInput="resetChangeCity" :prop_name="'name'"
+                        :watchDataBind="city" />
                 </div>
             </div>
             <div class="margin__bottom--12 form-row">
                 <div class="col" :class="{'validate-failed-address':validate_failed.district}">
                     <SearchAddress :list_data_input="list_district" :placeholder="'Quận/Huyện'"
                         @data_output="district=$event" :getData="getListWard" :clearInput="resetChangeDistrict"
-                        :prop_name="'name'" :watch_data="city" />
+                        :prop_name="'name'" :watch_data="city" :watchDataBind="district" />
                 </div>
                 <div class="col" :class="{'validate-failed-address':validate_failed.ward}">
                     <SearchAddress :list_data_input="list_ward" :placeholder="'Phường/Xã'" @data_output="ward=$event"
-                        :getData="false" :clearInput="false" :prop_name="'name'" :watch_data="district" />
+                        :getData="false" :clearInput="false" :prop_name="'name'" :watch_data="district"
+                        :watchDataBind="ward" />
                 </div>
             </div>
             <input v-model="street" type="text" class="margin__bottom--12 form-control-sm"
@@ -88,11 +90,32 @@
                     </option>
                 </select>
             </div>
+            <div class="order-customer-save-address">
+                <div class="save-address-title margin__bottom--12">
+                    <p class="text__second--medium font__weight--600">Địa chỉ đã lưu</p>
+                    <div @click="showModalSavePlace">
+                        <span class="text__accent--medium" v-if="listSaveAddress.length > 3">Xem thêm
+                            ({{listSaveAddress.length - 3}})</span>
+                        <!-- <img
+                            style="filter: invert(56%) sepia(23%) saturate(174%) hue-rotate(179deg) brightness(94%) contrast(85%);"
+                            src="@/assets/icon/arrow-right.png" alt=""> -->
+                    </div>
+                </div>
+                <div class="save-address-radio" v-for="(item, index) in listSaveAddress" v-if="index <= 2">
+                    <div class="margin__bottom--12 d-flex align-items-center">
+                        <input :id="'option-place-' + index" type="radio" :value="item" v-model="saveAddress">
+                        <label class="margin__left--12" :for="'option-place-' + index"><span class=""></span></label>
+                        <label :for="'option-place-' + index">{{item.address}}</label>
+                    </div>
+                </div>
+            </div>
             <!------------------------------------- -->
             <!-- Tuỳ chọn thanh toán hoặc ship code -->
-            <div class="order-option">
+            <div class="order-option" :class="{'disable-pointer-envent':statusEditOrder ==='new_order'}">
                 <div class="order-option-main">
-                    <p class="text__second--medium margin__bottom--12">Tuỳ chọn</p>
+                    <div class="margin__bottom--12">
+                        <p class="text__second--medium font__weight--600">Tuỳ chọn</p>
+                    </div>
                     <div class="margin__bottom--12">
                         <input id="option-order-only" type="radio" value="0" v-model="order_option">
                         <label class="margin__left--12" for="option-order-only"><span class=""></span>Chỉ tạo
@@ -128,7 +151,7 @@
             <!-- --------------- -->
         </div>
 
-        <div class="order-product">
+        <div class="order-product" :class="{'disable-pointer-envent':statusEditOrder ==='new_order'}">
             <!-- Tìm sản phẩm và Tạo ghi chú -->
             <div>
                 <div class="margin__y--8 d-flex justify-content-between align-items-center">
@@ -153,9 +176,6 @@
                                 alt="product" />
                             <div class="product-detail-name align-self-start">
                                 <p class="name m-0" :title="item.product_name">{{ item.product_name }}</p>
-                                <!-- <p class="m-0" :title="item.other_info" v-if="platform_type!='MISA'">
-                                    {{ item.other_info }}
-                                </p> -->
                                 <div class="price">
                                     <p style="text-align:left !important">{{ item.product_price | toCurrency }}</p>
                                 </div>
@@ -179,7 +199,6 @@
                             </div>
                         </div>
                         <div class="">
-
                             <div class="edit d-flex flex-column justify-content-between">
                                 <div class="d-flex align-items-center" @click="delProductCart(item)">
                                     <img src="@/assets/icon/close.png" alt="">
@@ -224,11 +243,11 @@
             <div v-if="order_option!=0&&payload.delivery_platform">
                 <div>
                     <Delivery ref="delivery" :store_token="store_token" :payload="payload"
-                        :is_update_order="is_update_order" :prop_receiver_name="name" :prop_receiver_phone="phone"
+                        :statusEditOrder="statusEditOrder" :prop_receiver_name="name" :prop_receiver_phone="phone"
                         :prop_receiver_email="email" :prop_receiver_address="address" :prop_receiver_city="city"
                         :prop_receiver_district="district" :prop_receiver_ward="ward" :prop_receiver_street="street"
                         :prop_total_price="total_price" @shipping_fee="shipping_fee=$event"
-                        :propSendMessage="sendMessage" />
+                        @free-ship='isFreeShip = $event' :propSendMessage="sendMessage" />
                 </div>
 
             </div>
@@ -236,7 +255,7 @@
             <div v-if="order_option==2&&payload.payment_platform">
                 <div>
                     <Payment ref="payment" :store_token="store_token" :payload="payload"
-                        :is_update_order="is_update_order" :prop_receiver_name="name" :prop_receiver_phone="phone"
+                        :statusEditOrder="statusEditOrder" :prop_receiver_name="name" :prop_receiver_phone="phone"
                         :prop_receiver_email="email" :prop_receiver_address="address" :prop_receiver_city="city"
                         :prop_receiver_district="district" :prop_receiver_ward="ward" :prop_product_info="product_info"
                         :total_price="total_price" @shipping_fee="shipping_fee=$event"
@@ -251,7 +270,10 @@
                     <p>Tổng tiền</p>
                     <p class="font__weight--600">{{ total_payment||0 | toCurrency }}</p>
                 </div>
-                <button class="margin__top--11 btn-pill mb-4 w-100" @click="handleCreateOrder">Tạo đơn hàng</button>
+                <button class="margin__top--11 btn-pill mb-4 w-100" style="pointer-events: all !important;"
+                    v-if="statusEditOrder==='new_order'" @click="handleEditOrder">Lưu sửa đơn</button>
+                <button class="margin__top--11 btn-pill mb-4 w-100" @click="handleCreateOrder" v-else>Tạo đơn
+                    hàng</button>
             </div>
         </div>
 
@@ -277,7 +299,7 @@
                 </div>
                 <div class="list-product">
                     <div v-if="!filter_list_product.length" class="product d-flex align-items-center"
-                        v-for="(item, index) in list_product" :key="index" @click="handleAddToCart(item)">
+                        v-for="(item, index) in Array.from(list_product)" :key="index" @click="handleAddToCart(item)">
                         <img class="border rounded mr-2"
                             :src="item.image || 'https://img.icons8.com/officexs/80/000000/spinner-frame-6.png'"
                             alt="product" />
@@ -488,6 +510,31 @@
                     <button class="btn-pill w-100 mx-2" @click="handleSaveMsg">Lưu</button>
                 </div>
 
+            </div>
+        </div>
+    </div>
+    <!-- modal save address -->
+    <div class="modal" :class="{'modal-transition':showSaveAddress}" v-if="showSaveAddress">
+        <div class="modal__msg">
+            <div style="margin-bottom: 1.5rem;">
+                <div class="close" @click="hideModalSavePlace">
+                    <img src="@/assets/close1.png" alt="">
+                </div>
+            </div>
+            <div class="padding__bottom--12" style="border-bottom: 1px solid #DFE1E4">
+                <p style="font-size: 13px; font-weight: 600; color: #140f2d">Chọn</p>
+            </div>
+            <div class="modal-option-save-place">
+                <div v-for="(item, index) in listSaveAddress">
+                    <div class="margin__bottom--12 d-flex align-items-center" v-if="index > 2">
+                        <input :id="'option-place-' + index" type="radio" :value="item" v-model="saveAddressModal">
+                        <label class="margin__left--12" :for="'option-place-' + index"><span class=""></span></label>
+                        <label :for="'option-place-' + index">{{item.address}}</label>
+                    </div>
+                </div>
+            </div>
+            <div class="margin__top--11">
+                <button class="btn-pill w-100" @click="handleFieldSaveAddress('modal')">Chọn địa chỉ này</button>
             </div>
         </div>
     </div>

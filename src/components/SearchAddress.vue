@@ -56,6 +56,7 @@ export default {
     "changeInput",
     "clearInput",
     "watch_data",
+    "watchDataBind"
   ],
   data() {
     return {
@@ -172,6 +173,9 @@ export default {
       // console.log("what data oldValue", oldValue);
       this.result = "";
     },
+    watchDataBind:function(){
+      this.result = this.watchDataBind.name
+    }
   },
   mounted() {
     document.addEventListener("click", this.handleClickOutside);

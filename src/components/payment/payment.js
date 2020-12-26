@@ -1,13 +1,13 @@
 import Restful from '@/services/resful.js'
 import orderTypeVnpay from "@/services/orderTypeVnpay.json"
 import SearchBankVnpay from "@/components/SearchAddress.vue"
-import { APICMS } from "@/services/domain.js"
+import { APICMS } from "@/services/constant.js"
 
 export default {
     components: {
         SearchBankVnpay
     },
-    props: ['store_token', 'payload', 'is_update_order', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_email', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_product_info', 'total_price', 'prop_total_payment', 'order_option', 'propSendMessage'],
+    props: ['store_token', 'payload', 'statusEditOrder', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_email', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_product_info', 'total_price', 'prop_total_payment', 'order_option', 'propSendMessage'],
     data() {
         return {
             list_type: [

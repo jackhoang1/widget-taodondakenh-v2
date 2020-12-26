@@ -1,5 +1,5 @@
 import EventBus from "@/EventBus.js";
-import { APICMS, APIBASE, secretKey } from "@/services/domain.js";
+import { APICMS, APIBASE, secretKey } from "@/services/constant.js";
 import Restful from "@/services/resful.js";
 
 const Toast2 = Swal.mixin({
@@ -25,6 +25,7 @@ export default {
             show_list_store: false,
             list_store: [],
             store_token: "",
+            store_email: "",
         }
     },
     methods: {
@@ -37,8 +38,11 @@ export default {
         handleChooseStore(item) {
             this.store_token = item.access_token
             this.$emit('store-token', item.access_token)
-            if (item.store_email)
+            if (item.store_email) {
+                this.store_email = item.store_email
                 this.updateSetting('store_email', { email: item.store_email })
+            }
+
             this.runOAuth()
         },
         async runSignIn() {
@@ -124,8 +128,7 @@ export default {
                     token_partner: this.store_token,
                 };
                 // Xác thực Widget
-                let oauth = await Restful.post(
-                    `${APIBASE}/v1/app/app-installed/update`, body)
+                let oauth = await Restful.post(`${APIBASE}/v1/app/app-installed/update`, body)
 
                 Toast2.fire({
                     icon: "success",
@@ -136,7 +139,7 @@ export default {
                     window.close()
                 }, 1000)
             } catch (e) {
-                console.log(e);
+                console.log('Error ::: login failed', e);
                 if (e &&
                     e.data &&
                     e.data.message &&

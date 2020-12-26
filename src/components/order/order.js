@@ -3,7 +3,7 @@ import Restful from "@/services/resful.js"
 import SearchAddress from "@/components/SearchAddress.vue"
 import Payment from "@/components/payment/Payment.vue"
 import Delivery from "@/components/delivery/Delivery.vue"
-import { APICMS } from "@/services/domain.js"
+import { APICMS } from "@/services/constant.js"
 
 const Toast = Swal.mixin({
     toast: true,
@@ -38,6 +38,7 @@ export default {
     },
     props: [
         'store_token',
+        'dataInit',
         'payload',
         'handleShowCreateOrder',
         'showLogin',
@@ -100,7 +101,7 @@ export default {
                 payment: 'Thanh toán đơn hàng {{order_id}} của bạn trên {{payment_name}}, vui lòng ấn nút "Thanh toán" bên dưới'
             },
             is_show_setting_msg: false,
-            is_update_order: false,
+            statusEditOrder: 'normal',
             wait_create_empty_order: false,
 
             show_modal_option: false,
@@ -119,22 +120,25 @@ export default {
                 branch: false,
                 product: false
             },
-
             order_option: 0,
+            listSaveAddress: '',
+            saveAddress: '',
+            saveAddressModal: '',
             is_cod: false,
             is_gateway: false,
-            info_delivery: "",
+            info_delivery: '',
             handle_api: false,
             reset_token: false,
             validate_info: false,
             is_loading: false,
             is_edit_msg: false,
+            isFreeShip: false,
+            showSaveAddress: false,
             showSetting: false,
             showSettingContent: true,
         };
     },
     created() {
-        console.log('create component order');
         if (this.store_token) {
             this.initialData()
             this.name = this.payload.name
@@ -211,6 +215,33 @@ export default {
                 }
             } catch (e) {
                 console.log("error", e)
+            }
+        },
+        async readCustomerAddress() {
+            try {
+                let customer_id = this.payload.customer_id
+
+                if (!customer_id) return
+
+                let path = `${APICMS}/v1/selling-page/customer/customer_address_read`
+                let headers = { Authorization: this.store_token }
+                let body = { customer_id }
+
+                let customerAddress = await Restful.post(path, body, null, headers)
+
+                if (
+                    customerAddress &&
+                    customerAddress.data &&
+                    customerAddress.data.data &&
+                    customerAddress.data.data.length > 0
+                ) {
+                    this.listSaveAddress = customerAddress.data.data
+                    if (this.listSaveAddress.length >= 4)
+                        this.saveAddressModal = this.listSaveAddress[3]
+                }
+
+            } catch (e) {
+                console.log(e);
             }
         },
         async handleShowPopup() {
@@ -303,9 +334,8 @@ export default {
             this.hideLogin()
             this.showModalSettingContent()
         },
-        async getCart() {
+        async getCart(_type) { // * lấy giỏ hàng
             try {
-                // Lấy giỏ hàng
                 let path = `${APICMS}/v1/selling-page/cart/cart_read`
                 let params = {
                     client_id: this.client_id,
@@ -321,7 +351,11 @@ export default {
                     get_cart.data.data &&
                     get_cart.data.data.cart
                 ) {
-                    this.cart = get_cart.data.data.cart
+                    if (!_type) {
+                        let cart = get_cart.data.data.cart
+                        this.cart = cart
+                    }
+
                     this.total_price = get_cart.data.data.total_price
                 }
             } catch (e) {
@@ -386,7 +420,7 @@ export default {
                 });
             }
         },
-        async delProductCart(item) {
+        async delProductCart(item) {// *     xoá 1 sản phẩm trong giỏ hàng
             try {
                 let path = `${APICMS}/v1/selling-page/cart/cart_delete_product`
                 let body = {
@@ -396,14 +430,22 @@ export default {
                 let headers = { Authorization: this.store_token }
 
                 let postDeleteCart = await Restful.post(path, body, null, headers)
+                if (
+                    postDeleteCart &&
+                    postDeleteCart.data &&
+                    postDeleteCart.data.data
+                ) {
+                    let product = postDeleteCart.data.data
+                    this.total_price = this.total_price - product.product_price * product.product_quantity
 
+                    this.cart = this.cart.filter((product, index) => {
+                        if (item.product_id !== product.product_id) return product
+                    })
+                }
                 Toast.fire({
                     icon: "success",
                     title: "Đã xóa sản phẩm",
                 });
-
-                // Load lại giỏ hàng
-                this.getCart();
             } catch (error) {
                 console.log("error", error);
                 Toast.fire({
@@ -412,9 +454,9 @@ export default {
                 });
             }
         },
-        async handleAddQuantity(item) {
+        async handleAddQuantity(item) { // * tăng 1 sản phẩm trong giỏ hàng
+
             try {
-                // Tăng số lượng sản phẩm trong giỏ hàng
                 let path = `${APICMS}/v1/selling-page/cart/cart_add_product`
                 let body = {
                     product_id: item.product_id,
@@ -422,10 +464,18 @@ export default {
                 }
                 let headers = { Authorization: this.store_token }
 
-                let postAddQuantity = await Restful.post(path, body, null, headers)
+                let addQuantity = await Restful.post(path, body, null, headers)
+                if (addQuantity && addQuantity.data && addQuantity.data.data) {
+                    let product = addQuantity.data.data
+                    this.total_price = this.total_price + product.product_price
 
-                // Load lại giỏ hàng
-                this.getCart()
+                    this.cart.map(product => {
+                        if (product.product_id === item.product_id) {
+                            product.product_quantity++
+                        }
+                        return product
+                    })
+                }
             } catch (error) {
                 console.log(error, "error");
                 Toast.fire({
@@ -434,9 +484,9 @@ export default {
                 })
             }
         },
-        async handleSubQuantity(item) {
+        async handleSubQuantity(item) {// * Giảm 1 sản phẩm trong giỏ hàng
+
             try {
-                // Giảm số lượng sản phẩm trong giỏ hàng
                 let path = `${APICMS}/v1/selling-page/cart/cart_sub_product`
                 let body = {
                     product_id: item.product_id,
@@ -444,10 +494,17 @@ export default {
                 }
                 let headers = { Authorization: this.store_token }
 
-                let postAddQuantity = await Restful.post(path, body, null, headers)
+                let subQuantity = await Restful.post(path, body, null, headers)
 
-                // Load lại giỏ hàng
-                this.getCart()
+                if (subQuantity && subQuantity.data && subQuantity.data.data) {
+                    this.getCart('get-total-price')
+                    this.cart.map(product => {
+                        if (product.product_id === item.product_id && item.product_quantity > 1) {
+                            product.product_quantity--
+                        }
+                        return product
+                    })
+                }
             } catch (error) {
                 console.log(error, "error")
                 Toast.fire({
@@ -468,6 +525,9 @@ export default {
             this.product_info.list_product = list_product
         },
         handleTotalPayment() {
+            if (this.isFreeShip) {
+                return this.total_payment = this.total_price
+            }
             this.total_payment = this.total_price + this.shipping_fee
         },
         validateEmail(email) {
@@ -497,17 +557,49 @@ export default {
             this.validate_failed.ward = !this.ward ? true : false
             this.validate_failed.street = !this.street ? true : false
             this.validate_failed.branch = !Object.keys(this.branch)[0] ? true : false
-            if (!this.name || !this.phone || !this.email || !this.country || !this.city || !this.district || !this.ward || !this.street) {
+            if (
+                !this.name ||
+                !this.phone ||
+                !this.email ||
+                !this.country ||
+                !this.city ||
+                !this.district ||
+                !this.ward ||
+                !this.street
+            ) {
                 return false
             }
+            if (!this.payload.psid) {
+                this.swalToast('Thiếu thông tin fb_client_id', 'error')
+                return 'failed'
+            }
+            if (!this.payload.asid) {
+                this.swalToast('Thiếu thông tin current_staff_id', 'error')
+                return 'failed'
+            }
+            if (!this.payload.customer_id) {
+                this.swalToast('Thiếu thông tin customer_id', 'error')
+                return 'failed'
+            }
+            if (!this.payload.fb_staff_name) {
+                this.swalToast('Thiếu thông tin fb_staff_name', 'error')
+                return 'failed'
+            }
+            if (!this.payload.fb_page_id) {
+                this.swalToast('Thiếu thông tin fb_page_id', 'error')
+                return 'failed'
+            }
             if (this.list_branch[0] && !Object.keys(this.branch)[0]) {
-                return false
+                this.swalToast('Thiếu thông tin chi nhánh', 'error')
+                return 'failed'
             }
             return true
         },
         validateAll() {
             let check = true
-            if (!this.validateOrder()) check = false
+            let validateOrder = this.validateOrder()
+            if (validateOrder === 'failed') check = 'failed'
+            if (!validateOrder) check = false
             //check validate components delivery, payment
             if (this.$refs.delivery) {
                 let validate_delivery = this.$refs.delivery.validateCreateDelivery()
@@ -547,12 +639,6 @@ export default {
         async handleCallApiOrder() {
             try {
                 if (!this.handleCreateOrder()) return
-                // Check xem đang tạo mới order hay update order
-                // if (this.is_update_order) {
-                //     this.updateOrder()
-                //     return
-                // }
-                // Ngăn spam "Tạo đơn hàng"
                 if (this.order_option == 1) {
                     this.is_cod = true
                     this.is_gateway = false
@@ -563,10 +649,13 @@ export default {
                     this.is_cod = false
                     this.is_gateway = false
                 }
+
                 let path = `${APICMS}/v1/selling-page/order/order_create`
                 let body = {
                     "customer_id": this.payload.customer_id,
                     "fb_client_id": this.payload.psid,
+                    "fb_staff_id": this.payload.asid,
+                    "fb_staff_name": this.payload.fb_staff_name,
                     "fb_page_id": this.payload.fb_page_id,
                     "is_cod": this.is_cod,
                     "is_gateway": this.is_gateway,
@@ -604,7 +693,7 @@ export default {
                     body.other_info.msg_config.access_token = this.store_token
                     body.other_info.info_delivery = this.info_delivery
                 }
-                if (!body.branchId) delete body.branchId    //????
+                if (!body.branchId) delete body.branchId    // *todo
                 if (this.platform_type === "MISA") {
                     delete body["branchId"]
                     body["BranchId"] = this.branch.id
@@ -625,7 +714,7 @@ export default {
                     delete body['customer_city_name']
                     delete body['customer_city_code']
                 }
-                if (this.is_update_order) {
+                if (this.statusEditOrder === 'draft_order') {
                     return this.updateOrder(body)
                 }
                 this.callOrder(path, body)
@@ -650,17 +739,6 @@ export default {
                     (create_order.data.data.order_info.snap_order ||
                         this.platform_type === "CUSTOM")
                 ) {
-                    // if (create_order.data.data.snap_order &&
-                    //     !create_order.data.data.snap_order.Success &&
-                    //     this.platform_type === "MISA"
-                    // ) {
-                    //     throw create_order.data.data.snap_order
-                    // }
-                    // if (this.platform_type !== "CUSTOM" &&
-                    //     create_order.data.data.snap_order.errors
-                    // ) {
-                    //     throw create_order.data.data.snap_order
-                    // }
                     let order_id = create_order.data.data.order_info.order_id
                     let time = create_order.data.data.order_info.updatedAt
                     if (this.order_option == 1) {
@@ -703,42 +781,10 @@ export default {
                     e.data &&
                     e.data.error_message &&
                     e.data.error_message.errorCode
-                ) {
-                    return this.swalToast(e.data.error_message.message, 'error')
-                }
-                // if (
-                //     e &&
-                //     e.data &&
-                //     e.data.error_message &&
-                //     e.data.error_message.message
-                // ) {
-                //     Toast2.fire({
-                //         icon: "error",
-                //         title: e.data.error_message.message,
-                //     });
-                //     return;
-                // }
-                if (e.data && e.data.error_message) {
-                    Toast2.fire({
-                        icon: "error",
-                        title: e.data.error_message,
-                    });
-                    return;
-                }
-                // if (e && e.errors) {
-                //     Toast2.fire({
-                //         icon: "error",
-                //         title: e.errors,
-                //     });
-                //     return;
-                // }
-                // if (e && e.ErrorMessage) {
-                //     Toast2.fire({
-                //         icon: "error",
-                //         title: e.ErrorMessage,
-                //     });
-                //     return;
-                // }
+                ) return this.swalToast(e.data.error_message.message, 'error')
+                if (e.data && e.data.error_message)
+                    return this.swalToast(e.data.error_message, 'error')
+
                 Toast2.fire({
                     icon: "error",
                     title: "Lỗi khi tạo đơn",
@@ -759,7 +805,8 @@ export default {
                 let postDeleteAllCart = await Restful.post(path, body, null, headers)
 
                 this.note = ''
-                this.getCart()
+                this.cart = []
+                this.total_price = 0
                 // Đóng chi tiết đơn hàng
                 this.closeOrderInfo()
             } catch (e) {
@@ -772,7 +819,7 @@ export default {
             let msg_payment = this.msg_content.payment.replace(/{{order_id}}/g, order_id).replace(/{{payment_name}}/g, payment_name)
             return { msg_order, msg_delivery, msg_payment }
         },
-        async sendMessage(order_id, url_payment, delivery_id, time = 1577840400000) {
+        async sendMessage(order_id, url_payment, delivery_id, time = 1577840400000) { // * gửi tin về mes (tạo order, giao vận, thanh toánnsf)
             try {
                 let msg_sample = this.covertMsgContent(order_id, delivery_id, this.payload.payment_platform)
                 let timestamp = Number(time.toString().slice(0, 10))
@@ -823,7 +870,7 @@ export default {
                                         "buttons": [
                                             {
                                                 "type": "web_url",
-                                                "url": `https://devbbh.tk/dev-cms/#/deliver/?access_token=${this.store_token}&order_id=${delivery_id}`,
+                                                "url": `${APICMS}/dev-cms/#/deliver/?access_token=${this.store_token}&order_id=${delivery_id}`,
                                                 "title": "Kiểm tra vận đơn"
                                             }
                                         ]
@@ -919,7 +966,7 @@ export default {
                 console.log("get product err", e)
             }
         },
-        convertProductData() {
+        convertProductData() { // * convert product variant
             let products = [].concat(this.list_product)
             this.list_product = []
 
@@ -948,7 +995,7 @@ export default {
                 this.list_product = this.list_product.concat(map_variant)
             })
         },
-        async getMoreProduct() {
+        async getMoreProduct() { // * lấy thêm product
             try {
                 let path = `${APICMS}/v1/selling-page/product/product_read`
                 let headers = { Authorization: this.store_token }
@@ -988,7 +1035,7 @@ export default {
                 console.log("get product err", e)
             }
         },
-        convertMoreProduct(products) {
+        convertMoreProduct(products) {// *  sau khi lấy thêm product => convert product có (variant)
             if (products.length === 0) return
             let findImage = (product, imageId) => {
                 if (product.images) {
@@ -1014,7 +1061,7 @@ export default {
                 this.list_product = this.list_product.concat(map_variant)
             });
         },
-        async initialData() {
+        async initialData() { // * khởi tạo data
             try {
                 if (this.payload.setting && this.payload.setting.setting_data) {
 
@@ -1028,11 +1075,11 @@ export default {
                 }
                 await this.getListProduct()
                 this.getListProvince()
-                this.getCart()
+                this.readCustomerAddress()
+                if (this.statusEditOrder === 'normal') this.getCart()
             } catch (e) {
                 console.log(e);
             }
-
         },
         async getBranchKiotviet() {
             try {
@@ -1167,21 +1214,87 @@ export default {
                     icon: "error",
                     title: "Đã xảy ra lỗi lấy chi nhanh Misa",
                 });
-                console.log("get branch err", e);
+                console.log("get branch err :::", e);
             }
         },
+        hanndleFieldAddress(item) {// * Chọn địa chỉ từ order => field vào câc trường address 
+            if (!item) return
+            this.street = item.customer_street_name
+            this.city = {}
+            this.city.name = item.customer_province_name || item.customer_city_name
+            this.city.code = item.customer_province_code || item.customer_city_code
 
+            this.city.meta_data = {}
+            this.city.meta_data.haravan = {}
+            this.city.meta_data.haravan.code = item.customer_province_code || item.customer_city_code
+
+            this.district = {}
+            this.district.name = item.customer_district_name
+            this.district.code = item.customer_district_code
+
+            this.district.meta_data = {}
+            this.district.meta_data.haravan = {}
+            this.district.meta_data.haravan.name = item.customer_district_name
+            this.district.meta_data.haravan.code = item.customer_district_code
+
+            this.ward = {}
+            this.ward.name = item.customer_ward_name
+            this.ward.code = item.customer_ward_code
+
+            this.ward.meta_data = {}
+            this.ward.meta_data.haravan = {}
+            this.ward.meta_data.haravan.name = item.customer_ward_name
+            this.ward.meta_data.haravan.code = item.customer_ward_code
+        },
+        handleFieldSaveAddress(type) {// * Chọn địa chỉ đã lưu => field vào câc trường address 
+            // if (!this.saveAddress) return
+            let address = ''
+            if (type === 'modal') {
+                address = this.saveAddressModal
+                this.saveAddress = ''
+            }
+            else {
+                address = this.saveAddress
+            }
+
+            this.street = address.street
+            this.city = {}
+            this.city.name = address.province
+            this.city.code = address.province_id || address.city_id
+
+            this.city.meta_data = {}
+            this.city.meta_data.haravan = {}
+            this.city.meta_data.haravan.code = address.province_id || address.city_id
+
+            this.district = {}
+            this.district.name = address.district
+            this.district.code = address.district_id
+
+            this.district.meta_data = {}
+            this.district.meta_data.haravan = {}
+            this.district.meta_data.haravan.name = address.district
+            this.district.meta_data.haravan.code = address.district_id
+
+            this.ward = {}
+            this.ward.name = address.ward
+            this.ward.code = address.ward_id
+
+            this.ward.meta_data = {}
+            this.ward.meta_data.haravan = {}
+            this.ward.meta_data.haravan.name = address.ward
+            this.ward.meta_data.haravan.code = address.ward_id
+            if (type === 'modal')
+                this.hideModalSavePlace()
+        },
         async getOrderInfo(item) {
-            // Reset client_id tránh loạn giỏ hàng
-            console.log('itemt', item);
+            // * Reset client_id tránh loạn giỏ hàng
             this.client_id = ''
-            // this.updateSetting('client_id', { client_id: null })
             this.cart = []
-            this.is_update_order = true
+            this.statusEditOrder = 'draft_order'
             this.name = item.customer_name
             this.phone = item.customer_phone
 
-            //customer không có email > email merchant
+            // *customer không có email > email merchant
             this.email = item.customer_email ||
                 (
                     (
@@ -1195,6 +1308,14 @@ export default {
             this.id = item.id
             this.order_id = item.order_id
             this.$emit('msg-info', item.other_info)
+            this.$emit('customer-id', item.customer_id)
+            if (item.status === 'new_order') {// *  sửa đơn mới   
+                this.statusEditOrder = 'new_order'
+                this.client_id = item.product_info[0].client_id
+                this.cart = item.product_info
+                this.hanndleFieldAddress(item)
+                this.$emit('msg-info', item.other_info)
+            }
         },
         async updateOrder(data) {
             try {
@@ -1212,7 +1333,7 @@ export default {
                     update_order.data.data.order_info &&
                     update_order.data.data.order_info.order_id
                 ) {
-                    this.is_update_order = false
+                    this.statusEditOrder = 'normal'
                     let order_info = update_order.data.data.order_info
                     let order_id = order_info.order_id
                     let time = 0
@@ -1241,7 +1362,6 @@ export default {
                     }, 1000)
                     setTimeout(() => {
                         EventBus.$emit("call-order")
-                        this.$emit("switch-header")
                         this.handleShowCreateOrder()
                     }, 1000)
                     this.is_loading = false
@@ -1287,6 +1407,124 @@ export default {
                 })
             }
         },
+        async handleEditOrder() {
+            try {
+                if (
+                    !this.id ||
+                    !this.phone ||
+                    !this.name ||
+                    !this.city ||
+                    !this.district ||
+                    !this.ward ||
+                    !this.street ||
+                    !this.payload.asid ||
+                    !this.payload.fb_staff_name
+                ) return Toast.fire({
+                    icon: "error",
+                    title: "Vui lòng điền đầy đủ thông tin",
+                })
+                this.is_loading = true
+                this.address = `${this.street}, ${this.ward.name}, ${this.district.name}, ${this.city.name}`
+                let path = `${APICMS}/v1/selling-page/order/order_update`
+                let headers = { Authorization: this.store_token }
+                let body = {
+                    "id": this.id,
+                    "staff_id_update": this.payload.asid,
+                    "staff_name_update": this.payload.fb_staff_name,
+                    "customer_name": this.name,
+                    "customer_phone": this.phone,
+                    "customer_address": this.address,
+                    "customer_city_name": this.city.name,
+                    "customer_province_name": this.city.name,
+                    "customer_district_name": this.district.name,
+                    "customer_ward_name": this.ward.name,
+                    "customer_street_name": this.street,
+                    "customer_province_code": this.city.code,
+                    "customer_district_code": this.district.code,
+                    "customer_ward_code": this.ward.code,
+                }
+                if (this.platform_type === "HARAVAN") {
+                    this.address = `${this.street}, ${this.ward.meta_data.haravan.name}, ${this.district.meta_data.haravan.name}, ${this.city.name}`;
+                    delete body["customer_city_name"]
+                    body["customer_province_name"] = this.city.name
+                    body["customer_province_code"] = this.city.meta_data.haravan.code
+                    body["customer_district_name"] = this.district.meta_data.haravan.name
+                    body["customer_district_code"] = this.district.meta_data.haravan.code
+                    body["customer_ward_name"] = this.ward.meta_data.haravan.name
+                    body["customer_ward_code"] = this.ward.meta_data.haravan.code
+                    body["customer_address"] = this.address
+                }
+                if (this.platform_type === 'ONLINE_CRM') {
+                    delete body['customer_city_name']
+                    delete body['customer_city_code']
+                }
+
+                let editOrder = await Restful.post(path, body, null, headers)
+
+                if (
+                    editOrder &&
+                    editOrder.data &&
+                    editOrder.data.data
+                ) {
+                    this.statusEditOrder = 'new_order'
+                    let order_info = editOrder.data.data
+                    let order_id = order_info.order_id
+                    let time = 0
+
+                    // if (order_info.updatedAt) {
+                    //     time = order_info.updatedAt
+                    //     this.sendMessage(order_id, null, null, time)
+                    // }
+                    setTimeout(() => {
+                        EventBus.$emit("call-order")
+                        this.handleShowCreateOrder()
+                    }, 1000)
+                    this.is_loading = false
+                    Toast2.fire({
+                        icon: "success",
+                        title: "Sửa đơn hàng thành công",
+                    })
+                } else {
+                    this.is_loading = false
+                    Toast.fire({
+                        icon: "error",
+                        title: "Đã xảy ra lỗi khi sửa đơn",
+                    })
+                }
+            } catch (e) {
+                this.is_loading = false
+                if (
+                    e &&
+                    e.data &&
+                    e.data.error_message &&
+                    e.data.error_message.message
+                ) {
+                    Toast2.fire({
+                        icon: "error",
+                        title: e.data.error_message.message,
+                    })
+                    return
+                }
+                if (e && e.data && e.data.error_message) {
+                    Toast2.fire({
+                        icon: "error",
+                        title: e.data.error_message,
+                    })
+                    return
+                }
+                if (e && e.errors) {
+                    Toast2.fire({
+                        icon: "error",
+                        title: e.errors,
+                    });
+                    return
+                }
+                Toast2.fire({
+                    icon: "error",
+                    title: "Đã xảy ra lỗi khi sửa đơn",
+                })
+            }
+        },
         checkPayment() {
             if (!this.payload.payment_platform) {
                 return this.swalToast("Hãy cài đặt thanh toán để sử dụng chức năng này!", "warning")
@@ -1318,6 +1556,12 @@ export default {
         },
         handleResetMsg() {
             this.msg_content = this.msg_content_reset
+        },
+        showModalSavePlace() {
+            this.showSaveAddress = true
+        },
+        hideModalSavePlace() {
+            this.showSaveAddress = false
         },
         swalToast(title, icon) {
             const Toast = Swal.mixin({
@@ -1353,14 +1597,14 @@ export default {
         shipping_fee: function () {
             this.handleTotalPayment()
         },
-        order_option: function (newValue) {
-            if (newValue == 0) this.shipping_fee = 0
+        order_option: function (newVal) {
+            if (newVal == 0) this.shipping_fee = 0
         },
         'payload.platform_type': function () {
             this.platform_type = this.payload.platform_type
         },
-        'payload.setting': function (nValue, oValue) {
-            console.log('watch run 1111');
+        'payload.setting': function (newVal, oldVal) {
+            console.log('watch run :::');
             if (
                 this.payload.setting &&
                 this.payload.setting.setting_data
@@ -1375,6 +1619,14 @@ export default {
                 if (setting.msg_content)
                     this.msg_content = setting.msg_content
             }
+        },
+        saveAddress: function (newVal) {
+            if (newVal)
+                this.handleFieldSaveAddress()
+        },
+        isFreeShip: function () {
+            console.log('is free ship');
+            this.handleTotalPayment()
         }
     },
     filters: {
@@ -1390,6 +1642,9 @@ export default {
             })
             return formatter.format(value);
         },
+    },
+    beforeDestroy() {
+        this.$emit('init-Data-When-Destroy-Comp-Order', this.dataInit)
     },
     destroyed() {
         EventBus.$off("get-order", (item) => {

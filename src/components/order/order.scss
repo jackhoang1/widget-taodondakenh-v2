@@ -1,6 +1,9 @@
 .app {
     overflow: hidden;
     position: relative;
+    .disable-pointer-envent{
+        pointer-events: none;
+    }
 }
 .order-header {
     padding: 16px 12px 12px;
@@ -8,6 +11,26 @@
 .order-customer {
     position: relative;
     padding: 0 12px;
+    .order-customer-save-address {
+        label {
+            cursor: pointer;
+        }
+        img {
+            height: 16px;
+            width: 16px;
+        }
+        .save-address-title{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            div{
+                cursor: pointer;
+            }
+        }
+        .save-address-radio{
+            cursor: pointer;
+        }
+    }
     .order-option {
         margin: 8px 0;
         input {
@@ -23,6 +46,9 @@
         }
         p {
             font-weight: 600;
+        }
+        label {
+            cursor: pointer;
         }
         .order-option-main {
             position: relative;
@@ -58,12 +84,12 @@
                     margin: 0;
                     width: 15px;
                 }
-                .quantity-sub-add{
-                    border: 1px solid #DFE1E4;
+                .quantity-sub-add {
+                    border: 1px solid #dfe1e4;
                     border-radius: 4px;
                     height: 24px;
                     width: 78px;
-                    img{
+                    img {
                         width: 16px;
                         height: 16px;
                         cursor: pointer;
@@ -72,7 +98,7 @@
             }
             .price {
                 font-weight: 600;
-                color: #FF5F0B;
+                color: #ff5f0b;
                 p {
                     margin: 0;
                 }
@@ -186,7 +212,7 @@
                 margin: 8px 0 12px;
             }
             .more-btn-close {
-                padding:0 12px 12px;
+                padding: 0 12px 12px;
                 button {
                     width: 100%;
                 }
@@ -331,7 +357,7 @@
             // text-align: center;
         }
     }
-    .modal__content--loading{
+    .modal__content--loading {
         background: none !important;
     }
     .modal__msg {
@@ -349,6 +375,12 @@
             background: #fff;
             color: $colorAccent;
             border: 1px solid $colorAccent;
+        }
+        .modal-option-save-place {
+            margin-top: 12px;
+            label {
+                cursor: pointer;
+            }
         }
     }
 }

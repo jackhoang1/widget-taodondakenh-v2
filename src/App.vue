@@ -11,6 +11,7 @@
       :access_token="access_token"
       :forceRerender="forceRerender"
       @store-token="store_token = $event"
+      @fb-page-id="payload.fb_page_id = $event"
     >
     </Login>
     <!--End Authentication -->
@@ -90,25 +91,16 @@
       </section>
       <!-- End header widget -->
       <!-- Comp Create order -->
-      <!-- <section id="create-order">
-        <div style="position: relative">
- 
-          <div>
-            <div class="create__order" v-show="show_order">
-           
-            </div>
-          </div>
-        </div>
-      </section> -->
-      <!-- test modal -->
-      <div class="modal" v-show="show_order">
+      <div class="modal" v-if="show_order">
         <div class="modal__content">
           <div class="close" @click="handleHideCreateOrder">
             <img src="@/assets/close1.png" alt="" />
           </div>
           <div>
-            <create-order
+            <CreateOrder
+              ref="createOrder"
               :store_token="store_token"
+              :dataInit="dataInit"
               :payload="payload"
               :handleShowCreateOrder="handleShowCreateOrder"
               :showLogin="showLogin"
@@ -118,20 +110,36 @@
               :key="componentKey"
               @platform_type="payload.platform_type = $event"
               @msg-info="getMsgInfoDraft"
+              @customer-id="getCustomerId"
+              @init-Data-When-Destroy-Comp-Order="getInitData"
             />
           </div>
         </div>
       </div>
-
       <!-- End Comp Create order -->
-      <list-order
+      <!-- Comp list Order -->
+      <ListOrder
         ref="listOrder"
         :store_token="store_token"
         :payload="payload"
         :handleShowCreateOrder="handleShowCreateOrder"
+        :readSetting="readSetting"
+        :updateSetting="updateSetting"
         :key="componentKey"
         @platform="getPlatform"
       />
+      <!-- end list order -->
+      <!-- comp edit order -->
+      <!-- <div class="modal" v-show="showEditOrder">
+        <div class="modal__content">
+          <div class="close" @click="handleHideEditOrder">
+            <img src="@/assets/close1.png" alt="" />
+          </div>
+          <div>
+            <EditOrder />
+          </div>
+        </div>
+      </div> -->
     </div>
   </div>
 </template>
@@ -141,8 +149,9 @@ import EventBus from "./EventBus.js";
 import Restful from "@/services/resful.js";
 import CreateOrder from "@/components/order/Order.vue";
 import ListOrder from "@/components/order/ListOrder.vue";
+// import EditOrder from "@/components/editOrder/EditOrder.vue";
 import Login from "@/components/login/Login.vue";
-import { APICMS, APIBASE, APISETTING, secretKey } from "@/services/domain.js";
+import { APICMS, APIBASE, APISETTING, secretKey } from "@/services/constant.js";
 
 let urlString = location.href;
 let url = new URL(urlString);
@@ -178,10 +187,12 @@ export default {
     ListOrder,
     CreateOrder,
     Login,
+    // EditOrder,
   },
   data() {
     return {
       componentKey: 0,
+      componentCreateOrderKey: 0,
       isLogin: false,
       is_oauth: false,
       secretKey: secretKey,
@@ -195,9 +206,15 @@ export default {
       list_store: [],
 
       store_token: "",
+      dataInit: {
+        customer_id: "",
+        psid: "",
+        token_bbh: "",
+      },
       payload: {
         psid: "",
         asid: "",
+        fb_staff_name: "",
         fb_page_id: "",
         token_bbh: "",
         delivery_platform: "",
@@ -263,7 +280,10 @@ export default {
               this.payload.name = customer.public_profile.client_name;
             }
             if (customer.public_profile.fb_client_id) {
-              this.payload.psid = customer.public_profile.fb_client_id;
+              let psid = customer.public_profile.fb_client_id;
+
+              this.payload.psid = psid;
+              this.dataInit.psid = psid;
             }
             if (customer.public_profile.fb_page_id) {
               this.payload.fb_page_id = customer.public_profile.fb_page_id;
@@ -271,10 +291,16 @@ export default {
             if (customer.public_profile.current_staff_id) {
               this.payload.asid = customer.public_profile.current_staff_id;
             }
+            if (customer.public_profile.current_staff_name) {
+              this.payload.fb_staff_name =
+                customer.public_profile.current_staff_name;
+            }
           }
           if (customer.conversation_chatbot) {
-            this.payload.token_bbh =
-              customer.conversation_chatbot.bbh_public_token;
+            let token_bbh = customer.conversation_chatbot.bbh_public_token;
+
+            this.payload.token_bbh = token_bbh;
+            this.dataInit.token_bbh = token_bbh;
           }
           if (
             customer.conversation_contact &&
@@ -290,7 +316,9 @@ export default {
               .split(".")
               .join("")
               .split(" ")
-              .join("");
+              .join("")
+              .split("+84")
+              .join("0");
           }
           this.createCustomer();
         }
@@ -300,12 +328,13 @@ export default {
         console.log("info err", e);
       }
     },
-    //get platform from comp list_order
     getPlatform(delivery_platform, payment_platform) {
+      // * lấy thông tin platform từ emit comp order
       this.payload.delivery_platform = delivery_platform;
       this.payload.payment_platform = payment_platform;
     },
     getMsgInfoDraft(msg_info) {
+      // * lấy thông tin sendmes từ emit comp order
       if (msg_info) {
         this.payload.psid = msg_info.psid;
         this.payload.token_bbh = msg_info.token_bbh;
@@ -316,7 +345,26 @@ export default {
         title: "Không có thông tin msg_info",
       });
     },
+    getCustomerId(customerId) {
+      // * lấy thông tin customer_id từ emit comp order
+      if (customerId) {
+        this.payload.customer_id = customerId;
+        return;
+      }
+      Toast2.fire({
+        icon: "error",
+        title: "Không có thông tin customer_id",
+      });
+    },
+    getInitData(data) {
+      if (data) {
+        this.payload.customer_id = data.customer_id;
+        this.payload.psid = data.psid;
+        this.payload.token_bbh = data.token_bbh;
+      }
+    },
     async createCustomer() {
+      // * tìm kiếm và tạo thông tin khách hàng
       try {
         let path = `${APICMS}/v1/selling-page/customer/customer_find_or_create`;
         let headers = { Authorization: this.store_token };
@@ -336,7 +384,9 @@ export default {
           create_customer.data.data &&
           create_customer.data.data.id
         ) {
-          this.payload.customer_id = create_customer.data.data.id;
+          let id = create_customer.data.data.id;
+          this.payload.customer_id = id;
+          this.dataInit.customer_id = id;
         }
       } catch (e) {
         console.log(e);
@@ -348,61 +398,80 @@ export default {
     },
     async createSetting() {
       try {
+        let fb_page_id = this.payload.fb_page_id;
+        let asid = this.payload.asid;
+        if (!fb_page_id || !asid) return;
+
         let path = `${APISETTING}/v1/setting/WidgetSetting/create_setting`;
         let body = {
-          fb_page_id: this.payload.fb_page_id,
-          asid: this.payload.asid,
+          fb_page_id,
+          asid,
           secret_key: secretKey,
           setting_data: "",
         };
 
         let create_setting = await Restful.post(path, body, null, null);
       } catch (e) {
-        console.log(e);
+        console.log("Error ::: create setting failed", e);
       }
     },
     async readSetting() {
       try {
+        let fb_page_id = this.payload.fb_page_id;
+
+        if (!fb_page_id) return;
+
         let path = `${APISETTING}/v1/setting/WidgetSetting/read_setting`;
         let body = {
-          fb_page_id: this.payload.fb_page_id,
+          fb_page_id,
           secret_key: secretKey,
-          asid: this.payload.asid,
         };
 
         let read_setting = await Restful.post(path, body, null, null);
 
         if (read_setting && read_setting.data && read_setting.data.data) {
           let setting = read_setting.data.data;
-          if (setting.length === 0) return this.createSetting();
+          if (setting.length === 0) {
+            await this.createSetting();
+            return;
+          }
           this.payload.setting = setting[0];
         }
       } catch (e) {
-        console.log(e);
+        console.log("Error ::: read setting failed", e);
       }
     },
     async updateSetting(name, data) {
       try {
         if (
+          !this.payload.setting.id ||
           !data ||
           (name !== "store_email" &&
             name !== "client_id" &&
-            name !== "msg_content")
+            name !== "msg_content" &&
+            name !== "filter_order")
         )
           return;
 
         let setting_data = { ...this.payload.setting.setting_data };
 
-        if (name === "store_email") {
-          setting_data.store_email = data.email;
+        switch (name) {
+          case "store_email":
+            setting_data.store_email = data.email;
+            break;
+          case "client_id":
+            setting_data.client_id = data.client_id;
+            break;
+          case "msg_content":
+            setting_data.msg_content = data.msg_content;
+            break;
+          case "filter_order":
+            setting_data.filter_order = data.filter_order;
+            break;
+          default:
+            console.log("Error ::: name is update not found");
+            break;
         }
-        if (name === "client_id") {
-          setting_data.client_id = data.client_id;
-        }
-        if (name === "msg_content") {
-          setting_data.msg_content = data.msg_content;
-        }
-
         let path = `${APISETTING}/v1/setting/WidgetSetting/update_setting`;
         let body = {
           id: this.payload.setting.id,
@@ -728,6 +797,9 @@ select {
 .padding__right--12 {
   padding-right: 12px;
 }
+.padding__bottom--12 {
+  padding-bottom: 12px;
+}
 .margin__left--8 {
   margin-left: 8px;
 }
@@ -786,6 +858,7 @@ select {
 }
 .close {
   position: absolute;
+  z-index: 999;
   background: $colorNeutral38;
   top: -10px;
   right: -7px;
@@ -865,7 +938,7 @@ input[type="checkbox"]:checked + label span {
 .modal {
   position: absolute;
   top: 0;
-  padding: 90px 0;
+  padding: 40px 0;
   z-index: 999;
   background: rgba(0, 0, 0, 0.7);
   min-height: 100%;

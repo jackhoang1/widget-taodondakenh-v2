@@ -1,10 +1,18 @@
 <div class="list__order">
+    <div class="list__order--filter d-flex justify-content-between align-items-center margin__bottom--8">
+        <p class="text__second--medium font__weight--600">Lọc đơn hàng</p>
+        <select class="list__order--filter-order form-control-sm input-group input-group-sm" v-model="filterOrder"
+            @change="handlefilterOrder">
+            <option value="all">Tất cả</option>
+            <option value="customer">Từng khách</option>
+        </select>
+    </div>
     <div class="order" :class="{'list-short':is_short}">
         <!-- Danh sách đơn hàng -->
         <div v-if="list_order.length == 0" style="text-align:center;padding-top:10%;">Bạn chưa có đơn hàng!</div>
         <div class="order__detail" v-for="(item, index) in list_order" :key="index">
             <div class="order__title d-flex align-items-center" @click="handleClickOrder(index,null,item.status)">
-                <!-- ///////////////////////////////////////Trạng thái đơn hàng //////////////////////////////////////// -->
+                <!-- Trạng thái đơn hàng  -->
                 <div class="order__title--status d-flex justify-content-between align-items-center w-100">
                     <div class="d-flex">
                         <div class="order__status--icon-draft" v-if="item.status=='draft_order'">
@@ -127,13 +135,14 @@
                     </div>
                 </div>
             </div>
-            <!--//////// Đơn hàng mở rộng ////////-->
+            <!-- Đơn hàng mở rộng  -->
             <div class="order__expand expand__hide">
-                <!-- ////////        Trạng thái          ///////// -->
+                <!-- Trạng thái          -->
                 <div class="process d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center">
                         <div class="d-flex align-items-center" v-if="item.status=='new_order'">
                             <div class="order__expand--icon-new d-flex align-items-center">
+
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                                     xmlns="http://www.w3.org/2000/svg">
                                     <rect width="24" height="24" rx="4" fill="#F2C94C" />
@@ -230,11 +239,11 @@
                                 @click="updateStatusOrder('cancel_order', item, index)">Huỷ</p>
                         </div>
                     </div>
-
                 </div>
-                <!-- //////////////////////////////////////////////////////// -->
+                <!-- ------------------------------- -->
                 <hr style="margin:0">
                 <div class="order__expand--content">
+                    <!-- đơn nháp -->
                     <div class="margin__bottom--8 d-flex justify-content-between align-items-center"
                         v-if="item.status=='draft_order'">
                         <div class="d-flex align-items-center">
@@ -250,17 +259,29 @@
                             </div>
                             <p class="text__neutral--medium">Đơn nháp</p>
                         </div>
-                        <div class="tooltip cursor__pointer padding__right--18 d-flex align-items-center"
+                        <div class="order__expand--icon-edit tooltip cursor__pointer padding__right--18 d-flex align-items-center"
                             @click="handleClickEdit(item)">
-                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M16.9452 1.0549C16.2649 0.374625 15.3605 0 14.3986 0C13.4366 0 12.5321 0.374625 11.8519 1.05486L1.78684 11.12C1.7012 11.2056 1.63915 11.3119 1.60667 11.4286L0.0257606 17.1083C-0.0424074 17.3533 0.0269559 17.616 0.207272 17.7954C0.340866 17.9282 0.519882 18 0.703187 18C0.767242 18 0.831859 17.9912 0.895245 17.9732L6.57499 16.3599C6.81461 16.2918 7.00038 16.102 7.06324 15.8609C7.1261 15.6199 7.0567 15.3635 6.88081 15.1871L3.30008 11.5955L11.6432 3.25234L14.746 6.35516L8.35903 12.7247C8.08407 12.999 8.08347 13.4441 8.35769 13.7191C8.63187 13.9941 9.07713 13.9946 9.35205 13.7205L16.9451 6.14809C17.6254 5.46785 18 4.56346 18 3.60148C18 2.6395 17.6254 1.7351 16.9452 1.0549ZM5.04122 15.3337L1.71657 16.278L2.64768 12.9329L5.04122 15.3337ZM15.9514 5.15303L15.7417 5.36217L12.6376 2.25798L12.8463 2.04922C13.2609 1.63459 13.8122 1.40625 14.3986 1.40625C14.9849 1.40625 15.5361 1.63459 15.9508 2.04926C16.3654 2.46386 16.5938 3.01511 16.5938 3.60148C16.5938 4.18785 16.3654 4.7391 15.9514 5.15303Z"
-                                    fill="#4F596A" />
-                            </svg>
+                            <img src="@/assets/icon/pen-edit.svg" alt="">
                             <span class="tooltip-left">Sửa đơn nháp</span>
                         </div>
                     </div>
+                    <!-- end -->
+                    <!-- đơn mới -->
+                    <div class="margin__bottom--8 d-flex justify-content-between align-items-center"
+                        v-if="item.status=='new_order'">
+                        <div class="d-flex align-items-center">
+                            <div class="order__expand--icon-info d-flex align-items-center">
+                                <img src="@/assets/icon/new-order-star.png" alt="">
+                            </div>
+                            <p class="text__neutral--medium">Đơn mới</p>
+                        </div>
+                        <div class="order__expand--icon-edit tooltip cursor__pointer padding__right--18 d-flex align-items-center"
+                            @click="handleClickEdit(item)">
+                            <img src="@/assets/icon/pen-edit.svg" alt="">
+                            <span class="tooltip-left">Sửa đơn mới</span>
+                        </div>
+                    </div>
+                    <!-- end -->
                     <div class="margin__bottom--8 d-flex align-items-center">
                         <div class="order__expand--icon-info">
                             <svg class="d-flex" width="12" height="13" viewBox="0 0 12 13" fill="none"
@@ -283,7 +304,7 @@
                         </div>
                         <p class="text__neutral--medium">{{item.customer_phone}}</p>
                     </div>
-                    <div class="margin__bottom--8 d-flex align-items-center">
+                    <div class="order__expand--content-time margin__bottom--8 d-flex align-items-center">
                         <div class="order__expand--icon-info">
                             <svg class="d-flex" width="14" height="14" viewBox="0 0 14 14" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
@@ -292,9 +313,12 @@
                                     fill="#848B97" />
                             </svg>
                         </div>
-                        <p class="text__neutral--medium">Tạo lúc: {{computeTime(item.createdAt)}}</p>
+                        <p class="text__neutral--medium">
+                            <span class="text__accent--medium" v-if="item.fb_staff_name">{{item.fb_staff_name}}</span>
+                            tạo lúc: {{computeTime(item.createdAt)}}
+                        </p>
                     </div>
-                    <div class="margin__bottom--8 d-flex align-items-center">
+                    <div class="order__expand--content-time margin__bottom--8 d-flex align-items-center">
                         <div class="order__expand--icon-info">
                             <svg class="d-flex" width="14" height="14" viewBox="0 0 14 14" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
@@ -303,7 +327,10 @@
                                     fill="#848B97" />
                             </svg>
                         </div>
-                        <p class="text__neutral--medium">Cập nhật trạng thái: {{computeTime(item.updatedAt)}}</p>
+                        <p class="text__neutral--medium">
+                            <span class="text__accent--medium" v-if="item.fb_staff_name">{{item.staff_name_update}}
+                            </span>cập nhật: {{computeTime(item.updatedAt)}}
+                        </p>
                     </div>
                 </div>
             </div>

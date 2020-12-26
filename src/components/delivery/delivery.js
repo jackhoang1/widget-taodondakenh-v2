@@ -1,11 +1,11 @@
 import Restful from "@/services/resful.js"
 import Autocomplete from "@/components/SearchAddress.vue"
 import EventBus from "@/EventBus.js"
-import { APICMS } from "@/services/domain.js"
+import { APICMS } from "@/services/constant.js"
 
 export default {
     components: { Autocomplete },
-    props: ['store_token', 'payload', 'is_update_order', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_email', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_receiver_street', 'prop_total_price', 'order_option', 'propSendMessage'],
+    props: ['store_token', 'payload', 'statusEditOrder', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_email', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_receiver_street', 'prop_total_price', 'order_option', 'propSendMessage'],
     data() {
         return {
             list_inventories: "",
@@ -75,11 +75,12 @@ export default {
                 other_info: {
                     transport: false,
                 },
-                order_value_num: false,
+                prop_total_price: false,
             },
             coupon_real_ghn: true,
             option_save_info: true,
             handle_api: false,
+            isFreeShip: false,
             is_show_popup: false,
             is_show_note: false,
             is_affiliate: true,
@@ -87,13 +88,11 @@ export default {
         };
     },
     async created() {
-        console.log('payload', this.payload);
     },
     async mounted() {
         this.getInventory()
         this.formatNumber(this.prop_total_price)    //default cod_amount = total_price
         this.initialization
-        console.log(' this.order_info.sender_email', this.order_info.sender_email);                        //default hình thức thanh toán
     },
     computed: {
         initialization() {   //default mã ghi chú bắt buộc(GHN), hình thức thanh toán , phân loại sản phẩm(VTP)
@@ -414,7 +413,7 @@ export default {
                     'receiver_province': this.order_info.receiver_city.meta_data.ghn.province_id,
                     'receiver_district': this.order_info.receiver_district.meta_data.ghn.district_id,
                     'receiver_ward': this.order_info.receiver_ward.meta_data.ghn.code,
-                    'code_amount': this.order_info.code_amount_num,
+                    'cod_amount': parseInt(this.order_info.cod_amount_num),
                     'shop_id': this.order_info.inventory._id,
                     'content': `${product_info.list_product} [Tổng số lượng ${product_info.total_item}]`,
                     'required_note': this.order_info.required_note,
@@ -439,9 +438,8 @@ export default {
                     'receiver_province': this.order_info.receiver_city.name,
                     'receiver_district': this.order_info.receiver_district.name,
                     'receiver_ward': this.order_info.receiver_ward.name,
-                    'code_amount': this.order_info.code_amount_num,
+                    'cod_amount': parseInt(this.order_info.cod_amount_num),
                     'order_value': parseInt(this.prop_total_price),
-                    'cod_amount': parseInt(this.order_info.cod_amount),
                     'other_info': {
                         'transport': this.order_info.other_info.transport,
                         'is_freeship': this.order_info.order_payment.value
@@ -485,7 +483,7 @@ export default {
             if (this.payload.delivery_platform == 'GHTK') {
                 this.validate_failed.other_info.transport = !this.order_info.other_info.transport ? true : false
                 this.validate_failed.weight = !this.order_info.weight || this.order_info.weight / 1000 > 20 ? true : false
-                this.validate_failed.order_value_num = !this.order_info.order_value_num || this.order_info.order_value_num >= 20000000 ? true : false
+                this.validate_failed.prop_total_price = !this.order_info.prop_total_price || this.order_info.prop_total_price >= 20000000 ? true : false
             }
             //handle validate
             if (!this.order_info.inventory || !this.order_info.order_payment || !this.order_info.weight) { return false }
@@ -506,6 +504,13 @@ export default {
                     this.swalToast('Vui lòng nhập mã OTP phân quyền cho Bot Bán Hàng làm nhân viên lên đơn', 'warning')
                     return 'failed'
                 }
+                if (this.prop_total_price > 10000000) {
+                    this.swalToast('Giá trị đơn hàng để tính phí bảo hiểm không quá 10.000.000đ', 'warning')
+                }
+                if (this.order_info.cod_amount_num > 50000000) {
+                    this.swalToast('Lượng tiền mặt để tài xế thu thập từ người nhận không quá 50.000.000đ', 'warning')
+                    return 'failed'
+                }
                 if (
                     !this.order_info.required_note ||
                     !this.coupon_real_ghn == true
@@ -519,7 +524,7 @@ export default {
                     this.swalToast('Khối lượng tổng đơn hàng không quá 20kg', 'warning')
                     return 'failed'
                 }
-                if (this.order_info.order_value_num >= 20000000) {
+                if (this.prop_total_price > 20000000) {
                     this.swalToast('Giá trị đơn hàng để tính phí bảo hiểm không quá 20.000.000đ', 'warning')
                     return 'failed'
                 }
@@ -685,6 +690,19 @@ export default {
                 })
             }
         },
+        checkFreeShip(order_payment) {
+            console.log('order_payment', order_payment);
+            if (!order_payment) return
+            if (
+                (this.payload.delivery_platform === 'VIETTEL_POST' && order_payment.value == 4) ||
+                (this.payload.delivery_platform === 'GHN' && order_payment.value == 1) ||
+                (this.payload.delivery_platform === 'GHTK' && order_payment.value == 1)
+            )
+                this.isFreeShip = true
+            else
+                this.isFreeShip = false
+            this.$emit('free-ship', this.isFreeShip) // *  emit to comp order
+        },
         async checkKeyBoard(event, string) {
             if (
                 event.keyCode == 37 ||
@@ -800,6 +818,10 @@ export default {
         },
         'order_info.order_service': function () {
             this.handleShippingFeeVTP()
+        },
+        'order_info.order_payment': function (newVal) {
+            console.log('order_info.order_payment', this.order_info.order_payment);
+            this.checkFreeShip(newVal)
         }
     },
     filters: {

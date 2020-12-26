@@ -1,7 +1,7 @@
 <div class="delivery">
     <div class="delivery__main">
         <hr>
-        <p class="text__second--large margin__bottom--12">Vận đơn {{payload.delivery_platform}}</p>
+        <p class="text__second--medium font__weight--600 margin__bottom--12">Vận đơn {{payload.delivery_platform}}</p>
         <!-- address customer -->
         <div class="delivery__inventory">
             <div class="margin__bottom--12 form-row">
@@ -27,7 +27,7 @@
             </div>
             <!-- VTP sender email -->
             <div class="margin__bottom--12 form-row"
-                v-if="!payload.setting.setting_data.store_email&&payload.delivery_platform=='VIETTEL_POST'">
+                v-if="(!payload.setting||!payload.setting.setting_data||!payload.setting.setting_data.store_email)&&payload.delivery_platform=='VIETTEL_POST'">
                 <div class="col">
                     <input class="form-control-sm" :class="{'validate-failed':validate_failed.sender_email}" type="text"
                         placeholder="Email bên gửi..." v-model="order_info.sender_email">

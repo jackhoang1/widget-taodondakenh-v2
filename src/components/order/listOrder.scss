@@ -1,4 +1,3 @@
-
 @mixin orderStatus {
     height: 40px;
     width: 40px;
@@ -8,6 +7,13 @@
     align-items: center;
     margin-right: 12px;
 }
+.list__order--filter {
+    padding: 0 25px 0 20px;
+    .list__order--filter-order {
+        width: 110px;
+    }
+}
+
 .note {
     min-height: 100px;
     textarea {
@@ -111,10 +117,16 @@
         }
         .order__expand--icon-info {
             margin-right: 14px;
+            img {
+                margin-right: 0;
+            }
         }
-        // > div {
-        //     display: none !important;
-        // }
+        .order__expand--icon-edit {
+            img {
+                width: 18px;
+                height: 18px;
+            }
+        }
     }
     .expand__border {
         border: 1px solid #dfe1e4;
@@ -219,6 +231,13 @@
     }
     .order__expand--content {
         padding: 16px 0 0 18px;
+        .order__expand--content-time{
+            p{
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
     }
 }
 .more {
