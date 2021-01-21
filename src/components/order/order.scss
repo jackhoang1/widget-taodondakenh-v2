@@ -1,7 +1,7 @@
 .app {
     overflow: hidden;
     position: relative;
-    .disable-pointer-envent{
+    .disable-pointer-envent {
         pointer-events: none;
     }
 }
@@ -19,15 +19,15 @@
             height: 16px;
             width: 16px;
         }
-        .save-address-title{
+        .save-address-title {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            div{
+            div {
                 cursor: pointer;
             }
         }
-        .save-address-radio{
+        .save-address-radio {
             cursor: pointer;
         }
     }
@@ -71,8 +71,8 @@
             position: relative;
             &:hover {
                 transition: transform 0.15s, background 0.15s;
-                -webkit-transform: scale(1.03);
-                transform: scale(1.03);
+                -webkit-transform: scale(1.01);
+                transform: scale(1.01);
                 -webkit-box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
                 box-shadow: 0px 1px 3px rgba(126, 142, 177, 0.2);
             }
@@ -174,7 +174,7 @@
         }
     }
     .list-product {
-        margin-bottom: 70px;
+        margin-bottom: 110px;
         max-height: calc(100% - 50px);
         overflow-y: visible;
         position: relative;
@@ -186,33 +186,43 @@
             padding: 5px 5px;
             &:hover {
                 transition: transform 0.1s, background 0.1s;
-                -webkit-transform: scale(1.03);
-                transform: scale(1.03);
+                -webkit-transform: scale(1.01);
+                transform: scale(1.01);
                 -webkit-box-shadow: 0px 0px 3px rgba(126, 142, 177, 0.2);
                 box-shadow: 0px 0px 3px rgba(126, 142, 177, 0.2);
             }
-            img {
+            .product-image {
                 width: 40px;
                 height: 40px;
+            }
+            .product-content {
+                width: 100%;
+                .product-name {
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+                img {
+                    position: absolute;
+                    right: 5px;
+                    top: 5px;
+                }
             }
         }
         .more {
             position: fixed;
             bottom: 0;
-            padding-bottom: 10px;
             background: #fff;
             left: 0;
             right: 0;
             text-align: center;
-            img {
+            .more-btn-active {
                 cursor: pointer;
-                width: 20px;
-                height: 15px;
-                opacity: 0.6;
-                margin: 8px 0 12px;
+                padding: 8px 0 18px 0;
             }
             .more-btn-close {
-                padding: 0 12px 12px;
+                padding: 16px 0;
+                border-top: 1px solid #dfe1e4;
                 button {
                     width: 100%;
                 }

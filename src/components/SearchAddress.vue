@@ -74,7 +74,7 @@ export default {
     onChange() {
       if (!this.list_data_input) return;
       // Let's warn the parent that a change was made
-      this.$emit("data_output", this.data_output);
+      this.$emit("data-output", this.data_output);
       if (this.changeInput) {
         this.changeInput();
       }

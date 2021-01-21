@@ -122,7 +122,8 @@
                         </div>
                         <!-- ///////// -->
                         <div>
-                            <p class="text__second">{{item.order_id}}</p>
+                            <p class="text__second">{{item.order_id}}<span class="text__neutral"
+                                    :style="statusColor(item)"> {{statusOrder(item)}}</span></p>
                             <p class="text__neutral">Cập nhật TT: {{computeTime(item.updatedAt)}}</p>
                         </div>
                     </div>

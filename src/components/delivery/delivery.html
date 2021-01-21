@@ -25,51 +25,49 @@
                     <button class="btn-pill" @click="addAffiliate()">Xác nhận</button>
                 </div>
             </div>
-            <!-- VTP sender email -->
-            <div class="margin__bottom--12 form-row"
-                v-if="(!payload.setting||!payload.setting.setting_data||!payload.setting.setting_data.store_email)&&payload.delivery_platform=='VIETTEL_POST'">
-                <div class="col">
-                    <input class="form-control-sm" :class="{'validate-failed':validate_failed.sender_email}" type="text"
-                        placeholder="Email bên gửi..." v-model="order_info.sender_email">
-                    <div class="margin__top--9 d-flex justify-content-end align-items-center">
-                        <input id="checkbox__save--email" class="m-0 mr-1" type="checkbox" v-model="option_save_info">
-                        <label class="cursor__pointer" for="checkbox__save--email"><span
-                                class="align-items-center"></span>Lưu
-                            email</label>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <div class="delivery__product--size">
             <div class="margin__bottom--12 form-row">
-                <div class="col tooltip">
-                    <input v-model="order_info.weight" type="number" min="0" class="form-control-sm text-center"
-                        :class="{'validate-failed':validate_failed.weight}" placeholder="Cân nặng (gram)"
-                        @keyup="handleWeightTimeout" />
-                    <span class="tooltip-top tooltip-nowrap">Cân nặng (gram)</span>
+                <div class="col form-row d-flex align-items-center">
+                    <p class="col text__second--small white-space-nowrap">Nặng (g)</p>
+                    <div class="col tooltip">
+                        <input v-model="order_info.weight" type="number" min="0" class="form-control-sm text-center p-0"
+                            :class="{'validate-failed':validate_failed.weight}" placeholder="Cân nặng (gram)"
+                            @keyup="handleWeightTimeout" />
+                        <span class="tooltip-top tooltip-nowrap">Cân nặng(gram)</span>
+                    </div>
                 </div>
-                <div class="col tooltip"
+                <div class="col form-row d-flex align-items-center"
                     v-if="payload.delivery_platform=='VIETTEL_POST'||payload.delivery_platform=='GHN'">
-                    <input v-model="order_info.length" type="number" min="0" class="form-control-sm text-center"
-                        :class="{'validate-failed':validate_failed.length}" placeholder="Chiều dài (cm)"
-                        @keyup="handleSizeTimeout" />
-                    <span class="tooltip-top tooltip-nowrap">Chiều dài (cm)</span>
+                    <p class="col text__second--small white-space-nowrap">Dài (cm)</p>
+                    <div class="col tooltip">
+                        <input v-model="order_info.length" type="number" min="0" class="form-control-sm text-center p-0"
+                            :class="{'validate-failed':validate_failed.length}" placeholder="Chiều dài (cm)"
+                            @keyup="handleSizeTimeout" />
+                        <span class="tooltip-top tooltip-nowrap">Chiều dài(cm)</span>
+                    </div>
                 </div>
             </div>
             <div class="margin__bottom--12 form-row"
                 v-if="payload.delivery_platform=='VIETTEL_POST'||payload.delivery_platform=='GHN'">
-                <div class="col tooltip">
-                    <input v-model="order_info.width" type="number" min="0" class="form-control-sm text-center"
-                        :class="{'validate-failed':validate_failed.width}" placeholder="Chiều rộng (cm)"
-                        @keyup="handleSizeTimeout" />
-                    <span class="tooltip-bottom tooltip-nowrap">Chiều rộng (cm)</span>
+                <div class="col form-row d-flex align-items-center">
+                    <p class="col text__second--small white-space-nowrap">Rộng (cm)</p>
+                    <div class="col tooltip">
+                        <input v-model="order_info.width" type="number" min="0" class="form-control-sm text-center p-0"
+                            :class="{'validate-failed':validate_failed.width}" placeholder="Chiều rộng (cm)"
+                            @keyup="handleSizeTimeout" />
+                        <span class="tooltip-bottom tooltip-nowrap">Chiều rộng(cm)</span>
+                    </div>
                 </div>
-                <div class="col tooltip">
-                    <input v-model="order_info.height" type="number" min="0" class="form-control-sm text-center"
-                        :class="{'validate-failed':validate_failed.height}" placeholder="Chiều cao (cm)"
-                        @keyup="handleSizeTimeout" />
-                    <span class="tooltip-bottom tooltip-nowrap">Chiều cao (cm)</span>
+                <div class="col form-row d-flex align-items-center">
+                    <p class="col text__second--small white-space-nowrap">Cao (cm)</p>
+                    <div class="col tooltip">
+                        <input v-model="order_info.height" type="number" min="0" class="form-control-sm text-center p-0"
+                            :class="{'validate-failed':validate_failed.height}" placeholder="Chiều cao (cm)"
+                            @keyup="handleSizeTimeout" />
+                        <span class="tooltip-bottom tooltip-nowrap">Chiều cao(cm)</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -145,7 +143,7 @@
             <div class="margin__bottom--12 form-row">
                 <div class="col">
                     <input v-model="order_info.coupon" type="text" class="form-control-sm"
-                        :class="{'validate-failed':validate_failed.coupon_real_ghn}" placeholder="Mã khuyễn mãi"
+                        :class="{'validate-failed':validate_failed.coupon_real_ghn}" placeholder="Mã khuyễn mãi GHN"
                         title="Mã khuyễn mãi" @change="getShippingFee" />
                 </div>
             </div>
@@ -153,6 +151,7 @@
         <!-- GHN GHTK tiền thu hộ cod -->
         <div class="delivery__ghn--cod" v-if="payload.delivery_platform=='GHN'||payload.delivery_platform=='GHTK'">
             <div class="margin__bottom--12 form-row">
+                <p class="col text__second--small font__weight--600 d-flex align-items-center">Tiền thu hộ</p>
                 <div class="col tooltip">
                     <input v-model="order_info.cod_amount" type="text" class="form-control-sm"
                         placeholder="Tiền thu hộ COD" title="Tiền thu hộ COD"
@@ -180,10 +179,10 @@
             </div>
             <input class="form-control-sm" ref="note" v-model="order_info.note" v-if="is_show_note"></input>
         </div>
-        <hr>
-        <div class="text__second--medium d-flex justify-content-between align-items-center">
+        <!-- <hr> -->
+        <!-- <div class="text__second--medium d-flex justify-content-between align-items-center">
             <span class="">Phí giao vận</span>
             <span class="font__weight--600">{{order_info.shipping_fee||0|toCurrency}}</span>
-        </div>
+        </div> -->
     </div>
 </div>

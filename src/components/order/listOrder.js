@@ -308,6 +308,101 @@ export default {
         handleListShort() {
             this.is_short = !this.is_short
         },
+        statusOrder(item) {
+            switch (item.status) {
+                case 'draft_order':
+                    return '[Đơn nháp]'
+
+                    break;
+                case 'new_order':
+                    return '[Đơn mới]'
+
+                    break;
+                case 'out_stock':
+                    return '[Chờ hàng về]'
+
+                    break;
+                case 'confirmed_order':
+                    return '[Xác nhận đơn]'
+
+                    break;
+                case 'deliver_order':
+                    return '[Đang giao hàng]'
+
+                    break;
+                case 'return_order':
+                    return '[Hoàn hàng]'
+
+                    break;
+                case 'sucess_order':
+                    return '[Đã nhận]'
+
+                    break;
+                case 'returned_order':
+                    return '[Đã hoàn]'
+
+                    break;
+                case 'cancel_order':
+                    return '[Đơn huỷ]'
+
+                    break;
+                case 'remove_order':
+                    return '[Xoá đơn]'
+
+                    break;
+                default:
+                    break;
+            }
+        },
+        statusColor(item) {
+            let color = ''
+            switch (item.status) {
+                case 'draft_order':
+                    color = ''
+
+                    break;
+                case 'new_order':
+                    color = '#F2C94C'
+
+                    break;
+                case 'out_stock':
+                    color = ''
+
+                    break;
+                case 'confirmed_order':
+                    color = '#219653'
+
+                    break;
+                case 'deliver_order':
+                    color = ''
+
+                    break;
+                case 'return_order':
+                    color = ''
+
+                    break;
+                case 'sucess_order':
+                    color = ''
+
+                    break;
+                case 'returned_order':
+                    color = ''
+
+                    break;
+                case 'cancel_order':
+                    color = '#EB5757'
+
+                    break;
+                case 'remove_order':
+                    color = ''
+
+                    break;
+                default:
+                    break;
+            }
+            return { color }
+
+        },
         swalToast(title, icon) {
             const Toast = Swal.mixin({
                 toast: true,

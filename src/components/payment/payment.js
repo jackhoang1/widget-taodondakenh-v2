@@ -7,7 +7,7 @@ export default {
     components: {
         SearchBankVnpay
     },
-    props: ['store_token', 'payload', 'statusEditOrder', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_email', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_product_info', 'total_price', 'prop_total_payment', 'order_option', 'propSendMessage'],
+    props: ['store_token', 'payload', 'statusEditOrder', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_product_info', 'total_price', 'prop_total_payment', 'order_option', 'propSendMessage'],
     data() {
         return {
             list_type: [
@@ -61,7 +61,7 @@ export default {
                 'return_url': `${APICMS}/dev-cms/#/payment/?access_token=${this.store_token}&order_id=${order_id}`,
                 'cancel_url': `${APICMS}/dev-cms/#/payment/?access_token=${this.store_token}&order_id=${order_id}`,
                 'customer_name': this.prop_receiver_name,
-                'customer_email': this.prop_receiver_email,
+                'customer_email': 'botbanhang@gmail.com',
                 'customer_phone': this.prop_receiver_phone,
                 'customer_address': this.prop_receiver_address,
                 'customer_city': this.prop_receiver_city.name,

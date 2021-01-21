@@ -5,7 +5,7 @@ import { APICMS } from "@/services/constant.js"
 
 export default {
     components: { Autocomplete },
-    props: ['store_token', 'payload', 'statusEditOrder', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_email', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_receiver_street', 'prop_total_price', 'order_option', 'propSendMessage'],
+    props: ['propTotalPriceDiscount', 'store_token', 'payload', 'statusEditOrder', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_receiver_street', 'prop_total_price', 'order_option', 'propSendMessage'],
     data() {
         return {
             list_inventories: "",
@@ -26,7 +26,7 @@ export default {
                 group_address_id: "",
                 sender_name: "",
                 sender_phone: "",
-                sender_email: "",
+                sender_email: "botbanhang@gmail.com",
                 sender_street: "",
                 sender_address: "",
                 sender_ward: "",
@@ -35,7 +35,7 @@ export default {
 
                 receiver_name: this.prop_receiver_name,
                 receiver_phone: this.prop_receiver_phone,
-                receiver_email: this.prop_receiver_email,
+                receiver_email: "botbanhang@gmail.com",
                 receiver_address: this.prop_receiver_address,
                 receiver_ward: this.prop_receiver_ward,
                 receiver_district: this.prop_receiver_district,
@@ -62,7 +62,6 @@ export default {
             timer: "",
             validate_failed: {
                 inventory: false,
-                sender_email: false,
                 order_payment: false,
                 weight: false,
                 order_service: false,
@@ -107,13 +106,6 @@ export default {
             if (this.payload.delivery_platform == 'GHTK') {
                 this.order_info.order_payment = this.list_order_payment_ghtk[0]
                 this.order_info.other_info.transport = 'road'
-            }
-            if (
-                this.payload.setting &&
-                this.payload.setting.setting_data &&
-                this.payload.setting.setting_data.store_email
-            ) {
-                this.order_info.sender_email = this.payload.setting.setting_data.store_email
             }
         },
     },
@@ -451,15 +443,6 @@ export default {
             let info_delivery = { ...body, ...other }
             return info_delivery
         },
-        validateEmail(email) {
-            let reg = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
-            let is_email = reg.test(email)
-            if (is_email) {
-                return true
-            }
-            this.validate_failed.sender_email = !is_email ? true : false
-            this.swalToast('Email không hợp lệ!', 'error')
-        },
         // call in component order
         validateCreateDelivery() {
             //handle border red when failed
@@ -474,7 +457,6 @@ export default {
             }
             if (this.payload.delivery_platform == 'VIETTEL_POST') {
                 this.validate_failed.product_type = !this.order_info.product_type ? true : false
-                this.validate_failed.sender_email = !this.order_info.sender_email ? true : false
             }
             if (this.payload.delivery_platform == 'GHN') {
                 this.validate_failed.required_note = !this.order_info.required_note ? true : false
@@ -492,12 +474,10 @@ export default {
                 if (!this.order_info.order_service || this.order_info["length"] <= 0 || this.order_info["width"] <= 0 || this.order_info["height"] <= 0) { return false }
             }
             if (this.payload.delivery_platform == 'VIETTEL_POST') {
-                if (!this.order_info.product_type || !this.order_info.sender_email) {
+                if (!this.order_info.product_type) {
                     return false
                 }
-                if (!this.validateEmail(this.order_info.sender_email)) {
-                    return 'failed'
-                }
+
             }
             if (this.payload.delivery_platform == 'GHN') {
                 if (!this.is_affiliate) {
@@ -769,6 +749,12 @@ export default {
         'order_info.inventory': function () {
             this.handleShopChange()
         },
+        propTotalPriceDiscount: function (newVal) {
+            console.log('propTotalPriceDiscount', this.propTotalPriceDiscount);
+            if (newVal) {
+                this.formatNumber(newVal)
+            }
+        },
         prop_receiver_address: function () {
             this.order_info.receiver_address = this.prop_receiver_address
             if (this.payload.delivery_platform == 'GHTK') {
@@ -793,13 +779,7 @@ export default {
         prop_receiver_phone: function () {
             this.order_info.receiver_phone = this.prop_receiver_phone
         },
-        prop_receiver_email: function () {
-            this.order_info.receiver_email = this.prop_receiver_email
-        },
-        'payload.store_email': function () {
-            this.order_info.sender_email = this.payload.store_email
-        },
-        prop_total_price: function () {
+        prop_total_price: function (newVal) {
             if (this.payload.delivery_platform == 'VIETTEL_POST') {
                 this.getPricingServices()
             }
@@ -810,7 +790,7 @@ export default {
                 this.payload.delivery_platform == 'GHN' ||
                 this.payload.delivery_platform == 'GHTK'
             ) {
-                this.formatNumber(this.prop_total_price)
+                this.formatNumber(newVal)
             }
         },
         'order_info.shipping_fee': function () {

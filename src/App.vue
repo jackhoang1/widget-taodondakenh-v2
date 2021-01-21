@@ -91,34 +91,31 @@
       </section>
       <!-- End header widget -->
       <!-- Comp Create order -->
-      <div class="modal" v-if="show_order">
-        <div class="modal__content">
-          <div class="close" @click="handleHideCreateOrder">
-            <img src="@/assets/close1.png" alt="" />
-          </div>
-          <div>
-            <CreateOrder
-              ref="createOrder"
-              :store_token="store_token"
-              :dataInit="dataInit"
-              :payload="payload"
-              :handleShowCreateOrder="handleShowCreateOrder"
-              :showLogin="showLogin"
-              :hideLogin="hideLogin"
-              :readSetting="readSetting"
-              :updateSetting="updateSetting"
-              :key="componentKey"
-              @platform_type="payload.platform_type = $event"
-              @msg-info="getMsgInfoDraft"
-              @customer-id="getCustomerId"
-              @init-Data-When-Destroy-Comp-Order="getInitData"
-            />
-          </div>
+      <div class="modal" style="padding: 0" v-if="show_order">
+        <div class="modal__content" style="border-radius: 0; margin: 0">
+          <CreateOrder
+            ref="createOrder"
+            :store_token="store_token"
+            :dataInit="dataInit"
+            :payload="payload"
+            :handleHideCreateOrder="handleHideCreateOrder"
+            :handleShowCreateOrder="handleShowCreateOrder"
+            :showLogin="showLogin"
+            :hideLogin="hideLogin"
+            :readSetting="readSetting"
+            :updateSetting="updateSetting"
+            :key="componentKey"
+            @platform_type="payload.platform_type = $event"
+            @msg-info="getMsgInfoDraft"
+            @customer-id="getCustomerId"
+            @init-Data-When-Destroy-Comp-Order="getInitData"
+          />
         </div>
       </div>
       <!-- End Comp Create order -->
       <!-- Comp list Order -->
       <ListOrder
+        v-show="!show_order"
         ref="listOrder"
         :store_token="store_token"
         :payload="payload"
@@ -222,9 +219,9 @@ export default {
         platform_type: "",
         name: "",
         phone: "",
-        email: "",
+        email: "botbanhang@gmail.com",
         customer_id: "",
-        store_email: "",
+        store_email: "botbanhang@gmail.com",
         setting: "",
       },
       show_order: false,
@@ -301,12 +298,6 @@ export default {
 
             this.payload.token_bbh = token_bbh;
             this.dataInit.token_bbh = token_bbh;
-          }
-          if (
-            customer.conversation_contact &&
-            customer.conversation_contact.client_email
-          ) {
-            this.payload.email = customer.conversation_contact.client_email;
           }
           if (
             customer.conversation_contact &&
@@ -446,8 +437,7 @@ export default {
         if (
           !this.payload.setting.id ||
           !data ||
-          (name !== "store_email" &&
-            name !== "client_id" &&
+          (name !== "client_id" &&
             name !== "msg_content" &&
             name !== "filter_order")
         )
@@ -456,9 +446,6 @@ export default {
         let setting_data = { ...this.payload.setting.setting_data };
 
         switch (name) {
-          case "store_email":
-            setting_data.store_email = data.email;
-            break;
           case "client_id":
             setting_data.client_id = data.client_id;
             break;
@@ -484,6 +471,7 @@ export default {
       }
     },
     async delete_setting() {
+      // TODO  wrong fb_page_id > id
       try {
         let path = `${APISETTING}/v1/setting/WidgetSetting/delete_setting`;
         let body = {
@@ -564,8 +552,8 @@ export default {
   padding: 18px 0;
   position: relative;
   .header {
-    padding: 0 25px 0 20px;
     user-select: none;
+    padding: 0 12px;
     .header__title {
       margin-bottom: 8px;
     }
@@ -628,6 +616,37 @@ export default {
     transform: scale(1.03);
     -webkit-box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
     box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
+  }
+}
+.btn-pill-cancel {
+  font-size: 12px;
+  line-height: 20px;
+  background: #ffffff;
+  color: #4f596a;
+  height: 2rem;
+  outline: none;
+  border: none;
+  border-radius: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
+  &:hover {
+    background: #ffffff;
+    transition: transform 0.15s, background 0.15s;
+    -webkit-transform: scale(1.03);
+    transform: scale(1.03);
+    -webkit-box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
+  }
+  &:focus {
+    background: #ffffff;
+    transition: transform 0.15s, background 0.15s;
+    -webkit-transform: scale(1.03);
+    transform: scale(1.03);
+    -webkit-box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
   }
 }
 .form-control-sm {
@@ -757,6 +776,11 @@ select {
   font-size: 14px;
   line-height: 22px;
 }
+.text__second--small {
+  color: $colorSecond;
+  font-size: 13px;
+  line-height: 22px;
+}
 .text__neutral--medium {
   color: $colorNeutral;
   font-size: 14px;
@@ -855,6 +879,11 @@ select {
   &:hover {
     transform: scale(1.1);
   }
+}
+.white-space-nowrap {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .close {
   position: absolute;

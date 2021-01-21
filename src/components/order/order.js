@@ -3,7 +3,8 @@ import Restful from "@/services/resful.js"
 import SearchAddress from "@/components/SearchAddress.vue"
 import Payment from "@/components/payment/Payment.vue"
 import Delivery from "@/components/delivery/Delivery.vue"
-import { APICMS } from "@/services/constant.js"
+import { APICMS, apiCmsCheckDelivery } from "@/services/constant.js"
+import compDetectAddress from "@/components/DetectAddress.vue"
 
 const Toast = Swal.mixin({
     toast: true,
@@ -32,6 +33,7 @@ const Toast2 = Swal.mixin({
 
 export default {
     components: {
+        compDetectAddress,
         SearchAddress,
         Delivery,
         Payment
@@ -40,6 +42,7 @@ export default {
         'store_token',
         'dataInit',
         'payload',
+        'handleHideCreateOrder',
         'handleShowCreateOrder',
         'showLogin',
         'hideLogin',
@@ -48,16 +51,25 @@ export default {
     ],
     data() {
         return {
+            detectAddress: "",
             res_order_info: "",
             product_info: {
                 total_item: 0,
                 list_product: ''
             },
+            listDiscount: [{ type: 1, name: 'Số tiền' }, { type: 2, name: 'Theo %' }],
+            discount: { type: 1, name: 'Số tiền' },
+            discountNumber: 0,
+            discountNumberString: '0 đ',
+            discountPercent: 0,
+            discountPercentNum: 0,
+
             skip: 20,
             platform_type: this.payload.platform_type,
             name: "",
             phone: "",
             street: "",
+            house_number: "",
             country: "Việt Nam",
             list_city: [],
             city: "",
@@ -66,7 +78,7 @@ export default {
             list_ward: [],
             ward: "",
 
-            email: "",
+            email: "botbanhang@gmail.com",
             list_branch: [],
             branch: {},
             has_branch: false,
@@ -81,14 +93,15 @@ export default {
             note: "",
             is_show_note: false,
             cart: [],
+            listProductWillAddToCart: [],
             id: "",
             order_id: "",
 
             total_payment: 0,
             total_price: 0,
+            totalPriceDiscount: 0,
             shipping_fee: 0,
             list_product: [],
-
             is_show_order_info: false,
             msg_content_reset: {
                 order: 'Thông tin đơn hàng',
@@ -111,7 +124,6 @@ export default {
             validate_failed: {
                 name: false,
                 phone: false,
-                email: false,
                 country: false,
                 city: false,
                 district: false,
@@ -143,8 +155,6 @@ export default {
             this.initialData()
             this.name = this.payload.name
             this.phone = this.payload.phone
-            if (this.payload.email)
-                this.email = this.payload.email
         }
         EventBus.$on("get-order", (item) => {
             this.getOrderInfo(item)
@@ -189,6 +199,7 @@ export default {
         },
         async getListDistrict() {
             try {
+                if (!this.city.province_id) return console.log('require province_id');
                 let path = `${APICMS}/v1/selling-page/locations/districts_v2`
                 let params = { 'province_id': this.city.province_id }
                 let headers = { 'Authorization': this.store_token }
@@ -204,6 +215,7 @@ export default {
         },
         async getListWard() {
             try {
+                if (!this.district.district_id) return console.log('require district_id');
                 let path = `${APICMS}/v1/selling-page/locations/wards_v2`
                 let params = { 'district_id': this.district.district_id }
                 let headers = { 'Authorization': this.store_token }
@@ -244,11 +256,39 @@ export default {
                 console.log(e);
             }
         },
-        async handleShowPopup() {
+        async deleteCustomerAddress(id) {
+            try {
+                let customer_id = this.payload.customer_id
+
+                if (!customer_id) return
+
+                let path = `${APICMS}/v1/selling-page/customer/customer_address_read`
+                let headers = { Authorization: this.store_token }
+                let body = { customer_id }
+
+                let customerAddress = await Restful.post(path, body, null, headers)
+
+                if (
+                    customerAddress &&
+                    customerAddress.data &&
+                    customerAddress.data.data &&
+                    customerAddress.data.data.length > 0
+                ) {
+                    this.listSaveAddress = customerAddress.data.data
+                    if (this.listSaveAddress.length >= 4)
+                        this.saveAddressModal = this.listSaveAddress[3]
+                }
+
+            } catch (e) {
+                console.log(e);
+            }
+        },
+        async handleShowPopup() {   // * show popup list product  tự map attribute check cart
             // Show Popup khi nhấn "Thêm sản phẩm"
             try {
                 this.is_show_popup = !this.is_show_popup
-                this.getListProduct()
+                await this.getListProduct()
+                this.list_product = this.handleCheckCartInListProduct(this.list_product)
             } catch (e) {
                 console.log("error", e);
                 Toast.fire({
@@ -266,7 +306,10 @@ export default {
                     }
                     await this.getListProduct(params)
                     if (this.list_product.length > 0) return
-                    if (this.list_product.length === 0 && (this.platform_type === 'SAPO' || this.platform_type === 'HARAVAN')) {
+                    if (
+                        this.list_product.length === 0 &&
+                        (this.platform_type === 'SAPO' || this.platform_type === 'HARAVAN')
+                    ) {
                         await this.getListProduct()
                         this.searchByFilter()
                         if (this.filter_list_product.length == 0) {
@@ -297,15 +340,27 @@ export default {
             this.filter_list_product = products.filter((item) => {
                 return item.product_name.toLowerCase().includes(search)
             })
+
+            this.filter_list_product = this.handleCheckCartInListProduct(this.filter_list_product)
         },
-        handleClosePopup() {
+        toggleClosePopup() {
             // Close Popup tìm sản phẩm
             this.is_show_popup = !this.is_show_popup
             this.search_value = ''
             this.search_value_old = ''
             this.skip = 20
             this.filter_list_product = []
-            this.getCart()
+            this.list_product = this.handleCheckCartInListProduct(this.list_product)
+        },
+        async toggleSavePopup() {
+            this.is_show_popup = !this.is_show_popup
+            this.search_value = ''
+            this.search_value_old = ''
+            this.skip = 20
+            this.filter_list_product = []
+            await this.handleCheckProductAddCart()
+            setTimeout(() => { this.getCart() }, 200)
+
         },
         handleShowNote() {
             this.is_show_note = !this.is_show_note
@@ -367,11 +422,7 @@ export default {
             try {
                 // Lỗi nếu sản phẩm ko có giá
                 if (!item.product_price) {
-                    Toast.fire({
-                        icon: "error",
-                        title: "Thêm sản phẩm thất bại",
-                    });
-                    return
+                    return console.log('Error ::: Thêm sản phẩm thất bại');
                 }
                 let path = `${APICMS}/v1/selling-page/cart/cart_add_product`
                 let body = {
@@ -408,10 +459,8 @@ export default {
                     this.updateSetting('client_id', { client_id: this.client_id })
                 }
 
-                Toast.fire({
-                    icon: "success",
-                    title: "Thêm sản phẩm thành công",
-                });
+                console.log('Thêm sản phẩm thành công');
+
             } catch (error) {
                 console.log("error", error);
                 Toast.fire({
@@ -442,10 +491,7 @@ export default {
                         if (item.product_id !== product.product_id) return product
                     })
                 }
-                Toast.fire({
-                    icon: "success",
-                    title: "Đã xóa sản phẩm",
-                });
+                console.log("Đã xóa sản phẩm");
             } catch (error) {
                 console.log("error", error);
                 Toast.fire({
@@ -525,19 +571,27 @@ export default {
             this.product_info.list_product = list_product
         },
         handleTotalPayment() {
-            if (this.isFreeShip) {
-                return this.total_payment = this.total_price
+            if (this.discount.type === 1) {
+                if (this.discountNumber > this.total_price) return this.swalToast('Số tiền giảm giá không quá tổng tiền sản phẩm', 'error')
+                if (this.isFreeShip)
+                    this.total_payment = this.total_price - this.discountNumber
+                else {
+                    this.total_payment = this.total_price - this.discountNumber + this.shipping_fee
+                }
             }
-            this.total_payment = this.total_price + this.shipping_fee
-        },
-        validateEmail(email) {
-            let reg = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
-            let is_email = reg.test(email)
-            if (is_email) {
-                return true
+            if (this.discount.type === 2) {
+                if (this.discountPercent < 0 || this.discountPercent > 100) return this.swalToast('% giảm giá trong khoảng 0 > 100%', 'error')
+                this.discountPercentNum = this.discountPercent * this.total_price / 100
+                if (this.isFreeShip) {
+                    this.total_payment = this.total_price - this.discountPercentNum
+
+                }
+                else {
+                    this.total_payment = this.total_price - this.discountPercentNum + this.shipping_fee
+
+                }
             }
-            this.validate_failed.email = !is_email ? true : false
-            this.swalToast('Email không hợp lệ!', 'error')
+
         },
         validatePhone(phone) {
             let is_phone = phone.match(/^[0]{1}?[1-9]{1}?[0-9]{8}$/im) || phone.match(/^[\+]?[8]{1}?[4]{1}?[0-9]{9}$/im)
@@ -550,7 +604,6 @@ export default {
         validateOrder() {
             this.validate_failed.name = !this.name ? true : false
             this.validate_failed.phone = !this.phone ? true : false
-            this.validate_failed.email = !this.email ? true : false
             this.validate_failed.country = !this.country ? true : false
             this.validate_failed.city = !this.city ? true : false
             this.validate_failed.district = !this.district ? true : false
@@ -560,7 +613,6 @@ export default {
             if (
                 !this.name ||
                 !this.phone ||
-                !this.email ||
                 !this.country ||
                 !this.city ||
                 !this.district ||
@@ -617,7 +669,6 @@ export default {
                 })
             }
             if (!this.validatePhone(this.phone)) check = false
-            if (!this.validateEmail(this.email)) check = false
 
             return check
         },
@@ -632,7 +683,7 @@ export default {
                     title: "Hệ thống đang tính phí giao vận. Vui lòng thử lại!"
                 })
             }
-            this.address = `${this.street}, ${this.ward.name}, ${this.district.name}, ${this.city.name}`
+            this.address = `${this.house_number} ${this.street}, ${this.ward.name}, ${this.district.name}, ${this.city.name}`
             this.is_show_order_info = true
             return true
         },
@@ -653,6 +704,8 @@ export default {
                 let path = `${APICMS}/v1/selling-page/order/order_create`
                 let body = {
                     "customer_id": this.payload.customer_id,
+                    'discount_number': this.discountNumber,
+                    'discount_percent': this.discountPercent,
                     "fb_client_id": this.payload.psid,
                     "fb_staff_id": this.payload.asid,
                     "fb_staff_name": this.payload.fb_staff_name,
@@ -700,7 +753,7 @@ export default {
                 }
                 // Tạo customer mới đối với Haravan
                 if (this.platform_type === "HARAVAN") {
-                    this.address = `${this.street}, ${this.ward.meta_data.haravan.name}, ${this.district.meta_data.haravan.name}, ${this.city.name}`;
+                    this.address = `${this.house_number} ${this.street}, ${this.ward.meta_data.haravan.name}, ${this.district.meta_data.haravan.name}, ${this.city.name}`;
                     delete body["customer_city_name"]
                     body["customer_province_name"] = this.city.name
                     body["customer_province_code"] = this.city.meta_data.haravan.code
@@ -870,7 +923,7 @@ export default {
                                         "buttons": [
                                             {
                                                 "type": "web_url",
-                                                "url": `${APICMS}/dev-cms/#/deliver/?access_token=${this.store_token}&order_id=${delivery_id}`,
+                                                "url": `${apiCmsCheckDelivery}/?access_token=${this.store_token}&order_id=${delivery_id}`,
                                                 "title": "Kiểm tra vận đơn"
                                             }
                                         ]
@@ -941,6 +994,7 @@ export default {
                     get_list_product.data.data
                 ) {
                     this.list_product = get_list_product.data.data
+                    this.list_product = this.handleCheckCartInListProduct(this.list_product)
                     if (
                         get_list_product.data.data.length &&
                         get_list_product.data.data[0].platform_type
@@ -965,6 +1019,46 @@ export default {
             } catch (e) {
                 console.log("get product err", e)
             }
+        },
+        handleCheckCartInListProduct(arr) { // * tạo 1 trường check trong product và kiểm tra với cart > tồn tại trong giỏ hàng => check=true
+            let newArr = []
+            newArr = arr.map((product, indexProduct) => {
+                let check = false
+                if (this.cart && this.cart.length > 0) {
+                    this.cart.forEach((item, index) => {
+                        if (product.product_id == item.product_id) {
+                            check = true
+                        }
+                    })
+                }
+
+                return { ...product, check }
+            })
+
+            return newArr
+        },
+        async handleCheckProductAddCart() { // * kiểm tra product vừa thêm có trong giỏ hàng k => call api add cart
+            if (this.list_product && this.list_product.length > 0) {
+                this.list_product.forEach(async (product, indexProduct) => {
+                    let hasInCart = false
+                    if (this.cart && this.cart.length > 0) {
+                        this.cart.forEach((productCart, indexProductCart) => {
+                            if (product.product_id == productCart.product_id) {
+                                hasInCart = true
+                            }
+                        })
+                    }
+                    if (product.check == true && !hasInCart) {
+                        await this.handleAddToCart(product)
+                    }
+                    if (product.check == false && hasInCart) {
+                        await this.delProductCart(product)
+                    }
+                })
+            }
+        },
+        changeStatusCheckCart(item) {
+            item.check = !item.check
         },
         convertProductData() { // * convert product variant
             let products = [].concat(this.list_product)
@@ -993,6 +1087,7 @@ export default {
                     }
                 })
                 this.list_product = this.list_product.concat(map_variant)
+                this.list_product = this.handleCheckCartInListProduct(this.list_product)
             })
         },
         async getMoreProduct() { // * lấy thêm product
@@ -1025,6 +1120,8 @@ export default {
                     if (this.platform_type === "HARAVAN" || this.platform_type === "SAPO") {
                         return this.convertMoreProduct(list_product)
                     }
+
+                    list_product = this.handleCheckCartInListProduct(list_product)
                     this.list_product = this.list_product.concat(list_product)
 
 
@@ -1058,6 +1155,7 @@ export default {
                         image: variant.image,
                     }
                 })
+                map_variant = this.handleCheckCartInListProduct(map_variant)
                 this.list_product = this.list_product.concat(map_variant)
             });
         },
@@ -1066,8 +1164,6 @@ export default {
                 if (this.payload.setting && this.payload.setting.setting_data) {
 
                     let setting = this.payload.setting.setting_data
-                    if (!this.payload.email)
-                        this.email = setting.store_email
                     if (setting.client_id)
                         this.client_id = setting.client_id
                     if (setting.msg_content)
@@ -1293,17 +1389,6 @@ export default {
             this.statusEditOrder = 'draft_order'
             this.name = item.customer_name
             this.phone = item.customer_phone
-
-            // *customer không có email > email merchant
-            this.email = item.customer_email ||
-                (
-                    (
-                        this.payload.setting &&
-                        this.payload.setting.setting_data &&
-                        this.payload.setting.setting_data.store_email
-                    )
-                        ? (this.payload.setting.setting_data.store_email) : null
-                )
             this.platform_type = item.platform_type
             this.id = item.id
             this.order_id = item.order_id
@@ -1424,7 +1509,7 @@ export default {
                     title: "Vui lòng điền đầy đủ thông tin",
                 })
                 this.is_loading = true
-                this.address = `${this.street}, ${this.ward.name}, ${this.district.name}, ${this.city.name}`
+                this.address = `${this.house_number} ${this.street}, ${this.ward.name}, ${this.district.name}, ${this.city.name}`
                 let path = `${APICMS}/v1/selling-page/order/order_update`
                 let headers = { Authorization: this.store_token }
                 let body = {
@@ -1444,7 +1529,7 @@ export default {
                     "customer_ward_code": this.ward.code,
                 }
                 if (this.platform_type === "HARAVAN") {
-                    this.address = `${this.street}, ${this.ward.meta_data.haravan.name}, ${this.district.meta_data.haravan.name}, ${this.city.name}`;
+                    this.address = `${this.house_number} ${this.street}, ${this.ward.meta_data.haravan.name}, ${this.district.meta_data.haravan.name}, ${this.city.name}`;
                     delete body["customer_city_name"]
                     body["customer_province_name"] = this.city.name
                     body["customer_province_code"] = this.city.meta_data.haravan.code
@@ -1563,6 +1648,48 @@ export default {
         hideModalSavePlace() {
             this.showSaveAddress = false
         },
+        async checkKeyBoard(event, string) {
+            if (
+                event.keyCode == 37 ||
+                event.keyCode == 39 ||
+                event.keyCode == 8 ||
+                event.keyCode == 46
+            ) return
+
+            let caret_pos = event.target.selectionStart
+            let input = document.getElementById('input-discount-number')
+
+            let number_length = await this.formatNumber(string)
+            //handle caret_pos when number length = 3*x+1
+            if (number_length == Math.floor(number_length / 3) * 3 + 1) {
+                caret_pos = caret_pos + 1
+            }
+            //focus in position
+            if (input != null) {
+                if (input.createTextRange) {
+                    let range = input.createTextRange()
+                    range.move('character', caret_pos)
+                    range.select()
+                } else {
+                    if (input.selectionStart) {
+                        input.focus()
+                        input.setSelectionRange(caret_pos, caret_pos)
+                    } else input.focus()
+                }
+            }
+            if (event.keyCode == 8) {
+            }
+        },
+        async formatNumber(string) {
+            if (!string) return
+            let number = string.toString().replace(/\D/g, '')
+            this.discountNumber = Number(number)
+            this.discountNumberString = new Intl.NumberFormat('de-DE', {
+                style: 'currency',
+                currency: 'VND',
+            }).format(number)
+            return number.length
+        },
         swalToast(title, icon) {
             const Toast = Swal.mixin({
                 toast: true,
@@ -1584,12 +1711,66 @@ export default {
         },
     },
     watch: {
+        detectAddress: function (newVal) {
+            console.log('detectAddress', newVal);
+            if (newVal) {
+                this.city = newVal.province
+
+                if (newVal.district)
+                    this.district = newVal.district
+                else {
+                    this.getListDistrict()
+                }
+                if (newVal.ward)
+                    this.ward = newVal.ward
+                else {
+                    this.getListWard()
+                }
+                if (newVal.street)
+                    this.street = newVal.street.name
+                if (newVal.house_number)
+                    this.house_number = newVal.house_number.name
+            }
+        },
+        discount: function (newVal) {
+            if (newVal.type === 1) {
+                this.discountPercent = 0
+            }
+            if (newVal.type === 2) {
+                this.discountNumber = 0
+                this.discountNumberString = "0 đ"
+            }
+            if (newVal.type === 0) {
+                this.discountNumber = 0
+                this.discountNumberString = "0 đ"
+                this.discountPercent = 0
+            }
+        },
+        discountNumber: function (newVal) {
+            if (newVal > this.total_price && this.cart.length > 0) return this.swalToast('Số tiền giảm giá không quá tổng tiền sản phẩm', 'error')
+            if (this.isFreeShip)
+                this.total_payment = this.total_price - this.discountNumber
+            else {
+                this.total_payment = this.total_price - this.discountNumber + this.shipping_fee
+            }
+            this.totalPriceDiscount = this.total_price - this.discountNumber
+        },
+        discountPercent: function (newVal) {
+            if ((newVal < 0 || newVal > 100) && this.cart.length > 0) return this.swalToast('% giảm giá trong khoảng 0 > 100%', 'error')
+            this.discountPercentNum = this.discountPercent * this.total_price / 100
+            if (this.isFreeShip) {
+                this.total_payment = this.total_price - this.discountPercentNum
+            }
+            else {
+                this.total_payment = this.total_price - this.discountPercentNum + this.shipping_fee
+            }
+            this.totalPriceDiscount = this.total_price - this.discountPercentNum
+
+        },
         store_token() {
             this.initialData()
             this.name = this.payload.name
             this.phone = this.payload.phone
-            if (this.payload.email)
-                this.email = this.payload.email
         },
         total_price: function () {
             this.handleTotalPayment()
@@ -1610,8 +1791,6 @@ export default {
                 this.payload.setting.setting_data
             ) {
                 let setting = this.payload.setting.setting_data
-                if (!this.payload.email)
-                    this.email = setting.store_email
                 if (setting.client_id) {
                     this.client_id = setting.client_id
                     this.getCart()
