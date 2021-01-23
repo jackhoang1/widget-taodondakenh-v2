@@ -243,7 +243,7 @@
             <!-- Giao vận -->
             <div v-if="order_option != 0 && payload.delivery_platform">
                 <div>
-                    <Delivery ref="delivery" :store_token="store_token" :payload="payload"
+                    <Delivery ref="delivery" :msg_content="msg_content" :store_token="store_token" :payload="payload"
                         :propTotalPriceDiscount="totalPriceDiscount" :statusEditOrder="statusEditOrder"
                         :prop_receiver_name="name" :prop_receiver_phone="phone" :prop_receiver_address="address"
                         :prop_receiver_city="city" :prop_receiver_district="district" :prop_receiver_ward="ward"
@@ -256,7 +256,7 @@
             <!-- Thanh toán -->
             <div v-if="order_option==2&&payload.payment_platform">
                 <div>
-                    <Payment ref="payment" :store_token="store_token" :payload="payload"
+                    <Payment ref="payment" :msg_content="msg_content" :store_token="store_token" :payload="payload"
                         :statusEditOrder="statusEditOrder" :prop_receiver_name="name" :prop_receiver_phone="phone"
                         :prop_receiver_address="address" :prop_receiver_city="city" :prop_receiver_district="district"
                         :prop_receiver_ward="ward" :prop_product_info="product_info" :total_price="total_price"
@@ -338,10 +338,13 @@
                             alt="product" />
                         <div class="product-content">
                             <div class="d-flex justify-content-between">
-                                <div style="max-width:50%">
-                                    <p class="product-name m-0 text__neutral--medium" :title="item.product_name">{{
+                                <div style="max-width:75%">
+                                    <p class="product-name m-0 text__neutral--medium font__weight--600"
+                                        :title="item.product_name">{{
                                         item.product_name}}
                                     </p>
+                                    <p class="product-name text__neutral--small" :title="item.product_option">
+                                        {{item.product_option}}</p>
                                 </div>
                                 <img class="" src="@/assets/icon/check.svg" alt="" v-if="item.check">
                             </div>
@@ -362,6 +365,7 @@
                                     <p class="product-name m-0 text__neutral--medium" :title="item.product_name">{{
                                         item.product_name}}
                                     </p>
+                                    <p :title="item.product_option">{{item.product_option}}</p>
                                 </div>
                                 <img class="" src="@/assets/icon/check.svg" alt="" v-if="item.check">
                             </div>
@@ -547,19 +551,39 @@
                 </div>
             </div>
             <div>
-                <p>Đơn hàng</p>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <p class="text__second--medium font__weight--600">Đơn hàng</p>
+                    <div class="margin__right--18" v-if="msg_content.activated">
+                        <compSwitch :eventClick="{functionName:handleActivatedSwitch, parameter:'order'}"
+                            :checkFalse="false" :titleFalse="'Tắt gửi tin'" :checkTrue="true" :titleTrue="'Bật gửi tin'"
+                            :dataInput="msg_content.activated.order" />
+                    </div>
+                </div>
                 <textarea ref="msg_order" rows="1" v-model="msg_content.order"
                     class="form-control-sm mt-1 mb-3"></textarea>
-                <p>Giao vận</p>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <p class="text__second--medium font__weight--600">Giao vận</p>
+                    <div class="margin__right--18" v-if="msg_content.activated">
+                        <compSwitch :eventClick="{functionName:handleActivatedSwitch, parameter:'delivery'}"
+                            :checkFalse="false" :titleFalse="'Tắt gửi tin'" :checkTrue="true" :titleTrue="'Bật gửi tin'"
+                            :dataInput="msg_content.activated.delivery" />
+                    </div>
+                </div>
                 <textarea rows="3" v-model="msg_content.delivery" class="form-control-sm mt-1 mb-3"></textarea>
-                <p>Thanh toán</p>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <p class="text__second--medium font__weight--600">Thanh toán</p>
+                    <div class="margin__right--18" v-if="msg_content.activated">
+                        <compSwitch :eventClick="{functionName:handleActivatedSwitch, parameter:'payment'}"
+                            :checkFalse="false" :titleFalse="'Tắt gửi tin'" :checkTrue="true" :titleTrue="'Bật gửi tin'"
+                            :dataInput="msg_content.activated.payment" />
+                    </div>
+                </div>
                 <textarea rows="3" v-model="msg_content.payment" class="form-control-sm mt-1 mb-3"></textarea>
                 <div class="d-flex">
                     <button class="btn-pill-cancel w-100 mx-2" @click="handleResetMsg">Đặt lại</button>
 
                     <button class="btn-pill w-100 mx-2" @click="handleSaveMsg">Lưu</button>
                 </div>
-
             </div>
         </div>
     </div>

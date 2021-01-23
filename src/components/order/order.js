@@ -5,7 +5,7 @@ import Payment from "@/components/payment/Payment.vue"
 import Delivery from "@/components/delivery/Delivery.vue"
 import { APICMS, apiCmsCheckDelivery } from "@/services/constant.js"
 import compDetectAddress from "@/components/DetectAddress.vue"
-
+import compSwitch from "@/components/switch/Switch.vue"
 const Toast = Swal.mixin({
     toast: true,
     position: "top",
@@ -34,6 +34,7 @@ const Toast2 = Swal.mixin({
 export default {
     components: {
         compDetectAddress,
+        compSwitch,
         SearchAddress,
         Delivery,
         Payment
@@ -107,12 +108,14 @@ export default {
             msg_content_reset: {
                 order: 'Thông tin đơn hàng',
                 delivery: 'Đơn hàng {{order_id}} của bạn đã được vận chuyển. Mã vận đơn là {{delivery_id}}. Để kiểm tra tình trạng giao hàng, vui lòng ấn nút "Kiểm tra vận đơn" bên dưới',
-                payment: 'Thanh toán đơn hàng {{order_id}} của bạn trên {{payment_name}}, vui lòng ấn nút "Thanh toán" bên dưới'
+                payment: 'Thanh toán đơn hàng {{order_id}} của bạn trên {{payment_name}}, vui lòng ấn nút "Thanh toán" bên dưới',
+                activated: { order: true, delivery: true, payment: true }
             },
             msg_content: {
                 order: 'Thông tin đơn hàng',
                 delivery: 'Đơn hàng {{order_id}} của bạn đã được vận chuyển. Mã vận đơn là {{delivery_id}}. Để kiểm tra tình trạng giao hàng, vui lòng ấn nút "Kiểm tra vận đơn" bên dưới',
-                payment: 'Thanh toán đơn hàng {{order_id}} của bạn trên {{payment_name}}, vui lòng ấn nút "Thanh toán" bên dưới'
+                payment: 'Thanh toán đơn hàng {{order_id}} của bạn trên {{payment_name}}, vui lòng ấn nút "Thanh toán" bên dưới',
+                activated: { order: true, delivery: true, payment: true }
             },
             is_show_setting_msg: false,
             statusEditOrder: 'normal',
@@ -822,7 +825,13 @@ export default {
                             icon: "success",
                             title: "Tạo đơn hàng thành công",
                         })
-                        this.sendMessage(order_id, null, null, time)
+                        if (    // * check  activated  order is true => send messager
+                            this.msg_content &&
+                            this.msg_content.activated &&
+                            this.msg_content.activated.order
+                        ) {
+                            this.sendMessage(order_id, null, null, time)
+                        }
                     }
                     setTimeout(() => {
                         this.delAllCart()
@@ -881,6 +890,26 @@ export default {
             } catch (e) {
                 this.isCallApi = false
                 console.log("error", e)
+            }
+        },
+        handleActivatedSwitch(type) {
+            if (this.msg_content && this.msg_content.activated) {
+                switch (type) {
+                    case 'order':
+                        this.msg_content.activated.order = !this.msg_content.activated.order
+
+                        break;
+                    case 'delivery':
+                        this.msg_content.activated.delivery = !this.msg_content.activated.delivery
+
+                        break;
+                    case 'payment':
+                        this.msg_content.activated.payment = !this.msg_content.activated.payment
+
+                        break;
+                    default:
+                        break;
+                }
             }
         },
         covertMsgContent(order_id, delivery_id, payment_name) {
@@ -1185,8 +1214,14 @@ export default {
                     let setting = this.payload.setting.setting_data
                     if (setting.client_id)
                         this.client_id = setting.client_id
-                    if (setting.msg_content)
+                    if (setting.msg_content) {
                         this.msg_content = setting.msg_content
+                        if (!this.msg_content.activated) {  // * init activated msg_content with old setting before 23/01/21
+                            this.msg_content.activated = {}
+                            this.msg_content.activated = { order: true, delivery: true, payment: true }
+                        }
+                    }
+
                 }
                 await this.getListProduct()
                 this.getListProvince()
@@ -1460,7 +1495,13 @@ export default {
                             icon: "success",
                             title: "Tạo đơn hàng thành công",
                         })
-                        this.sendMessage(order_id, null, null, time)
+                        if (    // * check  activated  order is true => send messager
+                            this.msg_content &&
+                            this.msg_content.activated &&
+                            this.msg_content.activated.order
+                        ) {
+                            this.sendMessage(order_id, null, null, time)
+                        }
                     }
                     setTimeout(() => {
                         this.delAllCart()
@@ -1576,10 +1617,6 @@ export default {
                     let order_id = order_info.order_id
                     let time = 0
 
-                    // if (order_info.updatedAt) {
-                    //     time = order_info.updatedAt
-                    //     this.sendMessage(order_id, null, null, time)
-                    // }
                     setTimeout(() => {
                         EventBus.$emit("call-order")
                         this.handleShowCreateOrder()

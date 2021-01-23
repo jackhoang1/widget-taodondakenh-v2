@@ -5,7 +5,7 @@ import { APICMS } from "@/services/constant.js"
 
 export default {
     components: { Autocomplete },
-    props: ['propTotalPriceDiscount', 'store_token', 'payload', 'statusEditOrder', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_receiver_street', 'prop_total_payment', 'prop_total_price', 'order_option', 'propSendMessage'],
+    props: ['msg_content', 'propTotalPriceDiscount', 'store_token', 'payload', 'statusEditOrder', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_receiver_street', 'prop_total_payment', 'prop_total_price', 'order_option', 'propSendMessage'],
     data() {
         return {
             list_inventories: "",
@@ -542,7 +542,13 @@ export default {
                             delivery_id = snap_order.data.order_code ||
                                 snap_order.data.ORDER_NUMBER       //GHN || VTP 
                         }
-                        this.propSendMessage(order_id, null, delivery_id, time)
+                        if (    // * check  activated  delivery is true => send messager
+                            this.msg_content &&
+                            this.msg_content.activated &&
+                            this.msg_content.activated.delivery
+                        ) {
+                            this.propSendMessage(order_id, null, delivery_id, time)
+                        }
                         this.swalToast('Tạo đơn giao vận thành công', 'success')
                         return
                     }
@@ -808,7 +814,7 @@ export default {
                     }
                     break;
                 case 'VIETTEL_POST':
-                    
+
                     break;
                 default:
                     break;

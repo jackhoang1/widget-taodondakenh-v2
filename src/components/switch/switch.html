@@ -1,0 +1,18 @@
+<div class="input-switch">
+    <div class="input-switch-title">
+        <div class="" v-if="dataInput == checkTrue||dataInput !=checkFalse">
+            <p class="">{{titleTrue}}
+            </p>
+        </div>
+        <div class="" v-else>
+            <p class="text__neutral70--medium">{{titleFalse}}
+            </p>
+        </div>
+    </div>
+    <div class="">
+        <div class="switch" :class="{'switch-on':dataInput == checkTrue||dataInput !=checkFalse }"
+            @click="eventClick.functionName(eventClick.parameter)">
+            <div class="circle" :class="{'circle-on':dataInput == checkTrue||dataInput !=checkFalse}"></div>
+        </div>
+    </div>
+</div>

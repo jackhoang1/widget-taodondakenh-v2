@@ -818,6 +818,11 @@ select {
   font-size: 14px;
   line-height: 22px;
 }
+.text__neutral--small {
+  color: $colorNeutral;
+  font-size: 12px;
+  line-height: 20px;
+}
 .text__neutral70--medium {
   color: $colorNeutral70;
   font-size: 14px;

@@ -7,7 +7,7 @@ export default {
     components: {
         SearchBankVnpay
     },
-    props: ['store_token', 'payload', 'statusEditOrder', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_product_info', 'total_price', 'prop_total_payment', 'order_option', 'propSendMessage'],
+    props: ['msg_content', 'store_token', 'payload', 'statusEditOrder', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_product_info', 'total_price', 'prop_total_payment', 'order_option', 'propSendMessage'],
     data() {
         return {
             list_type: [
@@ -94,7 +94,13 @@ export default {
                     // let message_bbh = []
                     if (url_payment) {
                         let time = create_payment.data.data.updatedAt
-                        this.propSendMessage(order_id, url_payment, null, time)
+                        if (
+                            this.msg_content &&
+                            this.msg_content.activated &&
+                            this.msg_content.activated.payment
+                        ) {   // * check  activated  payment is true => send messager
+                            this.propSendMessage(order_id, url_payment, null, time)
+                        }
                     }
                 }
                 this.swalToast('Tạo Thanh toán thành công', 'success')
