@@ -60,7 +60,8 @@
             </div>
             <div class="order__address margin__bottom--12" :class="{'validate-failed':validate_failed.street}">
                 <compDetectAddress :placeholder="'Địa chỉ cụ thể'" :store_token="store_token"
-                    @data-output="detectAddress = $event" @text-address="street = $event" />
+                    @data-output="detectAddress = $event" @text-address="street = $event"
+                    :streetOrderEdit="streetOrderEdit" />
 
             </div>
             <div class="margin__bottom--12 form-row">
@@ -101,11 +102,8 @@
                 <div class="save-address-title margin__bottom--12">
                     <p class="text__second--medium font__weight--600">Địa chỉ đã lưu</p>
                     <div @click="showModalSavePlace">
-                        <span class="text__accent--medium" v-if="listSaveAddress.length > 3">Xem thêm
-                            ({{listSaveAddress.length - 3}})</span>
-                        <!-- <img
-                            style="filter: invert(56%) sepia(23%) saturate(174%) hue-rotate(179deg) brightness(94%) contrast(85%);"
-                            src="@/assets/icon/arrow-right.png" alt=""> -->
+                        <button class="btn-pill-add" @click="showModalSavePlace" v-if="listSaveAddress.length > 0">Xem
+                            thêm ({{listSaveAddress.length}})</button>
                     </div>
                 </div>
                 <div class="save-address-radio" v-for="(item, index) in listSaveAddress" v-if="index <= 2">
@@ -162,15 +160,9 @@
             <!-- Tìm sản phẩm và Tạo ghi chú -->
             <div>
                 <div class="margin__y--8 d-flex justify-content-between align-items-center">
-                    <p class="text__second--medium font__weight--600">Thêm sản phẩm</p>
-                    <div class="d-flex align-items-center" @click="handleShowPopup">
-                        <svg class="icon__add--cursor" width="20" height="20" viewBox="0 0 20 20" fill="none"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10 4.1665V15.8332" stroke="#FF5F0B" stroke-width="1.5" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                            <path d="M4.16675 10H15.8334" stroke="#FF5F0B" stroke-width="1.5" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                        </svg>
+                    <p class="text__second--medium font__weight--600">Sản phẩm</p>
+                    <div class="d-flex align-items-center">
+                        <button class="btn-pill-add" @click="handleShowPopup">Chọn</button>
                     </div>
                 </div>
                 <!-- Giỏ hàng -->
@@ -190,14 +182,14 @@
                                     <div class="d-flex flex-column justify-content-around">
                                         <div class="quantity-sub-add d-flex justify-content-around align-items-center">
                                             <div class="d-flex align-items-center" @click="handleSubQuantity(item)">
-                                                <img src="@/assets/icon/minus.png" alt="">
+                                                <img src="@/assets/icon/minus-product.svg" alt="">
                                             </div>
                                             <p
                                                 class="text__neutral--medium d-flex justify-content-center align-items-center ">
                                                 {{ item.product_quantity }}
                                             </p>
                                             <div class="d-flex align-items-center" @click="handleAddQuantity(item)">
-                                                <img src="@/assets/icon/add.png" alt="">
+                                                <img src="@/assets/icon/add-product.svg" alt="">
                                             </div>
                                         </div>
                                     </div>
@@ -208,7 +200,7 @@
                         <div class="">
                             <div class="edit d-flex flex-column justify-content-between">
                                 <div class="d-flex align-items-center" @click="delProductCart(item)">
-                                    <img src="@/assets/icon/close.png" alt="">
+                                    <img src="@/assets/icon/close.svg" alt="">
                                 </div>
                             </div>
                         </div>
@@ -256,8 +248,8 @@
                         :prop_receiver_name="name" :prop_receiver_phone="phone" :prop_receiver_address="address"
                         :prop_receiver_city="city" :prop_receiver_district="district" :prop_receiver_ward="ward"
                         :prop_receiver_street="street" :prop_total_price="total_price"
-                        @shipping_fee="shipping_fee=$event" @free-ship='isFreeShip = $event'
-                        :propSendMessage="sendMessage" />
+                        :prop_total_payment="total_payment" @shipping_fee="shipping_fee=$event"
+                        @free-ship='isFreeShip = $event' :propSendMessage="sendMessage" />
                 </div>
 
             </div>
@@ -304,19 +296,24 @@
                 </div>
                 <div class="total-price text__second--medium d-flex justify-content-between my-2">
                     <p>-Giảm giá</p>
-                    <p v-if="discount.type === 1" class="font__weight--600">-{{ discountNumber || 0 | toCurrency }}</p>
-                    <p v-if="discount.type === 2" class="font__weight--600">-{{ discountPercentNum || 0 | toCurrency }}
+                    <p v-if="discount.type === 1" class="font__weight--600">-{{discountNumber || 0 | toCurrency}}</p>
+                    <p v-if="discount.type === 2" class="font__weight--600">-{{discountPercentNum || 0 | toCurrency}}
                     </p>
                 </div>
-                <hr class="margin__top--15">
-                <div class="total-price text__second--medium d-flex justify-content-between my-2">
-                    <p class="font__weight--600">Tổng tiền thanh toán</p>
-                    <p class="font__weight--600">{{ total_payment || 0 | toCurrency }}</p>
+                <div class="order-sum">
+                    <hr class="margin__top--15">
+                    <div class="total-price text__second--medium d-flex justify-content-between my-2">
+                        <p class="font__weight--600">Tổng tiền thanh toán</p>
+                        <p class="font__weight--600">{{ total_payment || 0 | toCurrency }}</p>
+                    </div>
+                    <div class="d-flex align-items-center margin__top--11 mb-4">
+                        <button class=" btn-pill-cancel w-100 mr-2" @click="handleHideCreateOrder">Huỷ</button>
+                        <button class="btn-pill w-100" style="pointer-events: all !important;"
+                            v-if="statusEditOrder==='new_order'" @click="handleEditOrder">Lưu sửa đơn</button>
+                        <button class="btn-pill w-100" @click="handleCreateOrder" v-else>Tạo đơn
+                            hàng</button>
+                    </div>
                 </div>
-                <button class="margin__top--11 btn-pill mb-4 w-100" style="pointer-events: all !important;"
-                    v-if="statusEditOrder==='new_order'" @click="handleEditOrder">Lưu sửa đơn</button>
-                <button class="margin__top--11 btn-pill mb-4 w-100" @click="handleCreateOrder" v-else>Tạo đơn
-                    hàng</button>
             </div>
         </div>
 
@@ -434,7 +431,10 @@
                     </div>
                     <div class="order__info--shipping-fee d-flex justify-content-between">
                         <p class="text__neutral70--medium ">-Giảm giá</p>
-                        <p class="font__weight--600">-{{discountNumber||0 | toCurrency}}</p>
+                        <p v-if="discount.type === 1" class="font__weight--600">-{{discountNumber || 0 | toCurrency}}
+                        </p>
+                        <p v-if="discount.type === 2" class="font__weight--600">-{{discountPercentNum || 0 |
+                            toCurrency}} </p>
                     </div>
                 </div>
                 <div class="order__info--total-payment d-flex justify-content-between">
@@ -566,24 +566,23 @@
     <!-- modal save address -->
     <div class="modal" :class="{'modal-transition':showSaveAddress}" v-if="showSaveAddress">
         <div class="modal__msg">
-            <div style="margin-bottom: 1.5rem;">
-                <div class="close" @click="hideModalSavePlace">
-                    <img src="@/assets/close1.png" alt="">
+            <div class="padding__bottom--12 padding__top--12 d-flex align-items-center justify-content-between"
+                style="border-bottom: 1px solid #DFE1E4">
+                <p class="text__second--medium font__weight--600">Tất cả địa chỉ</p>
+                <div @click="deleteCustomerAddress(saveAddressModal)">
+                    <img class="cursor__pointer margin__right--12" src="@/assets/icon/delete.svg" title="Xoá địa chỉ">
                 </div>
             </div>
-            <div class="padding__bottom--12" style="border-bottom: 1px solid #DFE1E4">
-                <p style="font-size: 13px; font-weight: 600; color: #140f2d">Tất cả địa chỉ</p>
-            </div>
             <div class="modal-option-save-place">
-                <div class="d-flex align-items-center justify-content-between" v-for="(item, index) in listSaveAddress">
+                <div class="" v-for="(item, index) in listSaveAddress">
                     <div class="margin__bottom--12 d-flex align-items-center">
-                        <input :id="'option-place-' + index" type="radio" :value="item" v-model="saveAddressModal">
-                        <label class="margin__left--12" :for="'option-place-' + index"><span class=""></span></label>
-                        <label :for="'option-place-' + index">{{item.address}}</label>
+                        <input :id="'modal-option-place-' + index" type="radio" :value="item"
+                            v-model="saveAddressModal">
+                        <label class="margin__left--12" :for="'modal-option-place-' + index"><span
+                                class=""></span></label>
+                        <label :for="'modal-option-place-' + index">{{item.address}}</label>
                     </div>
-                    <div>
-                        <img class="margin__bottom--12" src="@/assets/icon/delete.svg" alt="">
-                    </div>
+
                 </div>
             </div>
             <div class="margin__top--11 d-flex align-items-center">

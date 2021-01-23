@@ -30,7 +30,7 @@
         <div class="delivery__product--size">
             <div class="margin__bottom--12 form-row">
                 <div class="col form-row d-flex align-items-center">
-                    <p class="col text__second--small white-space-nowrap">Nặng (g)</p>
+                    <p class="delivery__product--size-name col text__second--small white-space-nowrap">Nặng (g)</p>
                     <div class="col tooltip">
                         <input v-model="order_info.weight" type="number" min="0" class="form-control-sm text-center p-0"
                             :class="{'validate-failed':validate_failed.weight}" placeholder="Cân nặng (gram)"
@@ -40,7 +40,7 @@
                 </div>
                 <div class="col form-row d-flex align-items-center"
                     v-if="payload.delivery_platform=='VIETTEL_POST'||payload.delivery_platform=='GHN'">
-                    <p class="col text__second--small white-space-nowrap">Dài (cm)</p>
+                    <p class="delivery__product--size-name col text__second--small white-space-nowrap">Dài (cm)</p>
                     <div class="col tooltip">
                         <input v-model="order_info.length" type="number" min="0" class="form-control-sm text-center p-0"
                             :class="{'validate-failed':validate_failed.length}" placeholder="Chiều dài (cm)"
@@ -52,7 +52,7 @@
             <div class="margin__bottom--12 form-row"
                 v-if="payload.delivery_platform=='VIETTEL_POST'||payload.delivery_platform=='GHN'">
                 <div class="col form-row d-flex align-items-center">
-                    <p class="col text__second--small white-space-nowrap">Rộng (cm)</p>
+                    <p class="delivery__product--size-name col text__second--small white-space-nowrap">Rộng (cm)</p>
                     <div class="col tooltip">
                         <input v-model="order_info.width" type="number" min="0" class="form-control-sm text-center p-0"
                             :class="{'validate-failed':validate_failed.width}" placeholder="Chiều rộng (cm)"
@@ -61,7 +61,7 @@
                     </div>
                 </div>
                 <div class="col form-row d-flex align-items-center">
-                    <p class="col text__second--small white-space-nowrap">Cao (cm)</p>
+                    <p class="delivery__product--size-name col text__second--small white-space-nowrap">Cao (cm)</p>
                     <div class="col tooltip">
                         <input v-model="order_info.height" type="number" min="0" class="form-control-sm text-center p-0"
                             :class="{'validate-failed':validate_failed.height}" placeholder="Chiều cao (cm)"

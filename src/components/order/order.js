@@ -69,6 +69,7 @@ export default {
             name: "",
             phone: "",
             street: "",
+            streetOrderEdit: "",
             house_number: "",
             country: "Việt Nam",
             list_city: [],
@@ -148,6 +149,7 @@ export default {
             showSaveAddress: false,
             showSetting: false,
             showSettingContent: true,
+            isCallApi: false
         };
     },
     created() {
@@ -188,10 +190,10 @@ export default {
                 let path = `${APICMS}/v1/selling-page/locations/provinces_v2`
                 let headers = { 'Authorization': this.store_token }
 
-                let get_list_city = await Restful.get(path, null, headers)
+                let listCity = await Restful.get(path, null, headers)
 
-                if (get_list_city.data && get_list_city.data.data) {
-                    this.list_city = get_list_city.data.data
+                if (listCity.data && listCity.data.data) {
+                    this.list_city = listCity.data.data
                 }
             } catch (e) {
                 console.log(e)
@@ -204,10 +206,10 @@ export default {
                 let params = { 'province_id': this.city.province_id }
                 let headers = { 'Authorization': this.store_token }
 
-                let get_list_district = await Restful.get(path, params, headers)
+                let listDistrict = await Restful.get(path, params, headers)
 
-                if (get_list_district.data && get_list_district.data.data) {
-                    this.list_district = get_list_district.data.data
+                if (listDistrict.data && listDistrict.data.data) {
+                    this.list_district = listDistrict.data.data
                 }
             } catch (e) {
                 console.log("error", e)
@@ -220,10 +222,10 @@ export default {
                 let params = { 'district_id': this.district.district_id }
                 let headers = { 'Authorization': this.store_token }
 
-                let get_list_ward = await Restful.get(path, params, headers)
+                let listWard = await Restful.get(path, params, headers)
 
-                if (get_list_ward.data && get_list_ward.data.data) {
-                    this.list_ward = get_list_ward.data.data
+                if (listWard.data && listWard.data.data) {
+                    this.list_ward = listWard.data.data
                 }
             } catch (e) {
                 console.log("error", e)
@@ -248,35 +250,32 @@ export default {
                     customerAddress.data.data.length > 0
                 ) {
                     this.listSaveAddress = customerAddress.data.data
-                    if (this.listSaveAddress.length >= 4)
-                        this.saveAddressModal = this.listSaveAddress[3]
+                    if (this.listSaveAddress.length > 0)
+                        this.saveAddressModal = this.listSaveAddress[0]
                 }
 
             } catch (e) {
                 console.log(e);
             }
         },
-        async deleteCustomerAddress(id) {
+        async deleteCustomerAddress(saveAddressModal) {
             try {
-                let customer_id = this.payload.customer_id
-
-                if (!customer_id) return
-
-                let path = `${APICMS}/v1/selling-page/customer/customer_address_read`
+                if (!saveAddressModal || !saveAddressModal.id) return
+                let id = saveAddressModal.id
+                let path = `${APICMS}/v1/selling-page/customer/customer_address_delete`
                 let headers = { Authorization: this.store_token }
-                let body = { customer_id }
+                let params = { id }
 
-                let customerAddress = await Restful.post(path, body, null, headers)
-
+                let delCustomerAddress = await Restful.get(path, params, headers)
                 if (
-                    customerAddress &&
-                    customerAddress.data &&
-                    customerAddress.data.data &&
-                    customerAddress.data.data.length > 0
+                    delCustomerAddress
                 ) {
-                    this.listSaveAddress = customerAddress.data.data
-                    if (this.listSaveAddress.length >= 4)
-                        this.saveAddressModal = this.listSaveAddress[3]
+                    this.saveAddressModal = ''
+                    this.listSaveAddress = this.listSaveAddress.filter((address, index) => {
+                        if (address.id != id) {
+                            return address
+                        }
+                    })
                 }
 
             } catch (e) {
@@ -359,7 +358,7 @@ export default {
             this.skip = 20
             this.filter_list_product = []
             await this.handleCheckProductAddCart()
-            setTimeout(() => { this.getCart() }, 200)
+            this.getCart()
 
         },
         handleShowNote() {
@@ -424,6 +423,9 @@ export default {
                 if (!item.product_price) {
                     return console.log('Error ::: Thêm sản phẩm thất bại');
                 }
+                if (this.isCallApi) return
+                this.isCallApi = true
+
                 let path = `${APICMS}/v1/selling-page/cart/cart_add_product`
                 let body = {
                     access_token: this.store_token,
@@ -456,12 +458,12 @@ export default {
                     add_cart.data.data.client_id
                 ) {
                     this.client_id = add_cart.data.data.client_id
-                    this.updateSetting('client_id', { client_id: this.client_id })
                 }
-
-                console.log('Thêm sản phẩm thành công');
+                this.isCallApi = false
+                return console.log('Thêm sản phẩm thành công');
 
             } catch (error) {
+                this.isCallApi = false
                 console.log("error", error);
                 Toast.fire({
                     icon: "error",
@@ -471,6 +473,8 @@ export default {
         },
         async delProductCart(item) {// *     xoá 1 sản phẩm trong giỏ hàng
             try {
+                if (this.isCallApi) return
+                this.isCallApi = true
                 let path = `${APICMS}/v1/selling-page/cart/cart_delete_product`
                 let body = {
                     product_id: item.product_id,
@@ -491,8 +495,10 @@ export default {
                         if (item.product_id !== product.product_id) return product
                     })
                 }
-                console.log("Đã xóa sản phẩm");
+                this.isCallApi = false
+                return console.log("Đã xóa sản phẩm");
             } catch (error) {
+                this.isCallApi = false
                 console.log("error", error);
                 Toast.fire({
                     icon: "error",
@@ -503,6 +509,8 @@ export default {
         async handleAddQuantity(item) { // * tăng 1 sản phẩm trong giỏ hàng
 
             try {
+                if (this.isCallApi) return
+                this.isCallApi = true
                 let path = `${APICMS}/v1/selling-page/cart/cart_add_product`
                 let body = {
                     product_id: item.product_id,
@@ -522,7 +530,9 @@ export default {
                         return product
                     })
                 }
+                this.isCallApi = false
             } catch (error) {
+                this.isCallApi = false
                 console.log(error, "error");
                 Toast.fire({
                     icon: "error",
@@ -531,8 +541,9 @@ export default {
             }
         },
         async handleSubQuantity(item) {// * Giảm 1 sản phẩm trong giỏ hàng
-
             try {
+                if (this.isCallApi) return
+                this.isCallApi = true
                 let path = `${APICMS}/v1/selling-page/cart/cart_sub_product`
                 let body = {
                     product_id: item.product_id,
@@ -551,7 +562,9 @@ export default {
                         return product
                     })
                 }
+                this.isCallApi = false
             } catch (error) {
+                this.isCallApi = false
                 console.log(error, "error")
                 Toast.fire({
                     icon: "error",
@@ -683,7 +696,7 @@ export default {
                     title: "Hệ thống đang tính phí giao vận. Vui lòng thử lại!"
                 })
             }
-            this.address = `${this.house_number} ${this.street}, ${this.ward.name}, ${this.district.name}, ${this.city.name}`
+            this.address = `${this.street}, ${this.ward.name}, ${this.district.name}, ${this.city.name}`
             this.is_show_order_info = true
             return true
         },
@@ -753,7 +766,7 @@ export default {
                 }
                 // Tạo customer mới đối với Haravan
                 if (this.platform_type === "HARAVAN") {
-                    this.address = `${this.house_number} ${this.street}, ${this.ward.meta_data.haravan.name}, ${this.district.meta_data.haravan.name}, ${this.city.name}`;
+                    this.address = `${this.street}, ${this.ward.meta_data.haravan.name}, ${this.district.meta_data.haravan.name}, ${this.city.name}`;
                     delete body["customer_city_name"]
                     body["customer_province_name"] = this.city.name
                     body["customer_province_code"] = this.city.meta_data.haravan.code
@@ -846,6 +859,8 @@ export default {
         },
         async delAllCart() {
             try {
+                if (this.isCallApi) return
+                this.isCallApi = true
                 // Xóa giỏ hàng sau khi tạo thành cong đơn hàng
                 let path = `${APICMS}/v1/selling-page/cart/cart_delete`
                 let body = {
@@ -860,9 +875,11 @@ export default {
                 this.note = ''
                 this.cart = []
                 this.total_price = 0
+                this.isCallApi = false
                 // Đóng chi tiết đơn hàng
                 this.closeOrderInfo()
             } catch (e) {
+                this.isCallApi = false
                 console.log("error", e)
             }
         },
@@ -1039,7 +1056,7 @@ export default {
         },
         async handleCheckProductAddCart() { // * kiểm tra product vừa thêm có trong giỏ hàng k => call api add cart
             if (this.list_product && this.list_product.length > 0) {
-                this.list_product.forEach(async (product, indexProduct) => {
+                for (let product of this.list_product) {
                     let hasInCart = false
                     if (this.cart && this.cart.length > 0) {
                         this.cart.forEach((productCart, indexProductCart) => {
@@ -1048,13 +1065,15 @@ export default {
                             }
                         })
                     }
+                    console.log('before add to cart');
                     if (product.check == true && !hasInCart) {
                         await this.handleAddToCart(product)
                     }
                     if (product.check == false && hasInCart) {
                         await this.delProductCart(product)
                     }
-                })
+                }
+                this.updateSetting('client_id', { client_id: this.client_id })
             }
         },
         changeStatusCheckCart(item) {
@@ -1316,6 +1335,7 @@ export default {
         hanndleFieldAddress(item) {// * Chọn địa chỉ từ order => field vào câc trường address 
             if (!item) return
             this.street = item.customer_street_name
+            this.streetOrderEdit = this.street
             this.city = {}
             this.city.name = item.customer_province_name || item.customer_city_name
             this.city.code = item.customer_province_code || item.customer_city_code
@@ -1382,7 +1402,7 @@ export default {
             if (type === 'modal')
                 this.hideModalSavePlace()
         },
-        async getOrderInfo(item) {
+        async getOrderInfo(item) { // * lấy thông tin order khi sửa new_order hoặc draft_order
             // * Reset client_id tránh loạn giỏ hàng
             this.client_id = ''
             this.cart = []
@@ -1509,7 +1529,7 @@ export default {
                     title: "Vui lòng điền đầy đủ thông tin",
                 })
                 this.is_loading = true
-                this.address = `${this.house_number} ${this.street}, ${this.ward.name}, ${this.district.name}, ${this.city.name}`
+                this.address = `${this.street}, ${this.ward.name}, ${this.district.name}, ${this.city.name}`
                 let path = `${APICMS}/v1/selling-page/order/order_update`
                 let headers = { Authorization: this.store_token }
                 let body = {
@@ -1529,7 +1549,7 @@ export default {
                     "customer_ward_code": this.ward.code,
                 }
                 if (this.platform_type === "HARAVAN") {
-                    this.address = `${this.house_number} ${this.street}, ${this.ward.meta_data.haravan.name}, ${this.district.meta_data.haravan.name}, ${this.city.name}`;
+                    this.address = `${this.street}, ${this.ward.meta_data.haravan.name}, ${this.district.meta_data.haravan.name}, ${this.city.name}`;
                     delete body["customer_city_name"]
                     body["customer_province_name"] = this.city.name
                     body["customer_province_code"] = this.city.meta_data.haravan.code
@@ -1726,10 +1746,14 @@ export default {
                 else {
                     this.getListWard()
                 }
-                if (newVal.street)
+                if (newVal.street) {
                     this.street = newVal.street.name
-                if (newVal.house_number)
-                    this.house_number = newVal.house_number.name
+                    if (newVal.house_number) {
+                        this.house_number = newVal.house_number.name
+                        this.street = this.house_number + ' ' + this.street
+                    }
+                }
+
             }
         },
         discount: function (newVal) {

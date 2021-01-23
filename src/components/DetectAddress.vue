@@ -11,7 +11,11 @@
       @keydown.enter="onEnter"
       @click="handleClickInput"
     />
-    <ul v-show="isOpen" ref="scrollContainer" class="autocomplete-results">
+    <ul
+      v-show="isOpen && listDetectAddress && listDetectAddress.length > 0"
+      ref="scrollContainer"
+      class="autocomplete-results"
+    >
       <li class="loading" v-if="isLoading">Đang xử lí, vui lòng đợi...</li>
       <li
         v-else
@@ -34,7 +38,7 @@ import Restful from "@/services/resful.js";
 
 import { APICMS } from "@/services/constant.js";
 export default {
-  props: ["store_token", "isAsync", "placeholder"],
+  props: ["store_token", "isAsync", "placeholder", "streetOrderEdit"],
   data() {
     return {
       isOpen: false,
@@ -146,7 +150,13 @@ export default {
       }
     },
   },
-  watch: {},
+  watch: {
+    streetOrderEdit: function (newVal) {
+      if (newVal) {
+        this.textAddress = newVal;
+      }
+    },
+  },
   mounted() {
     document.addEventListener("click", this.handleClickOutside);
   },

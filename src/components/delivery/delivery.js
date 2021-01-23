@@ -5,7 +5,7 @@ import { APICMS } from "@/services/constant.js"
 
 export default {
     components: { Autocomplete },
-    props: ['propTotalPriceDiscount', 'store_token', 'payload', 'statusEditOrder', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_receiver_street', 'prop_total_price', 'order_option', 'propSendMessage'],
+    props: ['propTotalPriceDiscount', 'store_token', 'payload', 'statusEditOrder', 'prop_receiver_name', 'prop_receiver_phone', 'prop_receiver_address', 'prop_receiver_city', 'prop_receiver_district', 'prop_receiver_ward', 'prop_receiver_street', 'prop_total_payment', 'prop_total_price', 'order_option', 'propSendMessage'],
     data() {
         return {
             list_inventories: "",
@@ -780,18 +780,40 @@ export default {
             this.order_info.receiver_phone = this.prop_receiver_phone
         },
         prop_total_price: function (newVal) {
+            console.log('watch prop_total_price change', newVal);
             if (this.payload.delivery_platform == 'VIETTEL_POST') {
                 this.getPricingServices()
             }
             if (this.payload.delivery_platform == 'GHTK') {
                 this.getShippingFee()
             }
-            if (
-                this.payload.delivery_platform == 'GHN' ||
-                this.payload.delivery_platform == 'GHTK'
-            ) {
-                this.formatNumber(newVal)
+        },
+        prop_total_payment: function (newVal) {
+            let codAmount = 0
+            switch (this.payload.delivery_platform) {
+                case 'GHN':
+                    if (this.order_info.order_payment.value == 1) {
+                        codAmount = newVal
+                    }
+                    else if (this.order_info.order_payment.value == 2) {
+                        codAmount = newVal - this.order_info.shipping_fee
+                    }
+                    break;
+                case 'GHTK':
+                    if (this.order_info.order_payment.value == 0) {
+                        codAmount = newVal
+                    }
+                    else if (this.order_info.order_payment.value == 1) {
+                        codAmount = newVal - this.order_info.shipping_fee
+                    }
+                    break;
+                case 'VIETTEL_POST':
+                    
+                    break;
+                default:
+                    break;
             }
+            this.formatNumber(codAmount)
         },
         'order_info.shipping_fee': function () {
             this.$emit('shipping_fee', this.order_info.shipping_fee)

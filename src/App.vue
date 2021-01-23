@@ -588,11 +588,12 @@ export default {
   color: #777777;
 }
 .btn-pill {
-  font-size: 12px;
-  line-height: 20px;
-  background: $colorAccent;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
+  background: #ff5f0b;
   color: #ffffff;
-  height: 2rem;
+  height: 32px;
   outline: none;
   border: none;
   border-radius: 16px;
@@ -602,30 +603,31 @@ export default {
   -webkit-box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
   box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
   &:hover {
-    background: $colorAccent;
+    background: #ff8f54;
     transition: transform 0.15s, background 0.15s;
-    -webkit-transform: scale(1.03);
-    transform: scale(1.03);
+    -webkit-transform: scale(1.01);
+    transform: scale(1.01);
     -webkit-box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
     box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
   }
   &:focus {
-    background: $colorAccent;
+    background: #f55600;
     transition: transform 0.15s, background 0.15s;
-    -webkit-transform: scale(1.03);
-    transform: scale(1.03);
+    -webkit-transform: scale(1.01);
+    transform: scale(1.01);
     -webkit-box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
     box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
   }
 }
 .btn-pill-cancel {
-  font-size: 12px;
-  line-height: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
   background: #ffffff;
   color: #4f596a;
-  height: 2rem;
+  height: 32px;
   outline: none;
-  border: none;
+  border: 1px solid #dfe1e4;
   border-radius: 16px;
   white-space: nowrap;
   overflow: hidden;
@@ -634,19 +636,49 @@ export default {
   box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
   &:hover {
     background: #ffffff;
+    border: 1px solid #ff8f54;
+    color: #ff8f54;
     transition: transform 0.15s, background 0.15s;
-    -webkit-transform: scale(1.03);
-    transform: scale(1.03);
+    -webkit-transform: scale(1.01);
+    transform: scale(1.01);
     -webkit-box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
     box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
   }
   &:focus {
     background: #ffffff;
+    border: 1px solid #f55600;
+    color: #f55600;
     transition: transform 0.15s, background 0.15s;
-    -webkit-transform: scale(1.03);
-    transform: scale(1.03);
+    -webkit-transform: scale(1.01);
+    transform: scale(1.01);
     -webkit-box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
     box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
+  }
+}
+.btn-pill-add {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 14px;
+  background: #fff7f3;
+  color: #ff5f0b;
+  height: 26px;
+  outline: none;
+  border: none;
+  border-radius: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  &:hover {
+    background: #fffaf9;
+    transition: transform 0.15s, background 0.15s;
+    -webkit-transform: scale(1.01);
+    transform: scale(1.01);
+  }
+  &:focus {
+    background: #fff0e9;
+    transition: transform 0.15s, background 0.15s;
+    -webkit-transform: scale(1.01);
+    transform: scale(1.01);
   }
 }
 .form-control-sm {
@@ -802,9 +834,10 @@ select {
   line-height: 20px;
 }
 .icon__add--cursor {
+  width: 24px;
+  height: 24px;
   cursor: pointer;
   &:hover {
-    // transform: scale(1.1);
     border-radius: 50%;
     background: $colorNeutral18;
   }
@@ -823,6 +856,9 @@ select {
 }
 .padding__bottom--12 {
   padding-bottom: 12px;
+}
+.padding__top--12 {
+  padding-top: 12px;
 }
 .margin__left--8 {
   margin-left: 8px;

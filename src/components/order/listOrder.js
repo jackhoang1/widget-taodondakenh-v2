@@ -358,7 +358,7 @@ export default {
             let color = ''
             switch (item.status) {
                 case 'draft_order':
-                    color = ''
+                    color = '#848B97'
 
                     break;
                 case 'new_order':
@@ -366,7 +366,7 @@ export default {
 
                     break;
                 case 'out_stock':
-                    color = ''
+                    color = '#56CCF2'
 
                     break;
                 case 'confirmed_order':
@@ -374,19 +374,19 @@ export default {
 
                     break;
                 case 'deliver_order':
-                    color = ''
+                    color = '#2F80ED'
 
                     break;
                 case 'return_order':
-                    color = ''
+                    color = '#BB6BD9'
 
                     break;
                 case 'sucess_order':
-                    color = ''
+                    color = '#219653'
 
                     break;
                 case 'returned_order':
-                    color = ''
+                    color = '#9B51E0'
 
                     break;
                 case 'cancel_order':
@@ -394,7 +394,7 @@ export default {
 
                     break;
                 case 'remove_order':
-                    color = ''
+                    color = '#848B97'
 
                     break;
                 default:
