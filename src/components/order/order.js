@@ -339,8 +339,9 @@ export default {
         searchByFilter() {
             let products = this.list_product
             let search = this.search_value.toLowerCase()
-            this.filter_list_product = products.filter((item) => {
-                return item.product_name.toLowerCase().includes(search)
+            this.filter_list_product = products.filter((item, indexItem) => {
+                if (item.product_name.toLowerCase().search(search) > 0)
+                    return item
             })
 
             this.filter_list_product = this.handleCheckCartInListProduct(this.filter_list_product)
@@ -1123,7 +1124,8 @@ export default {
                 return product.image
             }
 
-            products.map((product, index) => {
+            products.forEach((product, index) => {
+                if (!product.variants || !product.variants.length) return
                 let map_variant = product.variants.map((variant) => {
                     variant.image = findImage(product, variant.image_id)
                     return {

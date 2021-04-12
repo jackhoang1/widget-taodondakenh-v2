@@ -82,7 +82,7 @@ export default {
             isFreeShip: false,
             is_show_popup: false,
             is_show_note: false,
-            is_affiliate: true,
+            // is_affiliate: true,
             otpGhn: ""
         };
     },
@@ -282,8 +282,8 @@ export default {
         },
         //handle change btn select//
         async handleShopChange() {
-            if (this.payload.delivery_platform === 'GHN')
-                this.checkAffiliate()
+            // if (this.payload.delivery_platform === 'GHN')
+            //     this.checkAffiliate()
             await this.getPricingServices()
             this.getShippingFee()
         },
@@ -480,10 +480,10 @@ export default {
 
             }
             if (this.payload.delivery_platform == 'GHN') {
-                if (!this.is_affiliate) {
-                    this.swalToast('Vui lòng nhập mã OTP phân quyền cho Bot Bán Hàng làm nhân viên lên đơn', 'warning')
-                    return 'failed'
-                }
+                // if (!this.is_affiliate) {
+                //     this.swalToast('Vui lòng nhập mã OTP phân quyền cho Bot Bán Hàng làm nhân viên lên đơn', 'warning')
+                //     return 'failed'
+                // }
                 if (this.prop_total_price > 10000000) {
                     this.swalToast('Giá trị đơn hàng để tính phí bảo hiểm không quá 10.000.000đ', 'warning')
                 }
@@ -575,34 +575,34 @@ export default {
 
             }
         },
-        async checkAffiliate() {
-            try {
-                console.log(this.order_info.inventory);
-                if (
-                    this.payload.delivery_platform !== 'GHN' ||
-                    !this.order_info.inventory
-                ) return
-                let path = `${APICMS}/v1/selling-page/delivery/check_affiliate_shop`
-                let headers = { Authorization: this.store_token }
-                let shop_id = this.order_info.inventory._id
-                let body = { shop_id }
+        // async checkAffiliate() {
+        //     try {
+        //         console.log(this.order_info.inventory);
+        //         if (
+        //             this.payload.delivery_platform !== 'GHN' ||
+        //             !this.order_info.inventory
+        //         ) return
+        //         let path = `${APICMS}/v1/selling-page/delivery/check_affiliate_shop`
+        //         let headers = { Authorization: this.store_token }
+        //         let shop_id = this.order_info.inventory._id
+        //         let body = { shop_id }
 
-                let checkAffiliate = await Restful.post(path, body, null, headers)
+        //         let checkAffiliate = await Restful.post(path, body, null, headers)
 
-                if (
-                    checkAffiliate &&
-                    checkAffiliate.data &&
-                    checkAffiliate.data.data
-                ) {
-                    let check = checkAffiliate.data.data.status
-                    this.is_affiliate = check
-                    if (!check)
-                        this.sendOtp()
-                }
-            } catch (e) {
-                console.log(e);
-            }
-        },
+        //         if (
+        //             checkAffiliate &&
+        //             checkAffiliate.data &&
+        //             checkAffiliate.data.data
+        //         ) {
+        //             let check = checkAffiliate.data.data.status
+        //             this.is_affiliate = check
+        //             if (!check)
+        //                 this.sendOtp()
+        //         }
+        //     } catch (e) {
+        //         console.log(e);
+        //     }
+        // },
         async sendOtp() {
             try {
                 let phone = ''
@@ -626,47 +626,47 @@ export default {
                 console.log(e);
             }
         },
-        async addAffiliate() {
-            try {
-                if (this.payload.delivery_platform !== 'GHN') return
-                let phone = ''
-                if (this.order_info.inventory && this.order_info.inventory.phone)
-                    phone = this.order_info.inventory.phone
+        // async addAffiliate() {
+        //     try {
+        //         if (this.payload.delivery_platform !== 'GHN') return
+        //         let phone = ''
+        //         if (this.order_info.inventory && this.order_info.inventory.phone)
+        //             phone = this.order_info.inventory.phone
 
-                let path = `${APICMS}/v1/selling-page/delivery/ghn_add_affiliate`
-                let headers = { Authorization: this.store_token }
-                let body = {
-                    "phone": phone,
-                    "otp": this.otpGhn,
-                    "shop_id": this.order_info.inventory._id
-                }
+        //         let path = `${APICMS}/v1/selling-page/delivery/ghn_add_affiliate`
+        //         let headers = { Authorization: this.store_token }
+        //         let body = {
+        //             "phone": phone,
+        //             "otp": this.otpGhn,
+        //             "shop_id": this.order_info.inventory._id
+        //         }
 
-                let addAffiliate = await Restful.post(path, body, null, headers)
+        //         let addAffiliate = await Restful.post(path, body, null, headers)
 
-                if (
-                    addAffiliate &&
-                    addAffiliate.data &&
-                    addAffiliate.data.data &&
-                    addAffiliate.data.data.status
-                ) {
-                    this.is_affiliate = true
-                    this.swalToast('Thêm thành công')
-                }
-            } catch (e) {
-                if (
-                    e &&
-                    e.data &&
-                    e.data.error_message &&
-                    e.data.error_message.code_message_value
-                ) {
-                    return this.swalToast(
-                        e.data.error_message.code_message_value,
-                        'error'
-                    )
-                }
-                this.swalToast('Lỗi khi thêm nhân viên vào cửa hàng', 'error')
-            }
-        },
+        //         if (
+        //             addAffiliate &&
+        //             addAffiliate.data &&
+        //             addAffiliate.data.data &&
+        //             addAffiliate.data.data.status
+        //         ) {
+        //             this.is_affiliate = true
+        //             this.swalToast('Thêm thành công')
+        //         }
+        //     } catch (e) {
+        //         if (
+        //             e &&
+        //             e.data &&
+        //             e.data.error_message &&
+        //             e.data.error_message.code_message_value
+        //         ) {
+        //             return this.swalToast(
+        //                 e.data.error_message.code_message_value,
+        //                 'error'
+        //             )
+        //         }
+        //         this.swalToast('Lỗi khi thêm nhân viên vào cửa hàng', 'error')
+        //     }
+        // },
         handleShowNote() {
             this.is_show_note = !this.is_show_note
             if (this.is_show_note) {

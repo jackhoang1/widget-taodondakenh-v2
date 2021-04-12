@@ -114,7 +114,7 @@ export default {
         console.log("onEnter");
       }
     },
-    onArrowDown(evt) {
+    onArrowDown(event) {
       event.preventDefault();
       if (this.arrowCounter < this.listDetectAddress.length) {
         this.isOpen = true;
