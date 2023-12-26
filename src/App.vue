@@ -1,17 +1,9 @@
 <template>
   <div class>
     <!-- Authentication -->
-    <Login
-      v-if="isLogin || (!is_oauth && !overlaySign)"
-      :isLogin="isLogin"
-      :showLogin="showLogin"
-      :hideLogin="hideLogin"
-      :readSetting="readSetting"
-      :updateSetting="updateSetting"
-      :access_token="access_token"
-      :forceRerender="forceRerender"
-      @store-token="store_token = $event"
-    >
+    <Login v-if="isLogin || (!is_oauth && !overlaySign)" :isLogin="isLogin" :showLogin="showLogin" :hideLogin="hideLogin"
+      :readSetting="readSetting" :updateSetting="updateSetting" :access_token="access_token"
+      :forceRerender="forceRerender" @store-token="store_token = $event">
     </Login>
     <!--End Authentication -->
     <!-- header widget -->
@@ -20,71 +12,29 @@
         <div class="d-flex justify-content-between">
           <p class="header__title text__second--large">Đơn hàng</p>
           <div class="cursor__pointer" @click="handleListShort">
-            <svg
-              class="header__title--icon-arrow"
-              :class="{ 'arrow-rorate': is_short }"
-              width="14"
-              height="8"
-              viewBox="0 0 14 8"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M13 7L7 1L1 7"
-                stroke="#140F2D"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
+            <svg class="header__title--icon-arrow" :class="{ 'arrow-rorate': is_short }" width="14" height="8"
+              viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13 7L7 1L1 7" stroke="#140F2D" stroke-width="1.5" stroke-linecap="round"
+                stroke-linejoin="round" />
             </svg>
           </div>
         </div>
-        <div
-          class="margin__bottom--8 d-flex justify-content-between align-items-center"
-        >
+        <div class="margin__bottom--8 d-flex justify-content-between align-items-center">
           <div class="d-flex align-items-center">
-            <div
-              class="margin__right--12 icon__add--cursor d-flex align-items-center"
-              @click="handleShowCreateOrder"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 5V19"
-                  stroke="#FF5F0B"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M5 12H19"
-                  stroke="#FF5F0B"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
+            <div class="margin__right--12 icon__add--cursor d-flex align-items-center" @click="handleShowCreateOrder">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5V19" stroke="#FF5F0B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M5 12H19" stroke="#FF5F0B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </div>
-            <p
-              class="text__accent--medium cursor__pointer"
-              @click="handleShowCreateOrder"
-            >
+            <p class="text__accent--medium cursor__pointer" @click="handleShowCreateOrder">
               Tạo đơn hàng mới
             </p>
           </div>
 
           <div tag="_blank">
-            <a
-              class="text__accent--medium text__decoration--none"
-              href="https://cms.botup.io/"
-              target="_blank"
-              >[Mở CMS]</a
-            >
+            <a class="text__accent--medium text__decoration--none" href="https://cms.botup.io/" target="_blank">[Mở
+              CMS]</a>
           </div>
         </div>
       </section>
@@ -108,29 +58,31 @@
           </div>
           <div>
             <create-order
-              :store_token="store_token"
-              :payload="payload"
+              v-if="reload"
+              :store_token="store_token" 
+              :payload="payload" 
               :handleShowCreateOrder="handleShowCreateOrder"
-              :showLogin="showLogin"
-              :hideLogin="hideLogin"
-              :readSetting="readSetting"
+              :showLogin="showLogin" 
+              :hideLogin="hideLogin" 
+              :readSetting="readSetting" 
               :updateSetting="updateSetting"
-              :key="componentKey"
-              @platform_type="payload.platform_type = $event"
-              @msg-info="getMsgInfoDraft"
+              :key="componentKey" 
+              @platform_type="payload.platform_type = $event" 
+              @msg-info="getMsgInfoDraft" 
             />
           </div>
         </div>
       </div>
 
       <!-- End Comp Create order -->
-      <list-order
-        ref="listOrder"
-        :store_token="store_token"
+      <list-order 
+        v-if="reload"
+        ref="listOrder" 
+        :store_token="store_token" 
         :payload="payload"
-        :handleShowCreateOrder="handleShowCreateOrder"
-        :key="componentKey"
-        @platform="getPlatform"
+        :handleShowCreateOrder="handleShowCreateOrder" 
+        :key="componentKey" 
+        @platform="getPlatform" 
       />
     </div>
   </div>
@@ -212,6 +164,7 @@ export default {
       },
       show_order: false,
       is_short: false,
+      reload: true
     };
   },
   async created() {
@@ -223,7 +176,9 @@ export default {
       console.log(e);
     }
   },
-  mounted() {},
+  mounted() {
+    this.listenParentEvent()
+  },
   computed: {},
   methods: {
     forceRerender() {
@@ -444,6 +399,49 @@ export default {
         this.$refs.listOrder.handleListShort();
       this.is_short = !this.is_short;
     },
+    listenParentEvent() {
+      try {
+        // * Khai báo lại this
+        const _this = this
+
+        // * Lắng nghe event message từ parent
+        window.addEventListener('message', async function (event) {
+          if (event &&
+            event.data &&
+            event.data.type &&
+            event.data.from &&
+            event.data.from === 'CHATBOX' &&
+            event.data.payload
+          ) {
+            // * Phân loại event type
+            switch (event.data.type) {
+              case 'RELOAD':
+
+                // * Ghi đè lại access_token
+                access_token = event.data.payload[
+                  'access_token'
+                ] || ''
+
+                _this.access_token = access_token
+
+                _this.payload = {}
+                await _this.partnerAuth();
+                await _this.readSetting();
+
+                _this.reload = false
+
+                this.setTimeout(function() {
+                  _this.reload = true
+                }, 100)
+
+                break;
+              default: console.log("EVENT_TYPE_INVALID")
+                break;
+            }
+          }
+        });
+      } catch (error) { console.log("listenParentEvent", error) }
+    }
   },
 };
 </script>
@@ -462,12 +460,14 @@ export default {
   opacity: 0;
   transition: opacity 0.3s;
 }
+
 @mixin tooltip-position-after {
   content: "";
   position: absolute;
   border-width: 5px;
   border-style: solid;
 }
+
 @mixin imageSelect {
   background: url(./assets/arrow.svg) no-repeat right #fff !important;
   background-position-x: 98% !important;
@@ -482,33 +482,41 @@ export default {
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
     Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji,
     Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+
   hr {
     opacity: 0.3;
     margin: 1rem 0 1rem 0;
   }
+
   &::-webkit-scrollbar {
     display: none;
   }
 }
+
 /* --------------- */
 .widget {
   padding: 18px 0;
   position: relative;
+
   .header {
     padding: 0 25px 0 20px;
     user-select: none;
+
     .header__title {
       margin-bottom: 8px;
     }
+
     .header__title--icon-arrow {
       transition: transform 0.25s ease-out;
       transform: rotate(0);
     }
+
     .arrow-rorate {
       transition: transform 0.25s ease-out !important;
       transform: rotate(180deg) !important;
     }
   }
+
   .create__order {
     position: absolute;
     z-index: 2;
@@ -520,6 +528,7 @@ export default {
     margin: 0 10px;
   }
 }
+
 .all__text--decoration {
   text-align: center;
   width: 100px;
@@ -530,6 +539,7 @@ export default {
   background: #fff;
   color: #777777;
 }
+
 .btn-pill {
   font-size: 12px;
   line-height: 20px;
@@ -544,6 +554,7 @@ export default {
   text-overflow: ellipsis;
   -webkit-box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
   box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
+
   &:hover {
     background: $colorAccent;
     transition: transform 0.15s, background 0.15s;
@@ -552,6 +563,7 @@ export default {
     -webkit-box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
     box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
   }
+
   &:focus {
     background: $colorAccent;
     transition: transform 0.15s, background 0.15s;
@@ -561,6 +573,7 @@ export default {
     box-shadow: 0px 2px 10px rgba(255, 95, 11, 0.3);
   }
 }
+
 .form-control-sm {
   height: 32px;
   width: 100%;
@@ -574,9 +587,11 @@ export default {
   background: #fff;
   background-clip: padding-box;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
   option {
     background: #ffffff;
   }
+
   &:focus {
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
     background: #fff;
@@ -584,22 +599,27 @@ export default {
     // border: none;
   }
 }
+
 .tooltip {
   position: relative;
   display: inline-block;
+
   // border-bottom: 1px dotted black;
   .tooltip-nowrap {
     white-space: nowrap;
   }
+
   .tooltip-medium {
     min-width: 10rem !important;
   }
+
   .tooltip-top {
     @include tooltip-position;
     bottom: 125%;
     left: 50%;
     transform: translateX(-50%);
     font-size: 12px;
+
     &::after {
       @include tooltip-position-after;
       top: 100%;
@@ -608,12 +628,14 @@ export default {
       border-color: #555 transparent transparent transparent;
     }
   }
+
   .tooltip-bottom {
     @include tooltip-position;
     top: 100%;
     left: 50%;
     transform: translateX(-50%);
     font-size: 12px;
+
     &::after {
       @include tooltip-position-after;
       bottom: 100%;
@@ -622,11 +644,13 @@ export default {
       border-color: transparent transparent #555 transparent;
     }
   }
+
   .tooltip-right {
     @include tooltip-position;
     top: 0;
     left: 125%;
     font-size: 12px;
+
     &::after {
       top: 50%;
       right: 100%;
@@ -634,12 +658,14 @@ export default {
       border-color: transparent #555 transparent transparent;
     }
   }
+
   .tooltip-left {
     @include tooltip-position;
     top: 0;
     bottom: auto;
     right: 128%;
     font-size: 12px;
+
     &::after {
       @include tooltip-position-after;
       top: 50%;
@@ -648,7 +674,9 @@ export default {
       border-color: transparent transparent transparent #555;
     }
   }
+
   &:hover {
+
     .tooltip-left,
     .tooltip-right,
     .tooltip-top,
@@ -658,9 +686,11 @@ export default {
     }
   }
 }
+
 .validate-failed {
   border: 1px solid red !important;
 }
+
 .validate-failed-address {
   // margin-bottom: 1rem !important;
   padding: 0 !important;
@@ -669,121 +699,154 @@ export default {
   border-radius: 4px !important;
   border: 1px solid red !important;
 }
+
 select {
   @include imageSelect;
 }
+
 .text__accent--medium {
   font-size: 14px;
   line-height: 22px;
   color: $colorAccent;
 }
+
 .text__second--large {
   font-size: 16px;
   line-height: 24px;
   font-weight: 600;
   color: $colorSecond;
 }
+
 .text__second--medium {
   color: $colorSecond;
   font-size: 14px;
   line-height: 22px;
 }
+
 .text__neutral--medium {
   color: $colorNeutral;
   font-size: 14px;
   line-height: 22px;
 }
+
 .text__neutral70--medium {
   color: $colorNeutral70;
   font-size: 14px;
   line-height: 22px;
 }
+
 .text__neutral38--medium {
   color: $colorNeutral38;
   font-size: 14px;
   line-height: 22px;
 }
+
 .text__neutral {
   color: $colorNeutral70;
   font-size: 12px;
   line-height: 20px;
 }
+
 .icon__add--cursor {
   cursor: pointer;
+
   &:hover {
     // transform: scale(1.1);
     border-radius: 50%;
     background: $colorNeutral18;
   }
 }
+
 .cursor__pointer {
   cursor: pointer;
 }
+
 .padding__left--8 {
   padding-left: 8px;
 }
+
 .padding__right--18 {
   padding-right: 18px;
 }
+
 .padding__right--12 {
   padding-right: 12px;
 }
+
 .margin__left--8 {
   margin-left: 8px;
 }
+
 .margin__left--12 {
   margin-left: 12px;
 }
+
 .margin__right--5 {
   margin-right: 5px;
 }
+
 .margin__right--8 {
   margin-right: 8px;
 }
+
 .margin__right--12 {
   margin-right: 12px;
 }
+
 .margin__right--18 {
   margin-right: 18px;
 }
+
 .margin__bottom--8 {
   margin-bottom: 8px;
 }
+
 .margin__bottom--12 {
   margin-bottom: 12px;
 }
+
 .margin__bottom--13 {
   margin-bottom: 13px;
 }
+
 .font__weight--600 {
   font-weight: 600;
 }
+
 .margin__top--17 {
   margin-top: 17px;
 }
+
 .margin__top--15 {
   margin-top: 15px;
 }
+
 .margin__top--11 {
   margin-top: 11px;
 }
+
 .margin__top--9 {
   margin-top: 9px;
 }
+
 .margin__y--8 {
   margin: 8px 0;
 }
+
 .margin__y--15 {
   margin: 15px 0;
 }
+
 .text__decoration--none {
   text-decoration: none;
 }
+
 .hover-scale {
   &:hover {
     transform: scale(1.1);
   }
 }
+
 .close {
   position: absolute;
   background: $colorNeutral38;
@@ -796,29 +859,33 @@ select {
   justify-content: center;
   align-items: center;
   cursor: pointer;
+
   &:hover {
     opacity: 1 !important;
     transform: scale(1.1);
   }
+
   &:focus {
     outline: none;
   }
+
   img {
     width: 6px;
     height: 6px;
   }
 }
+
 input[type="radio"] {
   display: none;
 }
 
-input[type="radio"] + label {
+input[type="radio"]+label {
   // color:#f2f2f2;
   font-family: Arial, sans-serif;
   font-size: 14px;
 }
 
-input[type="radio"] + label span {
+input[type="radio"]+label span {
   display: inline-block;
   width: 20px;
   height: 20px;
@@ -828,7 +895,7 @@ input[type="radio"] + label span {
   cursor: pointer;
 }
 
-input[type="radio"]:checked + label span {
+input[type="radio"]:checked+label span {
   background: url(./assets/radio_checked.svg) no-repeat;
 }
 
@@ -836,13 +903,13 @@ input[type="checkbox"] {
   display: none;
 }
 
-input[type="checkbox"] + label {
+input[type="checkbox"]+label {
   // color:#f2f2f2;
   font-family: Arial, sans-serif;
   font-size: 14px;
 }
 
-input[type="checkbox"] + label span {
+input[type="checkbox"]+label span {
   display: inline-block;
   width: 20px;
   height: 20px;
@@ -852,9 +919,10 @@ input[type="checkbox"] + label span {
   cursor: pointer;
 }
 
-input[type="checkbox"]:checked + label span {
+input[type="checkbox"]:checked+label span {
   background: url(./assets/checkbox_checked.svg) no-repeat;
 }
+
 // #create-order {
 //   position: absolute;
 //   top: 0;
@@ -870,22 +938,27 @@ input[type="checkbox"]:checked + label span {
   background: rgba(0, 0, 0, 0.7);
   min-height: 100%;
   width: 100%;
+
   .modal__btn--close {
     text-align: right;
+
     img {
       height: 20px;
       width: 20px;
+
       &:hover {
         cursor: pointer;
       }
     }
   }
+
   .modal__content {
     background: #ffffff;
     position: relative;
     border-radius: 8px;
     margin: 0 9px;
   }
+
   .modal__msg {
     position: relative;
     background: #ffffff;
@@ -895,5 +968,4 @@ input[type="checkbox"]:checked + label span {
     padding: 0 12px 20px;
     border-radius: 4px;
   }
-}
-</style>
+}</style>
