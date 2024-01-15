@@ -273,6 +273,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    cursor: pointer;
+    
     &:hover {
         cursor: pointer;
         opacity: 1 !important;

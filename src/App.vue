@@ -33,7 +33,7 @@
           </div>
 
           <div tag="_blank">
-            <a class="text__accent--medium text__decoration--none" href="https://cms.botup.io/" target="_blank">[Mở
+            <a class="text__accent--medium text__decoration--none" href="https://merchant.appon.vn/" target="_blank">[Mở
               CMS]</a>
           </div>
         </div>
@@ -933,7 +933,7 @@ input[type="checkbox"]:checked+label span {
 .modal {
   position: absolute;
   top: 0;
-  padding: 90px 0;
+  padding: 20px 0;
   z-index: 999;
   background: rgba(0, 0, 0, 0.7);
   min-height: 100%;
