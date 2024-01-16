@@ -8,7 +8,7 @@
     <!--End Authentication -->
     <!-- header widget -->
     <div v-if="is_oauth" class="widget">
-      <section class="header">
+      <!-- <section class="header">
         <div class="d-flex justify-content-between">
           <p class="header__title text__second--large">Đơn hàng</p>
           <div class="cursor__pointer" @click="handleListShort">
@@ -37,7 +37,23 @@
               CMS]</a>
           </div>
         </div>
-      </section>
+      </section> -->
+
+      <div class="menu-tab">
+        <div :class="{ 
+          'tab-active': tab_selected === 'ORDER',
+          'tab-unactive': tab_selected !== 'ORDER'
+        }" @click="tab_selected = 'ORDER'">
+          <p>Đơn hàng</p>
+        </div>
+        <div :class="{ 
+          'tab-active': tab_selected === 'CREATE_ORDER',
+          'tab-unactive': tab_selected !== 'CREATE_ORDER'
+        }" @click="handleShowCreateOrder()">
+          <p>Tạo đơn</p>
+        </div>
+      </div>
+
       <!-- End header widget -->
       <!-- Comp Create order -->
       <!-- <section id="create-order">
@@ -51,7 +67,22 @@
         </div>
       </section> -->
       <!-- test modal -->
-      <div class="modal" v-show="show_order">
+      <div v-show="show_order && tab_selected === 'CREATE_ORDER'">
+        <create-order
+          v-if="reload"
+          :store_token="store_token" 
+          :payload="payload" 
+          :handleShowCreateOrder="handleShowCreateOrder"
+          :showLogin="showLogin" 
+          :hideLogin="hideLogin" 
+          :readSetting="readSetting" 
+          :updateSetting="updateSetting"
+          :key="componentKey" 
+          @platform_type="payload.platform_type = $event" 
+          @msg-info="getMsgInfoDraft" 
+        />
+      </div>
+      <!-- <div class="modal" v-show="show_order && tab_selected === 'CREATE_ORDER'">
         <div class="modal__content">
           <div class="close" @click="handleHideCreateOrder">
             <img src="@/assets/close1.png" alt="" />
@@ -72,11 +103,11 @@
             />
           </div>
         </div>
-      </div>
+      </div> -->
 
       <!-- End Comp Create order -->
       <list-order 
-        v-if="reload"
+        v-if="reload && tab_selected === 'ORDER'"
         ref="listOrder" 
         :store_token="store_token" 
         :payload="payload"
@@ -84,6 +115,7 @@
         :key="componentKey" 
         @platform="getPlatform" 
       />
+
     </div>
   </div>
 </template>
@@ -164,7 +196,8 @@ export default {
       },
       show_order: false,
       is_short: false,
-      reload: true
+      reload: true,
+      tab_selected: 'ORDER'
     };
   },
   async created() {
@@ -389,7 +422,8 @@ export default {
       this.isLogin = false;
     },
     async handleShowCreateOrder() {
-      this.show_order = !this.show_order;
+      this.show_order = true;
+      this.tab_selected = 'CREATE_ORDER'
     },
     handleHideCreateOrder() {
       this.show_order = false;
@@ -495,7 +529,7 @@ export default {
 
 /* --------------- */
 .widget {
-  padding: 18px 0;
+  padding: 8px 0;
   position: relative;
 
   .header {
@@ -968,4 +1002,33 @@ input[type="checkbox"]:checked+label span {
     padding: 0 12px 20px;
     border-radius: 4px;
   }
-}</style>
+}
+
+.menu-tab {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 10px;
+  margin-bottom: 8px;
+  padding: 0px 8px;
+  div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    p {
+      font-weight: 600;
+    }
+  }
+  .tab-unactive {
+    background: #f6f7f8;
+    color: #777777;
+  }
+  .tab-active {
+    background: #ff5f0b;
+    color: #ffffff;
+  }
+}
+
+</style>
